@@ -1,0 +1,44 @@
+#### Makefile for M2000 Allegro portable library
+# Following #defines can be used:
+# DEBUG			Compile with builtin debugger
+# LSB_FIRST		Compile for a low-endian machine
+# HAVE_FTRUNCATE	We have ftruncate()
+# HAVE_CLOCK		clock() is available on this machine
+# JOYSTICK		Use Linux joystick driver (incomplete)
+# SOUND			Allegro sound (incomplete)
+
+CC	= gcc	# C compiler used
+LD	= gcc	# Linker used
+
+CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DMSDOS
+LFLAGS  = -s
+
+OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
+          Unix.o allegro.o
+
+all:    m2000 fontc splitape z80dasm
+
+m2000:	$(OBJECTS)
+	$(LD) $(LFLAGS) -o m2000 $(OBJECTS) -lallegro -lallegro_primitives -lallegro_image -lallegro_audio
+
+fontc:	fontc.o
+	$(LD) $(LFLAGS) -o fontc fontc.o
+splitape: splitape.o
+	$(LD) $(LFLAGS) -o splitape splitape.o
+z80dasm: Z80Dasm.o
+	$(LD) $(LFLAGS) -o z80dasm Z80Dasm.o
+
+M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
+P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
+Z80.o:      Z80.c Z80.h Z80CDx86.h Z80DAA.h Z80IO.h
+Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
+Bitmap.o:   Bitmap.c
+Unix.o:     Unix.c P2000.h Z80.h Z80IO.h Unix.h
+allegro.o:  allegro.c Common.h P2000.h Z80.h Z80IO.h Unix.h
+fontc.o:    fontc.c
+splitape.o: splitape.c
+Z80Dasm.o:  Z80Dasm.c Z80Dasm.h
+
+
+

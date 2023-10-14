@@ -16,9 +16,12 @@
 #include <time.h>
 
 #ifdef SOUND
+#ifndef ALLEGRO
 #include <stdlib.h>
 #include <unistd.h>
+#ifndef WIN32 
 #include <sys/ioctl.h>
+#endif
 #include <fcntl.h>
 #include <sys/soundcard.h>
 #include <string.h>
@@ -155,7 +158,7 @@ void WriteSound (int toggle)
   val=(toggle)? (-mastervolume*8):(mastervolume*8);
   soundbuf[pos]=val;
  }
-}
+ }
 
 /****************************************************************************/
 /*** Flush sound pipes and sync emulation                                 ***/
@@ -186,7 +189,9 @@ int Sound_FlushSound (void)
  return 1;
 }
 #endif
+#endif
 
+#ifndef ALLEGRO
 #ifdef JOYSTICK
 #include <linux/joystick.h>
 #include <unistd.h>
@@ -240,6 +245,7 @@ int ReadJoystick (void)
  }
  return i;
 }
+#endif
 #endif
 
 /****************************************************************************/

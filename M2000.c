@@ -57,6 +57,9 @@ extern int SaveCPU;
 extern int videomode;
 
 static int  CpuSpeed;
+#ifdef ALLEGRO
+#include <allegro5/allegro.h>
+#endif
 static int  _argc;
 static char *_argv[256];
 static char MainConfigFile[MAX_CONFIG_FILE_SIZE];
@@ -68,6 +71,14 @@ static char _ROMName[MAX_FILE_NAME];
 static char ProgramPath[MAX_FILE_NAME];
 
 #ifndef MSDOS
+/* Get full path name, convert all backslashes to UNIX style slashes */
+static void _fixpath (char *old,char *new)
+{
+ strcpy (new,old);
+}
+#endif
+
+#ifdef _WIN32
 /* Get full path name, convert all backslashes to UNIX style slashes */
 static void _fixpath (char *old,char *new)
 {
@@ -393,7 +404,7 @@ static void FixRomPath (void)
 }
 
 /* Get the path of the specified filename */
-static void GetPath (char *szFile,char *szPath)
+static void GetPath_int (char *szFile,char *szPath)
 {
  char *p,*q;
  strcpy (szPath,szFile);
@@ -423,7 +434,7 @@ int main(int argc,char *argv[])
 #ifdef MSDOS
  strlwr (argv[0]);
 #endif
- GetPath (argv[0],ProgramPath);
+ GetPath_int (argv[0],ProgramPath);
  _argc=1;
  _argv[0]=argv[0];
  strcpy (szTempFileName,ProgramPath);
