@@ -103,9 +103,7 @@ Y \ X   0       1        2       3        4       5        6       7
 9       LSHIFT                                                     RSHIFT
 */
 
-/* Oddly ALLEGRO_KEY_4 seems to drag-in the SHIFTed key too.. what's wrong ?? */
-//equals=]
-static int keymask[]=
+static unsigned char keymask[]=
 {
 	ALLEGRO_KEY_LEFT,       ALLEGRO_KEY_6,         ALLEGRO_KEY_UP,          ALLEGRO_KEY_Q,          ALLEGRO_KEY_3,          ALLEGRO_KEY_5,         ALLEGRO_KEY_7,      ALLEGRO_KEY_4,
 	ALLEGRO_KEY_TAB,        ALLEGRO_KEY_H,         ALLEGRO_KEY_Z,           ALLEGRO_KEY_S,          ALLEGRO_KEY_D,          ALLEGRO_KEY_G,         ALLEGRO_KEY_J,      ALLEGRO_KEY_F,
@@ -116,7 +114,7 @@ static int keymask[]=
 	ALLEGRO_KEY_PAD_9,      ALLEGRO_KEY_O,         ALLEGRO_KEY_PAD_8,       ALLEGRO_KEY_PAD_7,      ALLEGRO_KEY_ENTER,      ALLEGRO_KEY_P,         ALLEGRO_KEY_8,      ALLEGRO_KEY_SEMICOLON,
 	ALLEGRO_KEY_PAD_3,      ALLEGRO_KEY_FULLSTOP,  ALLEGRO_KEY_PAD_2,       ALLEGRO_KEY_PAD_1,      ALLEGRO_KEY_RCTRL,      ALLEGRO_KEY_MINUS,     ALLEGRO_KEY_K,      ALLEGRO_KEY_2,
 	ALLEGRO_KEY_PAD_6,      ALLEGRO_KEY_L,         ALLEGRO_KEY_PAD_5,       ALLEGRO_KEY_PAD_4,      ALLEGRO_KEY_CLOSEBRACE, ALLEGRO_KEY_TILDE,     ALLEGRO_KEY_I,      ALLEGRO_KEY_QUOTE,
-	ALLEGRO_KEY_LSHIFT,     -1,                    -1,                      -1,                    -1,                      -1,                    -1,                 ALLEGRO_KEY_RSHIFT
+	ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
 
@@ -126,6 +124,7 @@ static int keymask[]=
 /****************************************************************************/
 static void PutImage (void)
 {
+al_unlock_bitmap(al_get_backbuffer(display));
 al_flip_display();
 }
 
@@ -306,7 +305,7 @@ int InitMachine(void)
  while ((bitmapfile=fopen(szBitmapFile,"rb"))!=NULL)
  {
   fclose (bitmapfile);
-  if (!NextBitmapFile())
+  if (!NextBitmapFile(szBitmapFile))
    break;
  }
  if (Verbose)
@@ -563,15 +562,11 @@ int i,j,k;
  for (i=0; i<80; i++) {
 	k=i/8;
 	j=1<<(i%8);
-/* Oddly ALLEGRO_KEY_4 seems to drag-in the SHIFTed key too.. what's wrong ?? */
-	if (al_key_down(&kbdstate, ALLEGRO_KEY_4)) {
-			KeyMap[0]&=~128;
-	} else {
-		if (al_key_down(&kbdstate, keymask[i]))
-			KeyMap[k]&=~j;
-		else
-			KeyMap[k]|=j;
-	}
+  if (!keymask[i]) continue;
+  if (al_key_down(&kbdstate, keymask[i]))
+    KeyMap[k]&=~j;
+  else
+    KeyMap[k]|=j;
 }
 
 
@@ -801,7 +796,7 @@ static inline void PutChar_T (int x,int y,int c,int fg,int bg,int si)
 //printf("-T-");
 // printf("%c",c);
 
- //al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
+ al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
  
  if (!videomode)
  {
