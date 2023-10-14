@@ -226,7 +226,8 @@ int StartP2000 (void)
    I=RAMSize-32768;
    if (I&8191) I=(I&(~8191))+8192;
    I/=8192;
-   for(J=1;J<I;J<<=1);RAMMask=J-1;
+   for(J=1;J<I;J<<=1) {};
+   RAMMask=J-1;
    RAMSize=32768+J*8192;
   }
   else

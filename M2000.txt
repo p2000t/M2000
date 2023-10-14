@@ -1,6 +1,6 @@
                            ******* M2000 *******
                         The Portable P2000 Emulator
-                                Version 0.6
+                                Version 0.61
                                      
                  Copyright (C) 1996,1997  Marcel de Kogel
                                      
@@ -91,6 +91,7 @@ Command line options
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix
 -romfile <file>        Select P2000 ROM dump file [P2000ROM.bin]
+-cart <filename>       Select cartridge image to use [BASIC.bin]
 -tape <filename>       Select tape image to use [P2000.cas]
 -boot <value>          Allow/Don't allow BASIC to boot from tape [0]
                        0 - Don't allow booting
@@ -130,6 +131,8 @@ Plans for the future
 
 History
 =======
+0.61    Added command line option '-cart' to specify a cartridge file
+        other than the default BASIC.bin
 0.6     Fixed several bugs in the Z80 emulation engine, fixed several
         compatibility problems, added high resolution and character
         rounding emulation support

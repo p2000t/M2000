@@ -95,13 +95,13 @@ static int keymask[256]=
  0x6DF,0x0F7,0x47F,0x1F7,0x4DF,0x4BF,0x37F,0x4F7,
  0x3F7,0x4FD,0x1FB,0x000,0x000,0x000,0x000,0x000,
  /* 80 */
- 0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
+ 0x7FE,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
  0x000,0x000,0x000,0x000,0x000,0x2FE,0x000,0x000,
  /* 90 */
- 0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
- 0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
+ 0x000,0x000,0x000,0x000,0x000,0x6F7,0x8F7,0x6FB,
+ 0x8FE,0x7FB,0x6FE,0x7FE,0x7E7,0x8FB,0x2F7,0x2FB,
  /* A0 */
- 0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
+ 0x5F7,0x000,0x000,0x000,0x000,0x000,0x000,0x000,
  0x000,0x000,0x5FE,0x5FB,0x000,0x5F7,0x2FB,0x5FB,
  /* B0 */
  0x2F7,0x7F7,0x7FB,0x7FE,0x8F7,0x8FB,0x8FE,0x6F7,
@@ -212,8 +212,7 @@ static void keyboard_update (void)
  int i;
  keybstatus[XK_Caps_Lock&255]=0;
  i=keymask[XK_Caps_Lock&255];
- if (i)
-  KeyMap[i>>8]|=(~(i&0xFF));
+ if (i) KeyMap[i>>8]|=(~(i&0xFF));
  while (XCheckWindowEvent(Dsp,Wnd,KeyPressMask|KeyReleaseMask,&E))
  {
   i=XLookupKeysym ((XKeyEvent*)&E,0);
@@ -290,14 +289,14 @@ int InitMachine(void)
  DefaultGC=DefaultGCOfScreen (Scr);
  DefaultCMap=DefaultColormapOfScreen (Scr);
  bpp=DefaultDepthOfScreen (Scr);
- if (bpp!=8 && bpp!=16 && bpp!=32)
+ if (bpp!=8 && bpp!=16 && bpp!=24 && bpp!=32)
  {
-  printf ("FAILED - Only 8,16 and 32 bpp displays are supported\n");
+  printf ("FAILED - Only 8,16,24 and 32 bpp displays are supported\n");
   return 0;
  }
- if (bpp==32 && sizeof(unsigned)!=4)
+ if (bpp>=24 && sizeof(unsigned)!=4)
  {
-  printf ("FAILED - 32 bpp displays are only supported on 32 bit machines\n");
+  printf ("ERROR - 24 bpp or more displays are only supported on 32 bit or higher machines\n");
   return 0;
  }
  switch (videomode)
@@ -346,7 +345,7 @@ int InitMachine(void)
   }
   if (Verbose) printf ("OK\n    Allocating SHM... ");
   Img->data=SHMInfo.shmaddr=shmat(SHMInfo.shmid,0,0);
-  DisplayBuf=Img->data;
+  DisplayBuf=(byte *)Img->data;
   if (!DisplayBuf)
   {
    if (Verbose) printf ("FAILED\n");
@@ -372,7 +371,7 @@ int InitMachine(void)
   }
   if (Verbose) printf ("OK\n  Creating image... ");
   Img=XCreateImage (Dsp,DefaultVisualOfScreen(Scr),bpp,ZPixmap,
-  		    0,DisplayBuf,width,height,8,0);
+  		    0,(char *)DisplayBuf,width,height,8,0);
   if (!Img)
   {
    if (Verbose) printf ("FAILED\n");
@@ -404,7 +403,8 @@ int InitMachine(void)
     Colour.red=Pal[i*3+0]<<8;
     Colour.green=Pal[i*3+1]<<8;
     Colour.blue=Pal[i*3+2]<<8;
-    if (XAllocColor(Dsp,DefaultCMap,&Colour))
+
+    if (XAllocColor(Dsp,DefaultCMap,&Colour)) {
 #ifdef LSB_FIRST
      if (BitmapBitOrder(Dsp)==LSBFirst)
 #else
@@ -413,6 +413,7 @@ int InitMachine(void)
       XPal[i]=Colour.pixel;
      else
       XPal[i]=SwapBytes (Colour.pixel,bpp);
+    }
    }
   }
  }

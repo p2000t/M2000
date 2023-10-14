@@ -36,7 +36,7 @@ static char *Options[]=
   "verbose","help","cpuspeed","ifreq","t","m",
   "sound","joystick","romfile","uperiod","trap","printertype",
   "printer","font","tape","boot","volume","ram","sync","shm",
-  "savecpu","video",
+  "savecpu","video","cart",
   NULL
 };
 #define AbvOptions      Options         /* No abrevations yet */
@@ -62,8 +62,8 @@ static int  CpuSpeed;
 #endif
 static int  _argc;
 static char *_argv[256];
-static char MainConfigFile[MAX_CONFIG_FILE_SIZE];
-static char SubConfigFile[MAX_CONFIG_FILE_SIZE];
+static unsigned char MainConfigFile[MAX_CONFIG_FILE_SIZE];
+static unsigned char SubConfigFile[MAX_CONFIG_FILE_SIZE];
 static char szTempFileName[MAX_FILE_NAME];
 static char _CartName[MAX_FILE_NAME];
 static char CartNameNoExt[MAX_FILE_NAME];
@@ -252,6 +252,12 @@ static int ParseOptions (int argc,char *argv[])
              else
               misparm=1;
              break;
+    case 22: N++;
+             if (N<argc)
+              CartName=argv[N];
+             else
+              misparm=1;
+             break;
     default: printf("Wrong option '%s'\n",argv[N]);
              return 0;
    }
@@ -323,7 +329,7 @@ static void LoadConfigFile (char *szFileName,unsigned char *ptr)
    ++ptr;
   if (*ptr)
   {
-   _argv[_argc++]=ptr;
+   _argv[_argc++]=(char *)ptr;
    while (*ptr && *ptr>' ')
     ++ptr;
    if (*ptr)
@@ -404,7 +410,7 @@ static void FixRomPath (void)
 }
 
 /* Get the path of the specified filename */
-static void GetPath_int (char *szFile,char *szPath)
+static void GetPath (char *szFile,char *szPath)
 {
  char *p,*q;
  strcpy (szPath,szFile);
@@ -434,7 +440,7 @@ int main(int argc,char *argv[])
 #ifdef MSDOS
  strlwr (argv[0]);
 #endif
- GetPath_int (argv[0],ProgramPath);
+ GetPath (argv[0],ProgramPath);
  _argc=1;
  _argv[0]=argv[0];
  strcpy (szTempFileName,ProgramPath);

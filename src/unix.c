@@ -158,7 +158,7 @@ void WriteSound (int toggle)
   val=(toggle)? (-mastervolume*8):(mastervolume*8);
   soundbuf[pos]=val;
  }
- }
+}
 
 /****************************************************************************/
 /*** Flush sound pipes and sync emulation                                 ***/

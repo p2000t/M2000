@@ -369,11 +369,14 @@ int InitMachine(void)
   if (Verbose) printf ("  Registering the sound event...");
    queue = al_create_event_queue();
    al_register_event_source(queue, al_get_audio_stream_event_source(stream));
- 
+   al_register_event_source(queue, al_get_display_event_source(display));
+
   if (!queue){
        if (Verbose) printf ("FAILED\n");
 	   sound_active=0;
   }
+  while ((playbuf=al_get_audio_stream_fragment(stream)) == NULL) {};
+
   if (Verbose) printf ("OK\n");
   
   //al_set_mixer_postprocess_callback(mixer, mixer_pp_callback, mixer);
@@ -623,13 +626,20 @@ al_rest(0.96/IFreq);
 
 if ((!soundoff)&&(sound_active)) {
 	while (al_get_next_event (queue, &event)) {
+		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+			Z80_Running=0;
 		if (event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT) {
-		   playbuf=al_get_audio_stream_fragment(stream);
+       //playbuf=al_get_audio_stream_fragment(stream);
 		   al_set_audio_stream_fragment(stream, playbuf);
 		}
 	}
-} else
+} else {
+	while (al_get_next_event (queue, &event)) {
+		if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
+			Z80_Running=0;
+	}
 	al_rest(0.04/IFreq);
+}
 
 
  if (calloptions)
