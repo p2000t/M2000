@@ -334,7 +334,7 @@ int InitMachine(void)
 
   for (i=4096;i>=128;i/=2)
     if (i*IFreq<=44100) break;
-    sample_rate=i*IFreq;
+  sample_rate=i*IFreq; //should this be within for loop?
  if (Verbose) printf ("%d Hz...",sample_rate);
  /* The actual sampling rate might be different from the optimal one.
     Here we calculate the optimal buffer size */
