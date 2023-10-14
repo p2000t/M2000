@@ -33,11 +33,3 @@ ifeq ($(OS),Windows_NT)
 else
 	rm *.o *~
 endif
-
-distclean:
-	make clean
-ifeq ($(OS),Windows_NT)
-	del /Q /F z80dasm.exe fontc.exe m2000.exe splitape.exe P2000.cas 2>NUL
-else
-	rm z80dasm fontc m2000 splitape P2000.cas
-endif

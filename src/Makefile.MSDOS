@@ -19,16 +19,10 @@ LFLAGS  = -s
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
           MSDOS.o Asm.o DMA.o INT.o SB.o Bitmap.o
 
-all:    m2000.exe fontc.exe splitape.exe z80dasm.exe
+all:    m2000.exe
 
 m2000.exe: $(OBJECTS)
 	$(LD) $(LFLAGS) -Wl,-Map,m2000.map -o m2000.exe $(OBJECTS)
-fontc.exe: fontc.o
-	$(LD) $(LFLAGS) -o fontc.exe fontc.o
-splitape.exe: splitape.o
-	$(LD) $(LFLAGS) -o splitape.exe splitape.o
-z80dasm.exe: Z80Dasm.o
-	$(LD) $(LFLAGS) -o z80dasm.exe Z80Dasm.o
 
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
@@ -40,6 +34,3 @@ DMA.o:      DMA.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h
 SB.o:       SB.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h
 Asm.o:      Asm.S
 Bitmap.o:   Bitmap.c Bitmap.h
-fontc.o:    fontc.c
-splitape.o: splitape.c
-Z80Dasm.o:  Z80Dasm.c Z80Dasm.h

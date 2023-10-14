@@ -30,16 +30,10 @@ LFLAGS	= -s -L/usr/X11/lib
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
           Unix.o X.o
 
-all:    m2000 fontc splitape z80dasm
+all:    m2000
 
 m2000:	$(OBJECTS)
 	$(LD) $(LFLAGS) -o m2000 $(OBJECTS) -lXext -lX11
-fontc:	fontc.o
-	$(LD) $(LFLAGS) -o fontc fontc.o
-splitape: splitape.o
-	$(LD) $(LFLAGS) -o splitape splitape.o
-z80dasm: Z80Dasm.o
-	$(LD) $(LFLAGS) -o z80dasm Z80Dasm.o
 
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
@@ -47,6 +41,3 @@ Z80.o:      Z80.c Z80.h Z80DAA.h Z80CDx86.h Z80IO.h
 Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
 X.o:        X.c Common.h P2000.h Z80.h Z80IO.h Unix.h
 Unix.o:     Unix.c P2000.h Z80.h Z80IO.h Unix.h
-fontc.o:    fontc.c
-splitape.o: splitape.c
-Z80Dasm.o:  Z80Dasm.c Z80Dasm.h
