@@ -1,0 +1,1 @@
+.\gnuwin32\make %1
