@@ -33,7 +33,7 @@ OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
 all:    m2000
 
 m2000:	$(OBJECTS)
-	$(LD) $(LFLAGS) -o m2000 $(OBJECTS) -lXext -lX11
+	$(LD) $(LFLAGS) -o ../m2000 $(OBJECTS) -lXext -lX11
 
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
