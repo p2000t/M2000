@@ -1,0 +1,44 @@
+#### Makefile for M2000 Linux/SVGALib
+# Following #defines can be used:
+# LINUX_SVGA		Compile Linux/SVGALib version
+# DEBUG			Compile with builtin debugger
+# LSB_FIRST		Compile for a low-endian machine
+# X86_ASM		Use inline 80x86 assembly
+# HAVE_FTRUNCATE	We have ftruncate()
+# HAVE_CLOCK		clock() is available on this machine
+# JOYSTICK		Use Linux joystick driver
+# SOUND			Use USS(/Lite) sound driver
+
+CC	= gcc	# C compiler used
+LD	= gcc	# Linker used
+
+CFLAGS  = -Wall -m486 -fomit-frame-pointer -O2 \
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DHAVE_CLOCK -DLINUX_SVGA \
+	  -DX86_ASM -DJOYSTICK -DSOUND
+LFLAGS  = -s
+
+OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
+          Unix.o Bitmap.o SVGALib.o
+
+all:    m2000 fontc splitape z80dasm
+
+m2000:	$(OBJECTS)
+	$(LD) $(LFLAGS) -o m2000 $(OBJECTS) -lvga
+	chmod +s m2000
+fontc:	fontc.o
+	$(LD) $(LFLAGS) -o fontc fontc.o
+splitape: splitape.o
+	$(LD) $(LFLAGS) -o splitape splitape.o
+z80dasm: Z80Dasm.o
+	$(LD) $(LFLAGS) -o z80dasm Z80Dasm.o
+
+M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
+P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
+Z80.o:      Z80.c Z80.h Z80CDx86.h Z80DAA.h Z80IO.h
+Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
+Bitmap.o:   Bitmap.c
+Unix.o:     Unix.c P2000.h Z80.h Z80IO.h Unix.h
+SVGALib.o:  SVGALib.c Common.h P2000.h Z80.h Z80IO.h Unix.h
+fontc.o:    fontc.c
+splitape.o: splitape.c
+Z80Dasm.o:  Z80Dasm.c Z80Dasm.h
