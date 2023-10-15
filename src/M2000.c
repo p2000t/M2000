@@ -60,8 +60,8 @@ static int  CpuSpeed;
 #ifdef ALLEGRO
 #include <allegro5/allegro.h>
 #endif
-static int  _argc;
-static char *_argv[256];
+static int  shadow_argc;
+static char *shadow_argv[256];
 static unsigned char MainConfigFile[MAX_CONFIG_FILE_SIZE];
 static unsigned char SubConfigFile[MAX_CONFIG_FILE_SIZE];
 static char szTempFileName[MAX_FILE_NAME];
@@ -314,7 +314,7 @@ static int GetCartName (int argc,char *argv[])
 }
 
 /* Load the specified configuration file at the specified address
-   Update _argc and _argv */
+   Update shadow_argc and shadow_argv */
 static void LoadConfigFile (char *szFileName,unsigned char *ptr)
 {
  FILE *infile;
@@ -329,7 +329,7 @@ static void LoadConfigFile (char *szFileName,unsigned char *ptr)
    ++ptr;
   if (*ptr)
   {
-   _argv[_argc++]=(char *)ptr;
+   shadow_argv[shadow_argc++]=(char *)ptr;
    while (*ptr && *ptr>' ')
     ++ptr;
    if (*ptr)
@@ -441,12 +441,12 @@ int main(int argc,char *argv[])
  strlwr (argv[0]);
 #endif
  GetPath (argv[0],ProgramPath);
- _argc=1;
- _argv[0]=argv[0];
+ shadow_argc=1;
+ shadow_argv[0]=argv[0];
  strcpy (szTempFileName,ProgramPath);
  strcat (szTempFileName,"m2000.cfg");
  LoadConfigFile (szTempFileName,MainConfigFile);
- if (!ParseOptions(_argc,_argv))
+ if (!ParseOptions(shadow_argc,shadow_argv))
   return 1;
  /* Get the cartridge name */
  GetCartName (argc,argv);
@@ -454,9 +454,9 @@ int main(int argc,char *argv[])
  /* Load cart.cfg */
  strcpy (szTempFileName,CartNameNoExt);
  strcat (szTempFileName,".cfg");
- _argc=1;
+ shadow_argc=1;
  LoadConfigFile (szTempFileName,SubConfigFile);
- if (!ParseOptions(_argc,_argv))
+ if (!ParseOptions(shadow_argc,shadow_argv))
   return 1;
  /* Parse the command line options */
  if (!ParseOptions(argc,argv))
