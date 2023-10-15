@@ -15,7 +15,7 @@ msdos:
 
 clean:
 ifeq ($(OS),Windows_NT)
-	del /Q /F *.o ..\m2000.exe ..\P2000.cas 2>NUL
+	del /Q /F *.o 2>NUL
 else
-	rm *.o *~ ../m2000 ../P2000.cas
+	rm *.o *~
 endif
