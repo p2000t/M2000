@@ -23,7 +23,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-char *Title="M2000 Unix/X 0.6"; /* Title for -help output                   */
+char *Title="M2000 v0.6.1-SNAPSHOT"; /* Title for -help output                   */
 
 static int bpp;                 /* Bits per pixel of the display device     */
 static Display *Dsp;            /* Our display                              */

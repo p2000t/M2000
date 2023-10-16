@@ -48,7 +48,7 @@ static int sound_active=1;
 
 ALLEGRO_DISPLAY *display = NULL;
 
-char *Title="M2000 (Allegro) 0.6a"; /* Title for -help output            */
+char *Title="M2000 v0.6.1-SNAPSHOT"; /* Title for -help output            */
 
 ALLEGRO_KEYBOARD_STATE kbdstate;
 

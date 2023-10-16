@@ -1,5 +1,5 @@
 # M2000: Philips P2000 home computer emulator
-Version 0.6
+Version 0.6.1-SNAPSHOT
                                      
 ## Supported platforms
 

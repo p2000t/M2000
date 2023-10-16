@@ -1,6 +1,6 @@
                            ******* M2000 *******
                         The Portable P2000 Emulator
-                                Version 0.61
+                           Version 0.6.1-SNAPSHOT
                                      
                  Copyright (C) 1996,1997  Marcel de Kogel
                                      
