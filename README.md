@@ -5,9 +5,9 @@ Version 0.6
 
 * MS-DOS
 * Unix/X
-* Windows (experimental) - using the Allegro 5 libraries
+* Windows (experimental, using the Allegro 5 libraries)
 
-## Files included in release packages
+## Files included in the release packages
 ```
 m2000          The emulator
 M2000.txt      Readme file
@@ -116,7 +116,7 @@ Please note that for the Unix versions, the configuration files should be presen
 
 ## How to compile the sources yourself
 
-First, you'll need to open a terminal (or command prompt) clone this M2000 repo into a local folder: \
+First, you'll need to open a terminal (or command prompt) and clone this M2000 repo into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
@@ -132,13 +132,14 @@ The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo
 The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
 
 ### Windows:
-* Make sure to have WinGW (Windows port of gcc) installed on your machine. \
+* Make sure to have WinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install WinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
-* Download the static [Allegro 5 libraries](https://github.com/liballeg/allegro5/releases) which matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of this zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
+* Download the static [Allegro 5 libraries](https://github.com/liballeg/allegro5/releases) that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
 * Open a command prompt into the src folder of your cloned M2000 repo and type: `make allegro`. \
 The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
-Note that when distributing m2000.exe, you need to include these Allegro 5 libraries. *Note: replace * with the version of Allegro 5 you've installed*:
+Note that when distributing m2000.exe, you need to include these Allegro 5 libraries: \
+(*Note: replace * with the version of the Allegro 5 libraries you installed*)
   * allegro-5.*.dll
   * allegro_primitives-5.*.dll
   * allegro_image-5.*.dll
@@ -149,7 +150,8 @@ Note that when distributing m2000.exe, you need to include these Allegro 5 libra
 
 ### P2000 documentation
 * A large collection of (scanned) P2000 documentation can be found on https://github.com/p2000t/documentation
-* The P2000T community on Retroforum can help out with questions: https://www.retroforum.nl/topic/3914-philips-p2000t/
+* The [P2000T community on Retroforum](https://www.retroforum.nl/topic/3914-philips-p2000t/
+) can help out with questions. They're nice people :-)
 
 ### P2000 software
 * P2000 cartridge images and cassette dumps (games, utilities, etc.) can be found on: https://github.com/p2000t/software
