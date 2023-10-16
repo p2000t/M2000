@@ -117,7 +117,7 @@ Please note that for the Unix versions, the configuration files should be presen
 
 ## How to compile the sources
 
-Most people probably just want to download one of the [M2000 releases](releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
+Most people probably just want to download one of the [M2000 releases](/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
