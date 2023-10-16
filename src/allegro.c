@@ -166,29 +166,24 @@ void TrashMachine(void)
 /****************************************************************************/
 /*** Update szBitmapFile[]                                                ***/
 /****************************************************************************/
-static int NextBitmapFile ()
-{
- char *p;
- p=szBitmapFile+strlen(szBitmapFile)-5;
- if (*p=='9')
- {
-  *p='0';
-  --p;
-  if (*p=='9')
-  {
-   *p='0';
-   --p;
-   (*p)++;
+static int NextBitmapFile () {
+ int ix = strlen(szBitmapFile)-5;
+ if (szBitmapFile[ix]=='9') {
+  szBitmapFile[ix]='0';
+  ix--;
+  if (szBitmapFile[ix]=='9') {
+   szBitmapFile[ix]='0';
+   ix--;
+   szBitmapFile[ix]++;
   }
-  else
-  {
-   (*p)++;
-   if (*p=='0')
+  else {
+   szBitmapFile[ix]++;
+   if (szBitmapFile[ix]=='0')
     return 0;
   }
  }
  else
-  (*p)++;
+  szBitmapFile[ix]++;
  return 1;
 }
 
@@ -305,7 +300,7 @@ int InitMachine(void)
  while ((bitmapfile=fopen(szBitmapFile,"rb"))!=NULL)
  {
   fclose (bitmapfile);
-  if (!NextBitmapFile(szBitmapFile))
+  if (!NextBitmapFile())
    break;
  }
  if (Verbose)
