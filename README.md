@@ -1,4 +1,4 @@
-# M2000 : Philips P2000 home computer emulator
+# M2000: Philips P2000 home computer emulator
 Version 0.6
                                      
 ## Supported platforms
@@ -115,9 +115,9 @@ These are plain text files containing optional command line options. \
 Options can be separated with spaces, tabs or returns. \
 Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
-## How to compile the sources yourself
+## How to compile the sources
 
-First, you'll need to open a terminal (or command prompt) and clone this M2000 repo into a local folder: \
+Most people probably just want to download one of the [M2000 releases](releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
@@ -132,30 +132,30 @@ The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo
 * Now go into the src folder (cd src) and type: `make x`. \
 The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
 
-### Windows:
+### Windows (experimental):
 * Make sure to have WinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install WinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
 * Download the static [Allegro 5 libraries](https://github.com/liballeg/allegro5/releases) that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
 * Open a command prompt into the src folder of your cloned M2000 repo and type: `make allegro`. \
 The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
-Note that when distributing m2000.exe, you need to include these Allegro 5 libraries: \
-(*Note: replace * with the version of the Allegro 5 libraries you installed*)
+Note: when distributing m2000.exe, don't forget to include these Allegro 5 libraries: \
+(*replace * with the version of the Allegro 5 libraries you installed*)
   * allegro-5.*.dll
   * allegro_primitives-5.*.dll
   * allegro_image-5.*.dll
   * allegro_audio-5.*.dll
 
 
-## P2000 documentation and software
+## More information
 
 ### P2000 documentation
-* A large collection of (scanned) P2000 documentation can be found on https://github.com/p2000t/documentation
+* A large collection of (scanned) P2000 documents, Nat.Lab. and P2000gg newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
 * The [P2000T community on Retroforum](https://www.retroforum.nl/topic/3914-philips-p2000t/
 ) can help out with questions. They're nice people :-)
 
 ### P2000 software
-* P2000 cartridge images and cassette dumps (games, utilities, etc.) can be found on: https://github.com/p2000t/software
+* Many P2000 cartridge images and cassette dumps (games, utilities, etc.) can be found on: https://github.com/p2000t/software
 
 
 ## History
@@ -182,9 +182,6 @@ Note that when distributing m2000.exe, you need to include these Allegro 5 libra
 - Stafano Bodrato (@zx70) for creating the Allegro version for M2000
 - Hans Bus provided lots of technical information on the P2000
 - Marat Fayzullin provided invaluable help improving the Unix/X version
-- M2000 MS-DOS was compiled using DJ Delorie's DJGPP v2.0. DJGPP is a 32
-  bit C compiler for MS-DOS. Source code and binaries of DJGPP are
-  available at http://www.delorie.com
 
 ## License
 
