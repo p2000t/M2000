@@ -122,10 +122,6 @@ TODO
 
 TODO
 
-## Plans for the future
-
--  Fix the P2000M emulation
--  Add disk drive emulation
 
 ## History
 ```
