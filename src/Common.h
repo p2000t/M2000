@@ -10,7 +10,7 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-/* If 1, blanking characters are not displayed this refresh */
+/* If 1, flashing characters are not displayed this refresh */
 static int doblank=1;
 
 /****************************************************************************/
@@ -19,7 +19,7 @@ static int doblank=1;
 void RefreshScreen_T (void)
 {
   byte *S;
-  int fg,bg,si,gr,bl,cg,hc,conceal;
+  int fg,bg,si,gr,fl,cg,hc,conceal;
   int x,y;
   int c;
   int lastcolour,lastchar;
@@ -38,11 +38,11 @@ void RefreshScreen_T (void)
       background=0 (black)
       normal height
       graphics off
-      blanking off
+      flashing off
       contiguous graphics
       hold character=space
       steady display */
-   fg=7; bg=0; si=0; gr=0; bl=0; cg=1; hc=32; conceal=0;
+   fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hc=32; conceal=0;
    lastcolour=7; lastchar=32;
    for (x=0;x<40;++x)
    {
@@ -68,12 +68,11 @@ void RefreshScreen_T (void)
        break;
       /* Flash */
       case 8:
-       bl=1;
-       conceal=0;
+       fl=1;
        break;
       /* Steady */
       case 9:
-       bl=conceal=0;
+       fl=0;
        break;
       /* End box (?) */
       case 10:
@@ -128,8 +127,8 @@ void RefreshScreen_T (void)
     }
     else
      lastchar=c;
-    /* Check for blanking characters and concealed display */
-    if ((bl && doblank) || conceal) c=32;
+    /* Check for flashing characters and concealed display */
+    if ((fl && doblank) || conceal) c=32;
     /* Check if graphics are on */
     if (gr && (c&0x20))
     {
