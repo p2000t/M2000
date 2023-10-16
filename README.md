@@ -7,14 +7,18 @@ Version 0.6.1-SNAPSHOT
 * Unix/X
 * Windows (experimental, using the Allegro 5 libraries)
 
+## Download
+
+TODO
+
 ## Files included in the release packages
 ```
 m2000          The emulator
-M2000.txt      Readme file
+README.md      This readme file
 Default.fnt    SAA5050 font
 P2000ROM.bin   P2000 ROM image
 BASIC.bin      BASIC cartridge ROM image (v. 1.1NL)
-CWSDMI.ZIP     (MS-DOS version only) A DPMI server required by M2000
+CWSDPMI.EXE    (MS-DOS version only) A DPMI server required by M2000
 allegro*.dll   (Windows version only) Allegro libraries required by M2000
 ```
 
@@ -117,14 +121,30 @@ Please note that for the Unix versions, the configuration files should be presen
 
 ## How to compile the sources
 
-Most people probably just want to download one of the [M2000 releases](https://github.com/p2000t/M2000/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
+Most people probably just want to download one of the [M2000 releases](https://github.com/p2000t/M2000/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. \
+But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
-* Download and install Delories [DJGPP v2.0](http://www.delorie.com/djgpp/), which is a 32-bit C compiler for MS-DOS. \
-***TODO: check if this compiler still works on modern Windows machines***.
-* Go into the src folder (cd src) and type: `make msdos`. \
-The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. Note that a DPMI server like CWSDMI is required to run m2000.exe. 
+* Download and install [DOSBox](https://www.dosbox.com/)
+* Go to the folder which contains your cloned M2000 repo and open the subfolder `djgpp`
+* Extract all files from the 5 zips (`djdev202.zip`, `bnu281b.zip`, `gcc281b.zip`, `mak377b.zip` and `csdpmi4b.zip`) directly into `djgpp`, so this folder will get subfolders `bin`, `gnu`, `include`, etc.
+* Open the DOSBox options file and copy/paste these lines at the bottom under [autoexec]: \
+  ***Replace "C:\path-to-your-clone-of-M2000" with the actual path.***
+  ```
+  mount c "C:\path-to-your-clone-of-M2000"
+  c:
+  set PATH=C:\DJGPP\BIN;%PATH%
+  set DJGPP=C:\DJGPP\DJGPP.ENV
+  #reduce sound volume to 20%
+  MIXER MASTER 20
+  MIXER SPKR 20
+  MIXER SB 20
+  MIXER FM 20
+  ```
+* Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
+* Go into the src folder (`cd src`) and type: `make dos`. Wait for the compiler to finish...
+* Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
 
 ### Unix/X:
 * Open a command prompt and clone this M2000 repo into a local folder: \
@@ -137,8 +157,7 @@ The resulting `m2000` will be copied into the root of your cloned M2000 repo, wh
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install WinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
 * Download the static [Allegro 5 libraries](https://github.com/liballeg/allegro5/releases) that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
-* Open a command prompt into the src folder of your cloned M2000 repo and type: `make allegro`. \
-The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
+* Open a command prompt into the src folder of your cloned M2000 repo and type: `mingw32-make allegro`. The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
 Note: when distributing m2000.exe, don't forget to include these Allegro 5 libraries: \
 (*replace * with the version of the Allegro 5 libraries you installed*)
   * allegro-5.*.dll
@@ -147,7 +166,7 @@ Note: when distributing m2000.exe, don't forget to include these Allegro 5 libra
   * allegro_audio-5.*.dll
 
 
-## More information
+## More information on the P2000
 
 ### P2000 documentation
 * A large collection of (scanned) P2000 documents, Nat.Lab. and P2000gg newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
@@ -156,25 +175,6 @@ Note: when distributing m2000.exe, don't forget to include these Allegro 5 libra
 
 ### P2000 software
 * Many P2000 cartridge images and cassette dumps (games, utilities, etc.) can be found on: https://github.com/p2000t/software
-
-
-## History
-```
-0.6     Fixed several bugs in the Z80 emulation engine, fixed several
-        compatibility problems, added high resolution and character
-        rounding emulation support
-0.5     Completely rewrote the Z80 emulation engine, fixed various minor
-        bugs, fixed a major bug in the SoundBlaster detection routine
-0.4.1   Fixed a major bug that caused bad compiling on high-endian
-        machines
-0.4     Fixed some minor bugs, added P2000M emulation, added Linux/SVGALib
-        and Unix/X ports, speeded up screen refresh drivers (again)
-0.3     Major speed increase in screen refresh drivers, added options
-        dialogue
-0.2     Major sound emulation improvements, fixed some bugs in video
-        emulation, added -ram and -volume command line options
-0.1     Initial release
-```
 
 ## Credits
 
