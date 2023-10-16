@@ -1,4 +1,4 @@
-# M2000 : Emulator for the Philips P2000 home computer
+# M2000 : Philips P2000 home computer emulator
 Version 0.6
                                      
 ## Supported platforms
