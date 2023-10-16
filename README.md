@@ -14,7 +14,8 @@ M2000.txt      Readme file
 Default.fnt    SAA5050 font
 P2000ROM.bin   P2000 ROM image
 BASIC.bin      BASIC cartridge ROM image (v. 1.1NL)
-CWSDMI.ZIP     (MS-DOS version only) A DPMI server required by M2000 MS-DOS
+CWSDMI.ZIP     (MS-DOS version only) A DPMI server required by M2000
+allegro*.dll   (Windows version only) Allegro libraries required by M2000
 ```
 
 ## What's emulated
