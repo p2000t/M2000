@@ -1,4 +1,5 @@
 /src/*.o
-/P2000.cas      # this file is auto-generated when starting M2000 without specifying a tape file
+# P2000.cas is auto-generated when starting M2000 without specifying a tape file
+/P2000.cas
 /m2000
 /m2000.exe
