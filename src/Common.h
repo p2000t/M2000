@@ -10,8 +10,8 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-/* If 1, blanking characters are not displayed this refresh */
-static int doblank=1;
+/* If 1, blinking characters are not displayed this refresh */
+static int doblink=1;
 
 /****************************************************************************/
 /*** Refresh screen for T-model emulation                                 ***/
@@ -38,7 +38,7 @@ void RefreshScreen_T (void)
       background=0 (black)
       normal height
       graphics off
-      blanking off
+      blinking off
       contiguous graphics
       hold character=space
       steady display */
@@ -66,14 +66,13 @@ void RefreshScreen_T (void)
        gr=1;
        conceal=0;
        break;
-      /* Flash */
+      /* Flash/blink */
       case 8:
        bl=1;
-       conceal=0;
        break;
       /* Steady */
       case 9:
-       bl=conceal=0;
+       bl=0;
        break;
       /* End box (?) */
       case 10:
@@ -128,8 +127,8 @@ void RefreshScreen_T (void)
     }
     else
      lastchar=c;
-    /* Check for blanking characters and concealed display */
-    if ((bl && doblank) || conceal) c=32;
+    /* Check for blinking characters and concealed display */
+    if ((bl && doblink) || conceal) c=32;
     /* Check if graphics are on */
     if (gr && (c&0x20))
     {
@@ -193,9 +192,9 @@ void RefreshScreen_M (void)
    /* Bit 0 = graphics */
    if ((a&1) && (c&0x20))
     c+=(c&0x40)? 64:96;
-   /* If invalid character or blanking is on,
+   /* If invalid character or blinking is on,
       display a space character */
-   if (c<32 || ((a&16) && doblank))
+   if (c<32 || ((a&16) && doblink))
     c=32;
    /* Put the character in the screen buffer */
    PutChar_M (x,y,c-32,eor,ul);
@@ -203,21 +202,21 @@ void RefreshScreen_M (void)
 }
 
 /****************************************************************************/
-/*** Refresh screen. This function updates the blanking state and then    ***/
+/*** Refresh screen. This function updates the blinking state and then    ***/
 /*** calls either RefreshScreen_T() or RefreshScreen_M() and finally it   ***/
 /*** calls PutImage() to copy the off-screen buffer to the actual display ***/
 /****************************************************************************/
 void RefreshScreen (void)
 {
  static int BCount=0;
- /* Update blanking count */
+ /* Update blinking count */
  switch (++BCount)
  {
   case 35:
-   doblank=1;
+   doblink=1;
    break;
   case 50:
-   doblank=0;
+   doblink=0;
    BCount=0;
    break;
  }
