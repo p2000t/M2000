@@ -10,6 +10,8 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
+#define SPACE 32 // space character
+
 /* If 1, flashing characters are not displayed this refresh */
 static int doblank=1;
 
@@ -25,7 +27,6 @@ void RefreshScreen_T (void)
   int lastcolour,lastchar;
   int eor;
   int found_si;
-  int FG,BG;
 
   S=VRAM+ScrollReg;
 
@@ -40,8 +41,8 @@ void RefreshScreen_T (void)
       graphics off
       flashing off
       contiguous graphics
-      hold character=space
-      steady display */
+      hold character=SPACE
+      reveal display */
    fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hc=32; conceal=0;
    lastcolour=7; lastchar=32;
    for (x=0;x<40;++x)
@@ -95,7 +96,7 @@ void RefreshScreen_T (void)
       /* conceal display */
       case 24:
        conceal=1;
-       hc=32;
+       hc=SPACE;
        break;
       /* contiguous graphics */
       case 25:
@@ -119,16 +120,16 @@ void RefreshScreen_T (void)
        break;
       /* release graphics */
       case 31:
-       hc=32;
+       hc=SPACE;
        break;
      }
      if (gr) c=hc;
-     else c=32;
+     else c=SPACE;
     }
     else
      lastchar=c;
     /* Check for flashing characters and concealed display */
-    if ((fl && doblank) || conceal) c=32;
+    if ((fl && doblank) || conceal) c=SPACE;
     /* Check if graphics are on */
     if (gr && (c&0x20))
     {
@@ -138,18 +139,10 @@ void RefreshScreen_T (void)
     /* If double height code on previous line and double height
        is not set, display a space character */
     if (found_si==2 && !si)
-     c=32;
-    /* Get the foreground and background colours */
-    if (!eor)
-    {
-     FG=fg; BG=bg;
-    }
-    else
-    {
-     FG=fg^7; BG=bg^7;
-    }
+     c=SPACE;
+
     /* Put the character in the screen buffer */
-    PutChar_T (x,y,c-32,FG,BG,(si)? found_si:0);
+    PutChar_T (x, y, c-32, (eor ? fg^7 : fg), (eor ? bg^7 : bg), (si ? found_si : 0));
    }
    /* Update the double height state
       If there was a double height code on this line, do not
@@ -164,7 +157,7 @@ void RefreshScreen_T (void)
     }
    }
    else
-    S+=80;
+    S+=80; //move to next line in VRAM
   }
 }
 
