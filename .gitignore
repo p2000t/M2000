@@ -3,6 +3,8 @@
 # P2000.cas is auto-generated when starting M2000 without specifying a tape file
 /*.cas
 /*.bat
+/*.bmp
+/*.bin
 /m2000
 /m2000.exe
 /CWSDPMI.SWP

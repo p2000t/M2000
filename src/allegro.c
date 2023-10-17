@@ -59,6 +59,7 @@ ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
+ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
 //byte *DisplayBuf;               /* Screen buffer                            */
 
@@ -165,6 +166,7 @@ void TrashMachine(void)
   if (FontBuf_bk) al_destroy_bitmap(FontBuf_bk);
   if (FontBuf_scaled) al_destroy_bitmap(FontBuf_scaled);
   if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
+  if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf);
   if (OldCharacter) free (OldCharacter);
   //if (CharacterCache) free (CharacterCache);
 }
@@ -653,7 +655,10 @@ void Keyboard(void)
   {
     while (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
       al_get_keyboard_state(&kbdstate);
-    al_save_bitmap(szBitmapFile, al_get_target_bitmap());
+
+    if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf); //clean up previous screenshot
+    ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
+    al_save_bitmap(szBitmapFile, ScreenshotBuf);
     NextBitmapFile();
   }
 
