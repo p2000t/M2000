@@ -121,8 +121,7 @@ Please note that for the Unix versions, the configuration files should be presen
 
 ## How to compile the sources
 
-Most people probably just want to download one of the [M2000 releases](https://github.com/p2000t/M2000/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. \
-But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
+Most people probably just want to download one of the [M2000 releases](https://github.com/p2000t/M2000/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
@@ -147,10 +146,18 @@ But in case you want to compile for an alternative OS or help us with fixing bug
 * Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
 
 ### Unix/X:
-* Open a command prompt and clone this M2000 repo into a local folder: \
-`git clone git@github.com:p2000t/M2000.git`
-* Now go into the src folder (cd src) and type: `make x`. \
+* Make sure you have installed: make, gcc and the X11 libs:
+  ```
+  sudo apt-get update
+  sudo apt install make
+  sudo apt install gcc
+  sudo apt install libx11-dev
+  sudo apt-get install libxext-dev
+  ``` 
+* Now go into the src folder of the cloned M2000 repo and type: `make x`. \
 The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
+* If you're missing sound on Ubuntu, please try installing also-oss (`sudo apt-get install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
+  `aoss ./m2000`
 
 ### Windows (experimental):
 * Make sure to have WinGW (the Windows port of gcc) installed on your machine. \
