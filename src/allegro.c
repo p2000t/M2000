@@ -851,7 +851,7 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
   int charHeight = videomode == 0 ? 10.0 : 20.0;
   al_draw_tinted_bitmap_region((si ? FontBuf_scaled : FontBuf), al_map_rgba(Pal[fg*3], Pal[fg*3+1], Pal[fg*3+2], 255), c*20.0, (si>>1)*charHeight, 12.0, 20.0, x*12.0, y*charHeight, 0);
   if (bg) 
-    al_draw_tinted_bitmap_region((si ? FontBuf_scaled : FontBuf), al_map_rgba(Pal[bg*3], Pal[bg*3+1], Pal[bg*3+2], 0), c*20.0, (si>>1)*charHeight, 12.0, 20.0, x*12.0, y*charHeight, 0);
+    al_draw_tinted_bitmap_region((si ? FontBuf_bk_scaled : FontBuf_bk), al_map_rgba(Pal[bg*3], Pal[bg*3+1], Pal[bg*3+2], 0), c*20.0, (si>>1)*charHeight, 12.0, 20.0, x*12.0, y*charHeight, 0);
 }
 
 /****************************************************************************/

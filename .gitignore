@@ -6,6 +6,7 @@
 /*.bmp
 /*.bin
 /m2000
-/m2000.exe
+/M2000.EXE
+/m2000win.exe
 /CWSDPMI.SWP
 /djgpp/*
