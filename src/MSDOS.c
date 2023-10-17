@@ -310,7 +310,7 @@ static int keyb_interrupt (void)
        makeshot=1;
        break;
       case VK_F3:
-       dumpVRAM=1;
+       if (!P2000_Mode) dumpVRAM=1;
        break;
       case VK_F5:
        soundoff=(!soundoff);
