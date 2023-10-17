@@ -44,6 +44,7 @@ Shift-Delete          -  >
 
 ## Special Keys
 ```
+F3           -  Dump video memory [$5000-$577F] (P2000T mode only)
 F4           -  Toggle tracing on/off (Debugging version only)
 F5           -  Toggle sound on/off
 F11          -  Decrease sound volume

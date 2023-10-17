@@ -78,6 +78,7 @@ int joymode=1;                     /* If 0, do not use joystick             */
 //static struct termios termold;     /* Original terminal settings            */
 
 char szBitmapFile[256];            /* Next screen shot file                 */
+char szVideoMemFile[256];          /* Next video memory dump file           */
 
 static byte Pal[8*3] =             /* SAA5050 palette                       */
 {
@@ -172,30 +173,30 @@ void TrashMachine(void)
 }
 
 /****************************************************************************/
-/*** Update szBitmapFile[]                                                ***/
+/*** Update szBitmapFile[] or szVideoMemFile[]                            ***/
 /****************************************************************************/
-static int NextBitmapFile()
+static int NextOutputFile(char *filename)
 {
-  int ix = strlen(szBitmapFile) - 5;
-  if (szBitmapFile[ix] == '9')
+  int ix = strlen(filename) - 5;
+  if (filename[ix] == '9')
   {
-    szBitmapFile[ix] = '0';
+    filename[ix] = '0';
     ix--;
-    if (szBitmapFile[ix] == '9')
+    if (filename[ix] == '9')
     {
-      szBitmapFile[ix] = '0';
+      filename[ix] = '0';
       ix--;
-      szBitmapFile[ix]++;
+      filename[ix]++;
     }
     else
     {
-      szBitmapFile[ix]++;
-      if (szBitmapFile[ix] == '0')
+      filename[ix]++;
+      if (filename[ix] == '0')
         return 0;
     }
   }
   else
-    szBitmapFile[ix]++;
+    filename[ix]++;
   return 1;
 }
 
@@ -323,13 +324,21 @@ int InitMachine(void)
   while ((bitmapfile = fopen(szBitmapFile, "rb")) != NULL)
   {
     fclose(bitmapfile);
-    if (!NextBitmapFile())
+    if (!NextOutputFile(szBitmapFile))
       break;
   }
   if (Verbose)
     printf("  Next screenshot will be %s\n", szBitmapFile);
 
-    // remove (szBitmapFile);
+  strcpy(szVideoMemFile, "VideoM2000.bin");
+  while ((bitmapfile = fopen(szVideoMemFile, "rb")) != NULL)
+  {
+    fclose(bitmapfile);
+    if (!NextOutputFile(szVideoMemFile))
+      break;
+  }
+  if (Verbose)
+    printf("  Next video memory will be %s\n", szVideoMemFile);
 
 #ifdef SOUND
   if (Verbose)
@@ -655,11 +664,29 @@ void Keyboard(void)
   {
     while (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
       al_get_keyboard_state(&kbdstate);
+    printf("  Writing screen shot to %s...", szBitmapFile);
 
-    if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf); //clean up previous screenshot
+    if (ScreenshotBuf)
+      al_destroy_bitmap(ScreenshotBuf); // clean up previous screenshot
     ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
     al_save_bitmap(szBitmapFile, ScreenshotBuf);
-    NextBitmapFile();
+    printf("OK\n");
+    NextOutputFile(szBitmapFile);
+  }
+
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_F3) && !P2000_Mode)
+  {
+    while (al_key_down(&kbdstate, ALLEGRO_KEY_F3))
+      al_get_keyboard_state(&kbdstate);
+    FILE *out;
+    if ((out = fopen(szVideoMemFile, "wb")) != NULL)
+    {
+      printf("  Writing video memory to %s...", szVideoMemFile);
+      fwrite(VRAM, 1, 24 * 80, out);
+      fclose(out);
+      printf("OK\n");
+    }
+    NextOutputFile(szVideoMemFile);
   }
 
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F9))

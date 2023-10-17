@@ -15,7 +15,7 @@ dos:
 
 clean:
 ifeq ($(OS),Windows_NT)
-	del /Q /F *.o 2>NUL
+	del /Q /F *.o *.MAP 2>NUL
 else
-	rm *.o *~
+	rm *.o *~ *.MAP
 endif
