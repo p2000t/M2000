@@ -12,6 +12,7 @@
 
 #include "P2000.h"
 #include "MSDOS.h"
+#include "Utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,13 +79,12 @@ struct font2screen_struct
 };
 static struct font2screen_struct *font2screen=NULL;
 
-char szBitmapFile[256];            /* Next screen shot file                 */
-
 static volatile int PausePressed=0;      /* 1 if pause key is pressed       */
 static volatile byte keybstatus[128];    /* 1 if a certain key is pressed   */
 static volatile byte extkeybstatus[128]; /* Holds the extended keys         */
 static _go32_dpmi_seginfo keybirq;       /* Keyboard interrupt id           */
 static int makeshot=0;                   /* 1 -> take a screen shot         */
+static int dumpVRAM=0;                   /* 1 -> dump video RAM to file     */
 static int calloptions=0;                /* 1 -> call OptionsDialogue()     */
 
 typedef struct joyposstruct
@@ -309,6 +309,9 @@ static int keyb_interrupt (void)
       case VK_F7:
        makeshot=1;
        break;
+      case VK_F3:
+       if (!P2000_Mode) dumpVRAM=1;
+       break;
       case VK_F5:
        soundoff=(!soundoff);
        break;
@@ -436,41 +439,11 @@ void TrashMachine(void)
 }
 
 /****************************************************************************/
-/*** Update szBitmapFile[]                                                ***/
-/****************************************************************************/
-static int NextBitmapFile ()
-{
- char *p;
- p=szBitmapFile+strlen(szBitmapFile)-5;
- if (*p=='9')
- {
-  *p='0';
-  --p;
-  if (*p=='9')
-  {
-   *p='0';
-   --p;
-   (*p)++;
-  }
-  else
-  {
-   (*p)++;
-   if (*p=='0')
-    return 0;
-  }
- }
- else
-  (*p)++;
- return 1;
-}
-
-/****************************************************************************/
 /*** Initialise all resources needed by the MS-DOS implementation         ***/
 /****************************************************************************/
 int InitMachine(void)
 {
  int c,i,j;
- FILE *bitmapfile;
  if (Verbose)
   printf ("Initialising MS-DOS drivers:\n");
  cs_alias=_my_ds();
@@ -552,24 +525,21 @@ int InitMachine(void)
   i=Joy_Init ();
   if (Verbose) puts ((i)? "Found":"Not found");
  }
- strcpy (szBitmapFile,"M2000.BMP");
- while ((bitmapfile=fopen(szBitmapFile,"rb"))!=NULL)
- {
-  fclose (bitmapfile);
-  if (!NextBitmapFile())
-   break;
- }
- if (Verbose)
-  printf ("Next screenshot will be %s\n",szBitmapFile);
+
+ InitScreenshotFile();
+ InitVRAMFile();
+
  if (soundmode)
  {
   if (soundmode==2 || soundmode==255)
+  {
    if (!SB_Init())
    {
     if (soundmode==2) soundmode=0;
    }
    else
     soundmode=2;
+  }
  }
  if (Verbose) printf ("Initialising timer...\n");
  ReadTimerMin=1192380/IFreq;
@@ -724,6 +694,12 @@ void Keyboard(void)
   }
   OldTimer=ReadTimer ();
  }
+ if (dumpVRAM)
+ {
+     WriteVRAMFile();
+     NextOutputFile(szVideoRamFile);
+     dumpVRAM = 0;
+ }
  if (makeshot)
  {
   /* Copy screen contents to buffer and write bitmap file */
@@ -776,7 +752,7 @@ void Keyboard(void)
     WriteBitmap (szBitmapFile,1,2,640,640,480,p,VGA_Palette);
    }
    free (p);
-   NextBitmapFile ();
+   NextOutputFile(szBitmapFile);
   }
   nosound ();
   makeshot=0;

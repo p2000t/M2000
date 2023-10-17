@@ -12,6 +12,7 @@
 
 #include "P2000.h"
 #include "Unix.h"
+#include "Utils.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
@@ -76,8 +77,6 @@ static int soundoff=0;             /* If 1, sound is turned off             */
 int joymode=1;                     /* If 0, do not use joystick             */
 #endif
 //static struct termios termold;     /* Original terminal settings            */
-
-char szBitmapFile[256];            /* Next screen shot file                 */
 
 static byte Pal[8*3] =             /* SAA5050 palette                       */
 {
@@ -172,41 +171,12 @@ void TrashMachine(void)
 }
 
 /****************************************************************************/
-/*** Update szBitmapFile[]                                                ***/
-/****************************************************************************/
-static int NextBitmapFile()
-{
-  int ix = strlen(szBitmapFile) - 5;
-  if (szBitmapFile[ix] == '9')
-  {
-    szBitmapFile[ix] = '0';
-    ix--;
-    if (szBitmapFile[ix] == '9')
-    {
-      szBitmapFile[ix] = '0';
-      ix--;
-      szBitmapFile[ix]++;
-    }
-    else
-    {
-      szBitmapFile[ix]++;
-      if (szBitmapFile[ix] == '0')
-        return 0;
-    }
-  }
-  else
-    szBitmapFile[ix]++;
-  return 1;
-}
-
-/****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
 int InitMachine(void)
 {
   // int c,i,j;
   int i;
-  FILE *bitmapfile;
 
   /* This block has been moved in 'LoadFont' */
   /*
@@ -319,17 +289,9 @@ int InitMachine(void)
    InitJoystick (joymode);
   #endif
   */
-  strcpy(szBitmapFile, "M2000.bmp");
-  while ((bitmapfile = fopen(szBitmapFile, "rb")) != NULL)
-  {
-    fclose(bitmapfile);
-    if (!NextBitmapFile())
-      break;
-  }
-  if (Verbose)
-    printf("  Next screenshot will be %s\n", szBitmapFile);
-
-    // remove (szBitmapFile);
+  
+  InitScreenshotFile();
+  InitVRAMFile();
 
 #ifdef SOUND
   if (Verbose)
@@ -655,11 +617,22 @@ void Keyboard(void)
   {
     while (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
       al_get_keyboard_state(&kbdstate);
+    printf("  Writing screen shot to %s...", szBitmapFile);
 
-    if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf); //clean up previous screenshot
+    if (ScreenshotBuf)
+      al_destroy_bitmap(ScreenshotBuf); // clean up previous screenshot
     ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
     al_save_bitmap(szBitmapFile, ScreenshotBuf);
-    NextBitmapFile();
+    printf("OK\n");
+    NextOutputFile(szBitmapFile);
+  }
+
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_F3) && !P2000_Mode)
+  {
+    while (al_key_down(&kbdstate, ALLEGRO_KEY_F3))
+      al_get_keyboard_state(&kbdstate);
+    WriteVRAMFile();
+    NextOutputFile(szVideoRamFile);
   }
 
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F9))

@@ -56,7 +56,7 @@ void RefreshScreen_T (void)
      /* Control code found. Parse it */
      switch (c&31)
      {
-      /* New text colour */
+      /* New text colour () */
       case 1: case 2: case 3: case 4: case 5: case 6: case 7:
        fg=lastcolour=c&15;
        gr=conceal=0;

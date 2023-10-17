@@ -13,6 +13,7 @@
 
 #include "P2000.h"
 #include "Unix.h"
+#include "Utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -192,6 +193,12 @@ static void keyb_handler (int code,int newstatus)
      IncreaseSoundVolume ();
      break;
 #endif
+    case XK_F3:
+      if (!P2000_Mode) {
+        WriteVRAMFile();
+        NextOutputFile(szVideoRamFile);
+      }
+      break;
     case XK_F6:
      calloptions=1;
      break;
@@ -423,6 +430,9 @@ int InitMachine(void)
   XPal[1]=White;
  }
  if (Verbose) printf ("OK\n");
+
+ InitVRAMFile();
+
 #ifdef JOYSTICK
  InitJoystick (joymode);
 #endif
