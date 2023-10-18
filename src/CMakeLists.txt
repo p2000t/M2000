@@ -1,3 +1,25 @@
+ #*************************************************************************
+ #   CMakeLists.txt  --  This file is part of M2000.                      *
+ #                                                                        *
+ #   Author: Ivo Filot <i.a.w.filot@tue.nl>                               *
+ #                                                                        *
+ #   M2000 is a P2000T emulator originally designed by Marcel de Kogel    *
+ #                                                                        *
+ #   This file is free software: you can redistribute it and/or modify    *
+ #   it under the terms of the GNU General Public License as published    *
+ #   by the Free Software Foundation, either version 3 of the License,    *
+ #   or (at your option) any later version.                               *
+ #                                                                        *
+ #   This file is distributed in the hope that it will be useful,         *
+ #   but WITHOUT ANY WARRANTY; without even the implied warranty          *
+ #   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.              *
+ #   See the GNU General Public License for more details.                 *
+ #                                                                        *
+ #   You should have received a copy of the GNU General Public License    *
+ #   along with this program.  If not, see http://www.gnu.org/licenses/.  *
+ #                                                                        *
+ #*************************************************************************/
+
 # set minimum cmake requirements
 cmake_minimum_required(VERSION 3.18)
 
@@ -10,9 +32,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
 set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DMSDOS")
-
-# set linking flags
-set(CMAKE_STATIC_LINKER_FLAGS "-s")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
