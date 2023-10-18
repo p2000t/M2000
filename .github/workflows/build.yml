@@ -1,0 +1,24 @@
+name: build
+
+on:
+  push:
+    branches: [ "*" ]
+
+jobs:
+  build-m2000-windows:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar
+    - uses: actions/checkout@v3
+    - name: Configure CMake
+      run: mkdir build && cd build && cmake ../src
+    - name: Build
+      run: cd build && make -j
+    - name: Upload launcher
+      uses: actions/upload-artifact@v3
+      with:
+        name: m2000win.zip
+        path: build/m2000win.zip
