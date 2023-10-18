@@ -21,7 +21,7 @@ static int doblank=1;
 void RefreshScreen_T (void)
 {
   byte *S;
-  int fg,bg,si,gr,fl,cg,hc,conceal;
+  int fg,bg,si,gr,fl,cg,hg,conceal;
   int x,y;
   int c;
   int lastcolour,lastchar;
@@ -41,10 +41,10 @@ void RefreshScreen_T (void)
       graphics off
       flashing off
       contiguous graphics
-      hold character=SPACE
+      hold graphics off 
       reveal display */
-   fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hc=32; conceal=0;
-   lastcolour=7; lastchar=32;
+    fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hg=0; conceal=0;
+    lastcolour=7; lastchar=32;
    for (x=0;x<40;++x)
    {
     /* Get character */
@@ -57,9 +57,10 @@ void RefreshScreen_T (void)
      switch (c&31)
      {
       /* New text colour () */
-      case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+      //    red      green     yellow       blue    magenta       cyan      white
+      case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
        fg=lastcolour=c&15;
-       gr=conceal=0;
+       gr=conceal=hg=0;
        break;
       /* New graphics colour */
       case 17: case 18: case 19: case 20: case 21: case 22: case 23:
@@ -83,10 +84,12 @@ void RefreshScreen_T (void)
        break;
       /* Normal height */
       case 12:
+       if (si) hg=0;
        si=0;
        break;
       /* Double height */
       case 13:
+       if (!si) hg=0;
        si=1;
        if (!found_si) found_si=1;
        break;
@@ -96,7 +99,6 @@ void RefreshScreen_T (void)
       /* conceal display */
       case 24:
        conceal=1;
-       hc=SPACE;
        break;
       /* contiguous graphics */
       case 25:
@@ -116,18 +118,20 @@ void RefreshScreen_T (void)
        break;
       /* hold graphics */
       case 30:
-       hc=lastchar;
+       hg=1;
        break;
       /* release graphics */
       case 31:
-       hc=SPACE;
+       hg=0;
        break;
      }
-     if (gr) c=hc;
-     else c=SPACE;
+     c=SPACE; //control chars are displayed as space by default
     }
     else
      lastchar=c;
+
+    if (gr && hg) c=lastchar;
+     
     /* Check for flashing characters and concealed display */
     if ((fl && doblank) || conceal) c=SPACE;
     /* Check if graphics are on */
