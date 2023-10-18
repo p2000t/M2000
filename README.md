@@ -173,6 +173,30 @@ Note: when distributing m2000.exe, don't forget to include these Allegro 5 libra
   * allegro_image-5.*.dll
   * allegro_audio-5.*.dll
 
+### Windows (WSL Ubuntu cross-compilation)
+
+* Ensure you have [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) installed 
+  and have downloaded the latest Ubuntu image from the Windows store.
+* Install the required following packages in Ubuntu
+
+```bash
+sudo apt install mingw-w64 build-essential cmake zip curl
+```
+
+* Clone this repository, create a `build` folder in its root directory, go to the `build` folder and compile
+  a Makefile using `cmake`
+
+```bash
+mkdir build && cd build && cmake ../src
+```
+
+* Compile the program by running
+
+```bash
+make -j
+```
+
+* You are done.
 
 ## More information on the P2000
 

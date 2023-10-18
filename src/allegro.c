@@ -10,6 +10,8 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
+#define ALLEGRO_STATICLINK
+
 #include "P2000.h"
 #include "Unix.h"
 #include "Utils.h"
