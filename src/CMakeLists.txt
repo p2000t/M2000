@@ -55,9 +55,9 @@ target_link_libraries(
 )
 
 # copy all dependencies to build a self-contained zip file 
-set(DEPDLL allegro allegro_primitives allegro_image allegro_audio)
+set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll)
 FOREACH(FDLL ${DEPDLL})
-    file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL}-5.2.dll DESTINATION ${CMAKE_BINARY_DIR})
+    file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL} DESTINATION ${CMAKE_BINARY_DIR})
 ENDFOREACH()
 
 set(SUPPORTFILES Default.fnt P2000ROM.bin BASIC.bin)
@@ -65,20 +65,11 @@ FOREACH(SFILE ${SUPPORTFILES})
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../${SFILE} DESTINATION ${CMAKE_BINARY_DIR})
 ENDFOREACH()
 
-file(ARCHIVE_CREATE
-    OUTPUT "m2000win.zip"
-    PATHS 
-        "${CMAKE_BINARY_DIR}/m2000win.exe"
-        "${CMAKE_BINARY_DIR}/Default.fnt"
-        "${CMAKE_BINARY_DIR}/P2000ROM.bin"
-        "${CMAKE_BINARY_DIR}/BASIC.bin"
-        "${CMAKE_BINARY_DIR}/allegro-5.2.dll"
-        "${CMAKE_BINARY_DIR}/allegro_primitives-5.2.dll"
-        "${CMAKE_BINARY_DIR}/allegro_image-5.2.dll"
-        "${CMAKE_BINARY_DIR}/allegro_audio-5.2.dll"
-    FORMAT "zip")
-
-###
-# Installing
-##
-install (TARGETS m2000win DESTINATION bin)
+# create a zip archive for deployment
+add_custom_command(
+    TARGET m2000win
+    COMMAND ${CMAKE_COMMAND} -E tar cvf m2000win.zip --format=zip -- m2000win.exe ${DEPDLL} ${SUPPORTFILES}
+    DEPENDS ${CMAKE_BINARY_DIR}/m2000win.exe
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    VERBATIM
+)
