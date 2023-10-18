@@ -827,9 +827,13 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
   // printf("-M-");
 
   int charHeight = videomode == 0 ? 10.0 : 20.0;
-  al_draw_bitmap_region((eor ? FontBuf_bk : FontBuf), c*20.0, 0.0, 12.0, charHeight, x*12.0, y*charHeight, 0);
+  al_draw_bitmap_region(
+      (eor ? FontBuf_bk : FontBuf), c * 20.0, 0.0, 12.0, charHeight, x * 12.0,
+      y * charHeight, 0);
   if (ul)
-    al_draw_filled_rectangle(x*12.0, (y+1)*charHeight -2.0, (x+1)*12.0, (y+1)*charHeight -1.0, al_map_rgb(255, 255, 255));
+    al_draw_filled_rectangle(
+        x * 12.0, (y + 1) * charHeight - 2.0, (x + 1) * 12.0,
+        (y + 1) * charHeight - 1.0, al_map_rgb(255, 255, 255));
 }
 
 /****************************************************************************/
@@ -849,9 +853,15 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
   al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
 
   int charHeight = videomode == 0 ? 10.0 : 20.0;
-  al_draw_tinted_bitmap_region((si ? FontBuf_scaled : FontBuf), al_map_rgba(Pal[fg*3], Pal[fg*3+1], Pal[fg*3+2], 255), c*20.0, (si>>1)*charHeight, 12.0, 20.0, x*12.0, y*charHeight, 0);
-  if (bg) 
-    al_draw_tinted_bitmap_region((si ? FontBuf_bk_scaled : FontBuf_bk), al_map_rgba(Pal[bg*3], Pal[bg*3+1], Pal[bg*3+2], 0), c*20.0, (si>>1)*charHeight, 12.0, 20.0, x*12.0, y*charHeight, 0);
+  al_draw_tinted_bitmap_region(
+      (si ? FontBuf_scaled : FontBuf),
+      al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), c * 20.0,
+      (si >> 1) * charHeight, 12.0, 20.0, x * 12.0, y * charHeight, 0);
+  if (bg)
+    al_draw_tinted_bitmap_region(
+        (si ? FontBuf_bk_scaled : FontBuf_bk),
+        al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), c * 20.0,
+        (si >> 1) * charHeight, 12.0, 20.0, x * 12.0, y * charHeight, 0);
 }
 
 /****************************************************************************/

@@ -15,16 +15,19 @@
 /* If 1, flashing characters are not displayed this refresh */
 static int doblank=1;
 
+static int debug = 2;
+
 /****************************************************************************/
 /*** Refresh screen for T-model emulation                                 ***/
 /****************************************************************************/
 void RefreshScreen_T (void)
 {
   byte *S;
-  int fg,bg,si,gr,fl,cg,hg,conceal;
+  int fg,bg,si,gr,fl,cg,FG,BG,conceal;
+  int hg,hg_active,hg_c,hg_fg,hg_bg,hg_cg;
   int x,y;
   int c;
-  int lastcolour,lastchar;
+  int lastcolor;
   int eor;
   int found_si;
 
@@ -34,37 +37,39 @@ void RefreshScreen_T (void)
   found_si=0;
   for (y=0;y<24;++y)
   {
-   /* Initial values:
-      foreground=7 (white)
-      background=0 (black)
-      normal height
-      graphics off
-      flashing off
-      contiguous graphics
-      hold graphics off 
-      reveal display */
+    /* Initial values:
+       foreground=7 (white)
+       background=0 (black)
+       normal height
+       graphics off
+       flashing off
+       contiguous graphics
+       hold graphics off 
+       reveal display */
     fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hg=0; conceal=0;
-    lastcolour=7; lastchar=32;
-   for (x=0;x<40;++x)
-   {
+    //init the "hold graphics character"
+    hg_c=SPACE; hg_active=hg; hg_fg=fg; hg_bg=bg; hg_cg=cg;
+    lastcolor=fg; 
+    for (x=0;x<40;++x)
+    {
     /* Get character */
-    c=S[x]&127;
+    c = S[x] & 0x7f;
     /* If bit 7 is set, invert the colours */
-    eor=S[x]&128;
-    if (!(c&0x60))
+    eor = S[x] & 0x80;
+    if (!(c & 0x60))
     {
      /* Control code found. Parse it */
-     switch (c&31)
+     switch (c & 0x1f)
      {
       /* New text colour () */
       //    red      green     yellow       blue    magenta       cyan      white
       case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-       fg=lastcolour=c&15;
+       fg=lastcolor=c&15;
        gr=conceal=hg=0;
        break;
       /* New graphics colour */
-      case 17: case 18: case 19: case 20: case 21: case 22: case 23:
-       fg=lastcolour=c&15;
+      case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
+       fg=lastcolor=c&15;
        gr=1;
        conceal=0;
        break;
@@ -93,61 +98,82 @@ void RefreshScreen_T (void)
        si=1;
        if (!found_si) found_si=1;
        break;
-      /* reserved for compatability reasons */
-       case 0: case 14: case 15: case 16: case 27:
+      /* reserved for compatability reasons; these are still graphic mode */
+      case 0: case 14: case 15: case 16: case 27:
        break;
       /* conceal display */
       case 24:
        conceal=1;
        break;
       /* contiguous graphics */
-      case 25:
+      case 0x19:
        cg=1;
        break;
       /* separated graphics */
-      case 26:
+      case 0x1a:
        cg=0;
        break;
       /* black background */
-      case 28:
+      case 0x1c:
        bg=0;
        break;
       /* new background */
-      case 29:
-       bg=lastcolour;
+      case 0x1d:
+       bg=lastcolor;
        break;
       /* hold graphics */
-      case 30:
-       hg=1;
+      case 0x1e:
+       if (!hg) {
+        hg=1;
+        hg_cg=cg; //seperated/contiguous display doesn't change during HG mode
+       }
        break;
       /* release graphics */
-      case 31:
+      case 0x1f:
        hg=0;
        break;
      }
      c=SPACE; //control chars are displayed as space by default
     }
-    else
-     lastchar=c;
+    else if (gr) hg_c=c;
 
-    if (gr && hg) c=lastchar;
-     
+    if (hg_active) c=hg_c;
+
     /* Check for flashing characters and concealed display */
     if ((fl && doblank) || conceal) c=SPACE;
     /* Check if graphics are on */
-    if (gr && (c&0x20))
+    if ((gr || hg_active) && (c&0x20)) // c from 32..63
     {
      c+=(c&0x40)? 64:96;
-     if (!cg) c+=64;
+     if (!(hg_active ? hg_cg : cg)) c+=64;
     }
     /* If double height code on previous line and double height
        is not set, display a space character */
     if (found_si==2 && !si)
      c=SPACE;
 
+    /* Get the foreground and background colours */
+    FG = (hg_active ? hg_fg : fg); 
+    BG = (hg_active ? hg_bg : bg);
+    if (eor)
+    {
+      FG = FG&7;
+      BG = BG&7;
+    }
+
     /* Put the character in the screen buffer */
-    PutChar_T (x, y, c-32, (eor ? fg^7 : fg), (eor ? bg^7 : bg), (si ? found_si : 0));
+    PutChar_T (x, y, c-32, FG, BG, (si ? found_si : 0));
+
+    // 20 1e 20 17 2c 13 13 16 16 12 12 12
+
+    // update HG mode
+    hg_active=(hg && gr);
+    if (gr) {
+      hg_fg=fg;
+      hg_bg=bg;
+    }
    }
+
    /* Update the double height state
       If there was a double height code on this line, do not
       update the character pointer. If there was one on the
