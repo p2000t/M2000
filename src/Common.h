@@ -188,8 +188,8 @@ void RefreshScreen_T(void)
       BG = (hg_active ? hg_bg : bg);
       if (eor)
       {
-        FG = FG & 7;
-        BG = BG & 7;
+        FG = FG ^ 7;
+        BG = BG ^ 7;
       }
       /* Put the character in the screen buffer */
       PutChar_T(x, y, c - 32, FG, BG, (si ? found_si : 0));
