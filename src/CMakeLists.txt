@@ -26,8 +26,6 @@ endif()
 include(FetchContent)
 FetchContent_Declare(
   allegro5
-  #URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-dynamic-5.2.8.0.zip
-  #URL_HASH MD5=53ee801345c191eed5de01b2b9554475
   URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip
   URL_HASH MD5=d671903c6d3af3dfccd63f79f7508f80
 )
