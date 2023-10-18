@@ -12,186 +12,244 @@
 
 #define SPACE 32 // space character
 
-/* If 1, flashing characters are not displayed this refresh */
+// when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 
 /****************************************************************************/
 /*** Refresh screen for T-model emulation                                 ***/
 /****************************************************************************/
-void RefreshScreen_T (void)
+void RefreshScreen_T(void)
 {
   byte *S;
-  int fg,bg,si,gr,fl,cg,hc,conceal;
-  int x,y;
+  int fg, bg, si, gr, fl, cg, FG, BG, conceal;
+  int hg, hg_active, hg_c, hg_fg, hg_bg, hg_cg;
+  int x, y;
   int c;
-  int lastcolour,lastchar;
+  int lastcolor;
   int eor;
   int found_si;
 
-  S=VRAM+ScrollReg;
+  S = VRAM + ScrollReg;
+  found_si = 0; // init to no double height codes found
 
-  /* No double height code found yet */
-  found_si=0;
-  for (y=0;y<24;++y)
+  for (y = 0; y < 24; ++y)
   {
-   /* Initial values:
-      foreground=7 (white)
-      background=0 (black)
-      normal height
-      graphics off
-      flashing off
-      contiguous graphics
-      hold character=SPACE
-      reveal display */
-   fg=7; bg=0; si=0; gr=0; fl=0; cg=1; hc=32; conceal=0;
-   lastcolour=7; lastchar=32;
-   for (x=0;x<40;++x)
-   {
-    /* Get character */
-    c=S[x]&127;
-    /* If bit 7 is set, invert the colours */
-    eor=S[x]&128;
-    if (!(c&0x60))
+    /* Initial values:
+       foreground=7 (white)
+       background=0 (black)
+       normal height
+       graphics off
+       flashing off
+       contiguous graphics
+       hold graphics off
+       reveal display */
+    fg = 7;
+    bg = 0;
+    si = 0;
+    gr = 0;
+    fl = 0;
+    cg = 1;
+    hg = 0;
+    conceal = 0;
+    hg_c = SPACE; // init the HG mode settings
+    hg_active = hg;
+    hg_fg = fg;
+    hg_bg = bg;
+    hg_cg = cg;
+    lastcolor = fg;
+    for (x = 0; x < 40; ++x)
     {
-     /* Control code found. Parse it */
-     switch (c&31)
-     {
-      /* New text colour () */
-      case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-       fg=lastcolour=c&15;
-       gr=conceal=0;
-       break;
-      /* New graphics colour */
-      case 17: case 18: case 19: case 20: case 21: case 22: case 23:
-       fg=lastcolour=c&15;
-       gr=1;
-       conceal=0;
-       break;
-      /* Flash */
-      case 8:
-       fl=1;
-       break;
-      /* Steady */
-      case 9:
-       fl=0;
-       break;
-      /* End box (?) */
-      case 10:
-       break;
-      /* Start box (?) */
-      case 11:
-       break;
-      /* Normal height */
-      case 12:
-       si=0;
-       break;
-      /* Double height */
-      case 13:
-       si=1;
-       if (!found_si) found_si=1;
-       break;
-      /* reserved for compatability reasons */
-       case 0: case 14: case 15: case 16: case 27:
-       break;
-      /* conceal display */
-      case 24:
-       conceal=1;
-       hc=SPACE;
-       break;
-      /* contiguous graphics */
-      case 25:
-       cg=1;
-       break;
-      /* separated graphics */
-      case 26:
-       cg=0;
-       break;
-      /* black background */
-      case 28:
-       bg=0;
-       break;
-      /* new background */
-      case 29:
-       bg=lastcolour;
-       break;
-      /* hold graphics */
-      case 30:
-       hc=lastchar;
-       break;
-      /* release graphics */
-      case 31:
-       hc=SPACE;
-       break;
-     }
-     if (gr) c=hc;
-     else c=SPACE;
+      /* Get character */
+      c = S[x] & 0x7f;
+      /* If bit 7 is set, invert the colours */
+      eor = S[x] & 0x80;
+      if (!(c & 0x60))
+      {
+        /* Control code found. Parse it */
+        switch (c & 0x1f)
+        {
+        /* New text colour () */
+        case 0x01: // red
+        case 0x02: // green
+        case 0x03: // yellow
+        case 0x04: // blue
+        case 0x05: // magenta
+        case 0x06: // cyan
+        case 0x07: // white
+          fg = lastcolor = c & 0x0f;
+          gr = conceal = hg = 0;
+          break;
+        /* New graphics colour */
+        case 0x11: // red
+        case 0x12: // green
+        case 0x13: // yellow
+        case 0x14: // blue
+        case 0x15: // magenta
+        case 0x16: // cyan
+        case 0x17: // white
+          fg = lastcolor = c & 0x0f;
+          gr = 1;
+          conceal = 0;
+          break;
+        /* Flash */
+        case 0x08:
+          fl = 1;
+          break;
+        /* Steady */
+        case 0x09:
+          fl = 0;
+          break;
+        /* End box (?) */
+        case 0x0a:
+          break;
+        /* Start box (?) */
+        case 0x0b:
+          break;
+        /* Normal height */
+        case 0x0c:
+          if (si)
+            hg = 0;
+          si = 0;
+          break;
+        /* Double height */
+        case 0x0d:
+          if (!si)
+            hg = 0;
+          si = 1;
+          if (!found_si)
+            found_si = 1;
+          break;
+        /* reserved for compatability reasons; these are still graphic mode */
+        case 0x00:
+        case 0x0e:
+        case 0x0f:
+        case 0x10:
+        case 0x1b:
+          break;
+        /* conceal display */
+        case 0x18:
+          conceal = 1;
+          break;
+        /* contiguous graphics */
+        case 0x19:
+          cg = 1;
+          break;
+        /* separated graphics */
+        case 0x1a:
+          cg = 0;
+          break;
+        /* black background */
+        case 0x1c:
+          bg = 0;
+          break;
+        /* new background */
+        case 0x1d:
+          bg = lastcolor;
+          break;
+        /* hold graphics */
+        case 0x1e:
+          if (!hg)
+          {
+            hg = 1;
+            hg_cg = cg; // hold display of seperated/contiguous mode
+          }
+          break;
+        /* release graphics */
+        case 0x1f:
+          hg = 0;
+          break;
+        }
+        c = SPACE; // control chars are displayed as space by default
+      }
+      else if (gr)
+        hg_c = c;
+
+      if (hg_active)
+        c = hg_c;
+
+      /* Check for flashing characters and concealed display */
+      if ((fl && doblank) || conceal)
+        c = SPACE;
+
+      /* Check if graphics are on */
+      if ((gr || hg_active) && (c & 0x20)) // c from 32..63
+      {
+        c += (c & 0x40) ? 64 : 96;
+        if (!(hg_active ? hg_cg : cg))
+          c += 64;
+      }
+      /* If double height code on previous line and double height
+         is not set, display a space character */
+      if (found_si == 2 && !si)
+        c = SPACE;
+
+      /* Get the foreground and background colours */
+      FG = (hg_active ? hg_fg : fg);
+      BG = (hg_active ? hg_bg : bg);
+      if (eor)
+      {
+        FG = FG ^ 7;
+        BG = BG ^ 7;
+      }
+      /* Put the character in the screen buffer */
+      PutChar_T(x, y, c - 32, FG, BG, (si ? found_si : 0));
+
+      // update HG mode
+      hg_active = (hg && gr);
+      if (gr)
+      {
+        hg_fg = fg;
+        hg_bg = bg;
+      }
+    }
+
+    /* Update the double height state
+       If there was a double height code on this line, do not
+       update the character pointer. If there was one on the
+       previous line, add two lines to the character pointer */
+    if (found_si)
+    {
+      if (++found_si == 3)
+      {
+        S += 160;
+        found_si = 0;
+      }
     }
     else
-     lastchar=c;
-    /* Check for flashing characters and concealed display */
-    if ((fl && doblank) || conceal) c=SPACE;
-    /* Check if graphics are on */
-    if (gr && (c&0x20))
-    {
-     c+=(c&0x40)? 64:96;
-     if (!cg) c+=64;
-    }
-    /* If double height code on previous line and double height
-       is not set, display a space character */
-    if (found_si==2 && !si)
-     c=SPACE;
-
-    /* Put the character in the screen buffer */
-    PutChar_T (x, y, c-32, (eor ? fg^7 : fg), (eor ? bg^7 : bg), (si ? found_si : 0));
-   }
-   /* Update the double height state
-      If there was a double height code on this line, do not
-      update the character pointer. If there was one on the
-      previous line, add two lines to the character pointer */
-   if (found_si)
-   {
-    if (++found_si==3)
-    {
-     S+=160;
-     found_si=0;
-    }
-   }
-   else
-    S+=80; //move to next line in VRAM
+      S += 80; // move to next line in VRAM
   }
 }
 
 /****************************************************************************/
 /*** Refresh screen for M-model emulation                                 ***/
 /****************************************************************************/
-void RefreshScreen_M (void)
+void RefreshScreen_M(void)
 {
- byte *S;
- int a,c;
- int x,y;
- int eor,ul;
- S=VRAM;
- for (y=0;y<24;++y,S+=80)
-  for (x=0;x<80;++x)
-  {
-   /* Get character */
-   c=S[x]&127;
-   /* If bit seven is set, underline is on */
-   ul=S[x]&128;
-   /* Get attributes */
-   a=S[x+2048];
-   /* bit 3 = inverse video */
-   eor=a&8;
-   /* Bit 0 = graphics */
-   if ((a&1) && (c&0x20))
-    c+=(c&0x40)? 64:96;
-   /* If invalid character or blanking is on,
-      display a space character */
-   if (c<32 || ((a&16) && doblank))
-    c=32;
-   /* Put the character in the screen buffer */
-   PutChar_M (x,y,c-32,eor,ul);
-  }
+  byte *S;
+  int a, c;
+  int x, y;
+  int eor, ul;
+  S = VRAM;
+  for (y = 0; y < 24; ++y, S += 80)
+    for (x = 0; x < 80; ++x)
+    {
+      // Get character
+      c = S[x] & 127;
+      // If bit seven is set, underline is on
+      ul = S[x] & 128;
+      // Get attributes
+      a = S[x + 2048];
+      // bit 3 = inverse video
+      eor = a & 8;
+      // Bit 0 = graphics
+      if ((a & 1) && (c & 0x20))
+        c += (c & 0x40) ? 64 : 96;
+      // If invalid character or blanking is on, display a space character
+      if (c < 32 || ((a & 16) && doblank))
+        c = 32;
+      // Put the character in the screen buffer
+      PutChar_M(x, y, c - 32, eor, ul);
+    }
 }
 
 /****************************************************************************/
@@ -199,25 +257,25 @@ void RefreshScreen_M (void)
 /*** calls either RefreshScreen_T() or RefreshScreen_M() and finally it   ***/
 /*** calls PutImage() to copy the off-screen buffer to the actual display ***/
 /****************************************************************************/
-void RefreshScreen (void)
+void RefreshScreen(void)
 {
- static int BCount=0;
- /* Update blanking count */
- switch (++BCount)
- {
+  static int BCount = 0;
+  // Update blanking count
+  switch (++BCount)
+  {
   case 35:
-   doblank=1;
-   break;
+    doblank = 1;
+    break;
   case 50:
-   doblank=0;
-   BCount=0;
-   break;
- }
- /* Update the screen buffer */
- if (!P2000_Mode)
-  RefreshScreen_T ();
- else
-  RefreshScreen_M ();
- /* Put the image on the screen */
- PutImage ();
+    doblank = 0;
+    BCount = 0;
+    break;
+  }
+  // Update the screen buffer
+  if (!P2000_Mode)
+    RefreshScreen_T();
+  else
+    RefreshScreen_M();
+  // Put the image on the screen
+  PutImage();
 }
