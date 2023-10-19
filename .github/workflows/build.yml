@@ -21,4 +21,12 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: m2000win.zip
-        path: build/m2000win.zip
+        path: |
+          build/m2000win.exe
+          build/allegro-5.2.dll
+          build/allegro_primitives-5.2.dll
+          build/allegro_image-5.2.dll
+          build/allegro_audio-5.2.dll
+          build/Default.fnt
+          build/P2000ROM.bin
+          build/BASIC.bin
