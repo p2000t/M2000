@@ -9,9 +9,10 @@ Version 0.6.1-SNAPSHOT
 
 ## Download
 
-TODO
+Coming soon on the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
+Until then, get the M2000 emalator and games from here: https://github.com/p2000t/software/
 
-## Files included in the release packages
+### Files included in the release packages
 ```
 m2000          The emulator
 README.md      This readme file
@@ -42,7 +43,7 @@ Shift-Delete          -  >
 ` ~                   -  CODE
 ```
 
-## Special Keys
+### Special Keys
 ```
 F3           -  Dump video RAM to file (P2000T mode only)
 F4           -  Toggle tracing on/off (Debugging version only)
@@ -120,9 +121,9 @@ These are plain text files containing optional command line options. \
 Options can be separated with spaces, tabs or returns. \
 Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
-## How to compile the sources
+## How to compile M2000 from the sources
 
-Most people probably just want to download one of the [M2000 releases](https://github.com/p2000t/M2000/releases) to play some of the [P2000T games](https://github.com/p2000t/software/tree/master/cassettes/games), which is totally fine. But in case you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
+If you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone git@github.com:p2000t/M2000.git`
 
 ### MS-DOS:
@@ -130,20 +131,20 @@ Most people probably just want to download one of the [M2000 releases](https://g
 * Go to the folder which contains your cloned M2000 repo and open the subfolder `djgpp`
 * Extract all files from the 5 zips (`djdev202.zip`, `bnu281b.zip`, `gcc281b.zip`, `mak377b.zip` and `csdpmi4b.zip`) directly into `djgpp`, so this folder will get subfolders `bin`, `gnu`, `include`, etc.
 * Open the DOSBox options file and copy/paste these lines at the bottom under [autoexec]: \
-  ***Replace "C:\path-to-your-clone-of-M2000" with the actual path.***
+  ***note: replace "C:\path-to-your-clone-of-M2000" with the actual path***
   ```
   mount c "C:\path-to-your-clone-of-M2000"
   c:
   set PATH=C:\DJGPP\BIN;%PATH%
   set DJGPP=C:\DJGPP\DJGPP.ENV
-  #reduce sound volume to 20%
+  #optional: reduce sound volume to 20%
   MIXER MASTER 20
   MIXER SPKR 20
   MIXER SB 20
   MIXER FM 20
   ```
 * Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
-* Go into the src folder (`cd src`) and type: `make dos`. Wait for the compiler to finish...
+* Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
 * Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
 
 ### Unix/X:
@@ -160,11 +161,11 @@ The resulting `m2000` will be copied into the root of your cloned M2000 repo, wh
 * If you're missing sound on Ubuntu, please try installing also-oss (`sudo apt-get install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
   `aoss ./m2000`
 
-### Windows (experimental):
+### Windows:
 * Make sure to have WinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install WinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
-* Download the static [Allegro 5 libraries](https://github.com/liballeg/allegro5/releases) that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
+* Download the static [Allegro 5 libraries v5.2.8.0]([https://github.com/liballeg/allegro5/releases](https://github.com/liballeg/allegro5/releases/tag/5.2.8.0)) and pick the version that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
 * Open a command prompt into the src folder of your cloned M2000 repo and type: `mingw32-make allegro`. The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
 Note: when distributing m2000.exe, don't forget to include these Allegro 5 libraries: \
 (*replace * with the version of the Allegro 5 libraries you installed*)
@@ -174,7 +175,7 @@ Note: when distributing m2000.exe, don't forget to include these Allegro 5 libra
   * allegro_audio-5.*.dll
 
 ### Windows (WSL Ubuntu cross-compilation)
-
+Alternatively, you can build the Windows version on WSL (Windows Subsystem for Linux).
 * Ensure you have [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) installed 
   and have downloaded the latest Ubuntu image from the Windows store.
 * Install the required following packages in Ubuntu
@@ -201,7 +202,7 @@ make -j
 ## More information on the P2000
 
 ### P2000 documentation
-* A large collection of (scanned) P2000 documents, Nat.Lab. and P2000gg newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
+* A large collection of (scanned) P2000 documents, P2000gg and Nat.Lab. newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
 * The [P2000T community on Retroforum](https://www.retroforum.nl/topic/3914-philips-p2000t/
 ) can help out with questions. They're nice people :-)
 
