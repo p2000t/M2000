@@ -55,7 +55,7 @@ char *Title="M2000 v0.6.1-SNAPSHOT"; /* Title for -help output            */
 
 ALLEGRO_KEYBOARD_STATE kbdstate;
 
-int videomode;                     /* T emulation only: 0=320x240 1=640x480 */ 
+int videomode = 1;                 /* T emulation only: 0=320x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
