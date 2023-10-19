@@ -124,7 +124,7 @@ Please note that for the Unix versions, the configuration files should be presen
 ## How to compile M2000 from the sources
 
 If you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
-`git clone git@github.com:p2000t/M2000.git`
+`git clone https://github.com/p2000t/M2000.git`
 
 ### MS-DOS:
 * Download and install [DOSBox](https://www.dosbox.com/)
