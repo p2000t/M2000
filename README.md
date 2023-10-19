@@ -77,11 +77,12 @@ ESC/F10      -  Quit emulator
                        slow
 -t / -m                Select P2000 model [-t]
 -video <mode>          Select video mode/window size [0]
-                       0 - 500x300 (Unix/X)
-                           320x240 (Linux/SVGALib, T-model emulation only)
+                       0 - 960x720 (Windows) [pixel perfect]
+                           500x300 (Unix/X)
                            256x240 (MS-DOS, T-model emulation only)
-                       1 - 520x490 (Unix/X)
-                           640x480 (Linux/SVGALib and MS-DOS)
+                       1 - 960x720 (Windows) [fat font]
+                           520x490 (Unix/X)
+                           640x480 (MS-DOS)
 -printer <filename>    Select file for printer output
                        Default is PRN for the MS-DOS version, stdout for
                        the Unix versions
