@@ -10,7 +10,7 @@ Version 0.6.1-SNAPSHOT
 ## Download
 
 Coming soon on the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
-Until then, get the M2000 emalator and games from here: https://github.com/p2000t/software/
+Until then, get the M2000 emulator and games from here: https://github.com/p2000t/software/
 
 ### Files included in the release packages
 ```
