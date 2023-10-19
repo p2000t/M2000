@@ -23,6 +23,10 @@
 # set minimum cmake requirements
 cmake_minimum_required(VERSION 3.18)
 
+if(${CMAKE_VERSION} VERSION_GREATER "3.24.0") 
+    cmake_policy(SET CMP0135 NEW) # update timestamps of Allegro5 to moment of extraction
+endif()
+
 set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
 set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
 project(m2000win)
