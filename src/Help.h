@@ -31,10 +31,14 @@ char *HelpText[] =
   "  -t / -m                    - Select P2000 model [-t]",
 #if defined(MSDOS) || defined(LINUX_SVGA)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
+#ifdef ALLEGRO
+  "                               0 - 960x720 (pixel perfect) 1 - 960x720 (bold)",
+#else
 #ifdef MSDOS
   "                               0 - 256x240   1 - 640x480",
 #else
   "                               0 - 320x240   1 - 640x480",
+#endif
 #endif
 #else
   "  -video <mode>              - Select window size [0]",

@@ -11,6 +11,12 @@
 /****************************************************************************/
 
 #define ALLEGRO_STATICLINK
+#define CHAR_TILE_WIDTH 24
+#define CHAR_TILE_HEIGHT 30
+#define CHAR_TILE_HSPACE 4 // extra spacing to create "fat" font
+#define CHAR_TILE_VSPACE 2 // extra spacing to create "fat" font
+
+#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH+CHAR_TILE_HSPACE) 
 
 #include "P2000.h"
 #include "Unix.h"
@@ -55,8 +61,10 @@ char *Title="M2000 v0.6.1-SNAPSHOT"; /* Title for -help output            */
 
 ALLEGRO_KEYBOARD_STATE kbdstate;
 
-int videomode = 1;                 /* T emulation only: 0=320x240 1=640x480 */ 
-static int *OldCharacter;          /* Holds characters on the screen        */
+int videomode;                    /* T emulation only: 
+                                        0=960x720 (pixel perfect) 
+                                        1=960x720 (fat font mode)          */ 
+static int *OldCharacter;         /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
@@ -68,7 +76,8 @@ ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
 //unsigned ReadTimerMin;             /* Minimum number of micro seconds       */
 //                                   /* between interrupts                    */
-static int width,height;        /* Width and height of the display buffer   */
+static int width = 960;
+static int height = 720;          /* Width and height of the display buffer   */
 //static int OldTimer=0;             /* Value of timer at previous interrupt  */
 //static int NewTimer=0;             /* New value of the timer                */
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
@@ -201,22 +210,6 @@ int InitMachine(void)
   }
 
   printf("OK\nCreating the output window... ");
-
-  if (!P2000_Mode)
-    width = 480;
-  else
-    width = 960;
-
-  switch (videomode)
-  {
-  case 1:
-    height = 480;
-    break;
-  default:
-    videomode = 0;
-    height = 240;
-    break;
-  }
 
   display = al_create_display(width, height);
 
@@ -436,7 +429,7 @@ int LoadFont(char *filename)
 
   if (!FontBuf)
   {
-    FontBuf = al_create_bitmap(8192, 32);
+    FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE);
     if (!FontBuf)
     {
       if (Verbose)
@@ -447,7 +440,7 @@ int LoadFont(char *filename)
 
   if (!FontBuf_bk)
   {
-    FontBuf_bk = al_create_bitmap(8192, 32);
+    FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE);
     if (!FontBuf_bk)
     {
       if (Verbose)
@@ -458,9 +451,9 @@ int LoadFont(char *filename)
 
   if (!P2000_Mode)
   {
-    if (!FontBuf_scaled)
+    if (!FontBuf_scaled) //double height
     {
-      FontBuf_scaled = al_create_bitmap(8192, 64);
+      FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE));
       if (!FontBuf_scaled)
       {
         if (Verbose)
@@ -471,7 +464,7 @@ int LoadFont(char *filename)
 
     if (!FontBuf_bk_scaled)
     {
-      FontBuf_bk_scaled = al_create_bitmap(8192, 64);
+      FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE));
       if (!FontBuf_bk_scaled)
       {
         if (Verbose)
@@ -512,45 +505,48 @@ int LoadFont(char *filename)
   if (!i)
     return 0;
 
-  /* Stretch characters to 12x20 */
-  for (i = 0; i < (96 + 128) * 10; i += 10)
-  {
-    for (j = 0; j < 10; ++j)
-    {
-      c = TempBuf[i + j]; // k=0;
+  float x1, y1, x2, y2;
+  // rx and ry are used for rounded pixels (videomode 1)
+  float rx = (videomode == 1) ? 4.0 : 0.0;
+  float ry = (videomode == 1) ? 3.0 : 0.0;
+  float hscale = P2000_Mode ? 0.5 : 1.0;
 
-      for (k = 0; k < 6; ++k)
+  /* Stretch 6x10 characters to 24x30, so we can display a 4:3 aspect ratio */
+  for (i = 0; i < (96 + 64 + 64) * 10; i += 10) //96 alpha + 64 graphic (cont) + 64 graphic (sep)
+  {
+    for (j = 0; j < 10; ++j)  // char height
+    {
+      c = TempBuf[i + j];
+
+      for (k = 0; k < 6; ++k) // char width
       {
-        if (c & 0x20)
+        if (c & 0x20) // bit 6 set = pixel set
         {
+          x1 = ((i*7.0/10.0 + k) * hscale * 4.0) - 0.4; // using 7 instead of 6 for 4 pixels hspace
+          y1 = j * 3.0 - 0.45;
+          x2 = ((i*7.0/10.0 + k) * hscale * 4.0) + (hscale * 4.2);
+          y2 = j * 3.0 + 3.2;
+          
+          // videomode 1 displays fat chars and uses pixel rounding
+          if (videomode == 1 && !P2000_Mode) 
+          {
+            // for alpha chars, the outside borders are non-fat
+            if (i >= 96 * 10 || k != 0) x1--;
+            if (i >= 96 * 10 || j != 0) y1--;
+            if (i >= 96 * 10 || k != 5) x2++;
+            if (i >= 96 * 10 || j != 9) y2++;
+          } 
+
           /* Draw the font on an internal bitmap */
           al_set_target_bitmap(FontBuf);
-          if (!videomode)
-          {
-            al_draw_filled_rectangle(((i + k) * 2.0) - 0.4, j - 0.45, ((i + k) * 2.0) + 2.2, j + 1.2, al_map_rgb(255, 255, 255));
-          }
-          else
-          {
-            /* Stretch characters to 12x20 */
-            al_draw_filled_rectangle(((i + k) * 2.0) - 0.4, j * 2.0 - 0.45, ((i + k) * 2.0) + 2.2, j * 2.0 + 2.2, al_map_rgb(255, 255, 255));
-          }
+          al_draw_filled_rounded_rectangle(x1, y1, x2, y2, rx, ry, al_map_rgb(255, 255, 255));
+
           /* Draw the inverted font on an internal bitmap */
           al_set_target_bitmap(FontBuf_bk);
-          if (!videomode)
-          {
-            al_draw_filled_rectangle(((i + k) * 2.0) - 0.4, j - 0.45, ((i + k) * 2.0) + 2.2, j + 1.2, al_map_rgb(0, 0, 0));
-          }
-          else
-          {
-            /* Stretch characters to 12x20 */
-            al_draw_filled_rectangle(((i + k) * 2.0) - 0.4, j * 2.0 - 0.45, ((i + k) * 2.0) + 2.2, j * 2.0 + 2.2, al_map_rgb(0, 0, 0));
-          }
+          al_draw_filled_rounded_rectangle(x1, y1, x2, y2, rx, ry, al_map_rgb(0, 0, 0));
         }
-        c *= 2;
+        c<<=1; //shift bits
       }
-
-      /* Let's define a square area on bottom of font buffer to handle the background colors */
-      // al_draw_filled_rectangle(   8000.0,0.0,8032.0,32.0,al_map_rgb(255,255,255));
     }
   }
   free(TempBuf);
@@ -558,16 +554,20 @@ int LoadFont(char *filename)
   if (!P2000_Mode)
   {
     al_set_target_bitmap(FontBuf_bk_scaled);
-    al_draw_scaled_bitmap(FontBuf_bk, 0.0, 0.0, 8192.0, 32.0, 0.0, 0.0, 8192.0, 64.0, 0);
+    al_draw_scaled_bitmap(FontBuf_bk, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE), 0);
 
     al_set_target_bitmap(FontBuf_scaled);
-    al_draw_scaled_bitmap(FontBuf, 0.0, 0.0, 8192.0, 32.0, 0.0, 0.0, 8192.0, 64.0, 0);
+    al_draw_scaled_bitmap(FontBuf, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE), 0);
   }
 
   // al_set_target_bitmap((ALLEGRO_BITMAP *)display);
   al_set_window_title(display, Title);
 
-  // al_save_bitmap("test.bmp", FontBuf_bk_scaled);
+  //al_save_bitmap("test.bmp", FontBuf);
 
   return 1;
 }
@@ -828,14 +828,15 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 
   // printf("-M-");
 
-  int charHeight = videomode == 0 ? 10.0 : 20.0;
   al_draw_bitmap_region(
-      (eor ? FontBuf_bk : FontBuf), c * 20.0, 0.0, 12.0, charHeight, x * 12.0,
-      y * charHeight, 0);
+      (eor ? FontBuf_bk : FontBuf), 0.5 * c * (CHAR_TILE_WIDTH + CHAR_TILE_HSPACE), 
+      0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0.5 * x * CHAR_TILE_WIDTH,
+      y * CHAR_TILE_HEIGHT, 0);
   if (ul)
     al_draw_filled_rectangle(
-        x * 12.0, (y + 1) * charHeight - 2.0, (x + 1) * 12.0,
-        (y + 1) * charHeight - 1.0, al_map_rgb(255, 255, 255));
+        0.5 * x * CHAR_TILE_WIDTH, (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
+        0.5 * (x + 1) * CHAR_TILE_WIDTH, (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
+        al_map_rgb(255, 255, 255));
 }
 
 /****************************************************************************/
@@ -854,16 +855,19 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
 
-  int charHeight = videomode == 0 ? 10.0 : 20.0;
   al_draw_tinted_bitmap_region(
       (si ? FontBuf_scaled : FontBuf),
-      al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), c * 20.0,
-      (si >> 1) * charHeight, 12.0, 20.0, x * 12.0, y * charHeight, 0);
+      al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
+      c * (CHAR_TILE_WIDTH+CHAR_TILE_HSPACE),
+      (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
   if (bg)
     al_draw_tinted_bitmap_region(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
-        al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), c * 20.0,
-        (si >> 1) * charHeight, 12.0, 20.0, x * 12.0, y * charHeight, 0);
+        al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
+        c * (CHAR_TILE_WIDTH+CHAR_TILE_HSPACE),
+        (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
 }
 
 /****************************************************************************/
