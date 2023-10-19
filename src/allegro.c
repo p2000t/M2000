@@ -14,7 +14,6 @@
 #define CHAR_TILE_WIDTH 24
 #define CHAR_TILE_HEIGHT 30
 #define CHAR_TILE_HSPACE 4 // extra spacing to create "fat" font
-#define CHAR_TILE_VSPACE 2 // extra spacing to create "fat" font
 
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH+CHAR_TILE_HSPACE) 
 
@@ -429,7 +428,7 @@ int LoadFont(char *filename)
 
   if (!FontBuf)
   {
-    FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE);
+    FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
     if (!FontBuf)
     {
       if (Verbose)
@@ -440,7 +439,7 @@ int LoadFont(char *filename)
 
   if (!FontBuf_bk)
   {
-    FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE);
+    FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
     if (!FontBuf_bk)
     {
       if (Verbose)
@@ -453,7 +452,7 @@ int LoadFont(char *filename)
   {
     if (!FontBuf_scaled) //double height
     {
-      FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE));
+      FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
       if (!FontBuf_scaled)
       {
         if (Verbose)
@@ -464,7 +463,7 @@ int LoadFont(char *filename)
 
     if (!FontBuf_bk_scaled)
     {
-      FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE));
+      FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
       if (!FontBuf_bk_scaled)
       {
         if (Verbose)
@@ -522,19 +521,19 @@ int LoadFont(char *filename)
       {
         if (c & 0x20) // bit 6 set = pixel set
         {
-          x1 = ((i*7.0/10.0 + k) * hscale * 4.0) - 0.4; // using 7 instead of 6 for 4 pixels hspace
-          y1 = j * 3.0 - 0.45;
-          x2 = ((i*7.0/10.0 + k) * hscale * 4.0) + (hscale * 4.2);
-          y2 = j * 3.0 + 3.2;
+          x1 = (i * 7.0 /10.0 + k) * hscale * 4.0; // using 7 instead of 6 for 4 pixels hspace
+          y1 = j * 3.0;
+          x2 = (i * 7.0 / 10.0 + k + 1) * hscale * 4.0;
+          y2 = (j + 1) * 3.0;
           
           // videomode 1 displays fat chars and uses pixel rounding
           if (videomode == 1 && !P2000_Mode) 
           {
             // for alpha chars, the outside borders are non-fat
-            if (i >= 96 * 10 || k != 0) x1--;
-            if (i >= 96 * 10 || j != 0) y1--;
-            if (i >= 96 * 10 || k != 5) x2++;
-            if (i >= 96 * 10 || j != 9) y2++;
+            if (i >= 96 * 10 || k != 0) x1 = x1 - 1.49;
+            if (i >= 96 * 10 || j != 0) y1 = y1 - 1.49;
+            if (i >= 96 * 10 || k != 5) x2 = x2 + 1.49;
+            if (i >= 96 * 10 || j != 9) y2 = y2 + 1.49;
           } 
 
           /* Draw the font on an internal bitmap */
@@ -555,13 +554,13 @@ int LoadFont(char *filename)
   {
     al_set_target_bitmap(FontBuf_bk_scaled);
     al_draw_scaled_bitmap(FontBuf_bk, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE), 0);
+      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      2*(CHAR_TILE_HEIGHT), 0);
 
     al_set_target_bitmap(FontBuf_scaled);
     al_draw_scaled_bitmap(FontBuf, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT+CHAR_TILE_VSPACE), 0);
+      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
+      2*(CHAR_TILE_HEIGHT), 0);
   }
 
   // al_set_target_bitmap((ALLEGRO_BITMAP *)display);
