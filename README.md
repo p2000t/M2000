@@ -197,7 +197,8 @@ mkdir build && cd build && cmake ../src
 make -j
 ```
 
-* You are done.
+* The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
+  the `.zip` file found in the same folder and deploy the emulator in another folder.
 
 ## More information on the P2000
 
