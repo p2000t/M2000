@@ -22,7 +22,7 @@ void RefreshScreen_T(void)
 {
   byte *S;
   int fg, bg, si, gr, fl, cg, FG, BG, conceal;
-  int hg, hg_active, hg_c, hg_fg, hg_bg, hg_cg;
+  int hg, hg_active, hg_c, hg_fg, hg_cg;
   int x, y;
   int c;
   int lastcolor;
@@ -51,11 +51,10 @@ void RefreshScreen_T(void)
     cg = 1;
     hg = 0;
     conceal = 0;
-    hg_c = SPACE; // init the HG mode settings
-    hg_active = hg;
-    hg_fg = fg;
-    hg_bg = bg;
+    hg_active = hg; // init the HG mode settings
+    hg_c = SPACE;
     hg_cg = cg;
+    hg_fg = fg;
     lastcolor = fg;
     for (x = 0; x < 40; ++x)
     {
@@ -151,7 +150,11 @@ void RefreshScreen_T(void)
           if (!hg)
           {
             hg = 1;
-            hg_cg = cg; // hold display of seperated/contiguous mode
+            if (gr) 
+            {
+              hg_active = 1;
+              hg_fg = fg;
+            }
           }
           break;
         /* release graphics */
@@ -161,8 +164,11 @@ void RefreshScreen_T(void)
         }
         c = SPACE; // control chars are displayed as space by default
       }
-      else if (gr)
+      else 
+      {
         hg_c = c;
+        hg_cg = cg; // hold display of seperated/contiguous mode
+      }
 
       if (hg_active)
         c = hg_c;
@@ -185,7 +191,7 @@ void RefreshScreen_T(void)
 
       /* Get the foreground and background colours */
       FG = (hg_active ? hg_fg : fg);
-      BG = (hg_active ? hg_bg : bg);
+      BG = bg;
       if (eor)
       {
         FG = FG ^ 7;
@@ -199,7 +205,6 @@ void RefreshScreen_T(void)
       if (gr)
       {
         hg_fg = fg;
-        hg_bg = bg;
       }
     }
 
