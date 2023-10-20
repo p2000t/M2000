@@ -166,14 +166,13 @@ The resulting `m2000` will be copied into the root of your cloned M2000 repo, wh
 * Make sure to have WinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install WinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
-* Download the static [Allegro 5 libraries v5.2.8.0]([https://github.com/liballeg/allegro5/releases](https://github.com/liballeg/allegro5/releases/tag/5.2.8.0)) and pick the version that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
+* Download the static [Allegro 5 libraries v5.2.8.0](https://github.com/liballeg/allegro5/releases/tag/5.2.8.0) and pick the version that matches your WinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your WinGW folder.
 * Open a command prompt into the src folder of your cloned M2000 repo and type: `mingw32-make allegro`. The resulting `m2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it. \
-Note: when distributing m2000.exe, don't forget to include these Allegro 5 libraries: \
-(*replace * with the version of the Allegro 5 libraries you installed*)
-  * allegro-5.*.dll
-  * allegro_primitives-5.*.dll
-  * allegro_image-5.*.dll
-  * allegro_audio-5.*.dll
+Note: when distributing m2000.exe, don't forget to include these Allegro 5.2 libraries: \
+  * allegro-5.2.dll
+  * allegro_primitives-5.2.dll
+  * allegro_image-5.2.dll
+  * allegro_audio-5.2.dll
 
 ### Windows (WSL Ubuntu cross-compilation)
 Alternatively, you can build the Windows version on WSL (Windows Subsystem for Linux).
