@@ -361,6 +361,7 @@ void OptionsDialogue (void)
  char buf[256];
  char *p;
  int tmp;
+ FILE *f;
  do
  {
   printf ("Options currently in use are:\n"
@@ -376,6 +377,7 @@ void OptionsDialogue (void)
           "t <filename>     - Change tape image\n"
           "p <filename>     - Change printer log file\n"
           "f <filename>     - Change font file name\n"
+          "v <filename>     - Load video RAM file\n"
           "c <percentage>   - Change Z80 CPU speed\n"
           "b                - Back\n"
           "q                - Quit emulator\n> ");
@@ -395,6 +397,16 @@ void OptionsDialogue (void)
     TapeStream=fopen (_TapeName,"a+b");
     if (TapeStream) rewind (TapeStream);
     if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+    break;
+   case 'v': case 'V':
+      if (Verbose) printf ("Opening video RAM file %s... ",buf+2);
+      if ((f = fopen(buf+2, "rb")) != NULL)
+      {
+        fread(VRAM, 1, 24 * 80, f);
+        fclose(f);
+        RefreshScreen();
+      } 
+      if (Verbose) puts ((f)? "OK":"FAILED");
     break;
    case 'p': case 'P':
     strcpy (_PrnName,buf+2);

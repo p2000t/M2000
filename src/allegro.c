@@ -696,9 +696,9 @@ void Keyboard(void)
   if (calloptions)
   {
     calloptions = 0;
-    al_flip_display();
+    //al_flip_display();
     OptionsDialogue();
-    al_flip_display();
+    //al_flip_display();
   }
 
   /*
