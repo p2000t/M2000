@@ -16,12 +16,9 @@
 #include <time.h>
 
 #ifdef SOUND
-#ifndef ALLEGRO
 #include <stdlib.h>
 #include <unistd.h>
-#ifndef WIN32 
 #include <sys/ioctl.h>
-#endif
 #include <fcntl.h>
 #include <sys/soundcard.h>
 #include <string.h>
@@ -189,9 +186,7 @@ int Sound_FlushSound (void)
  return 1;
 }
 #endif
-#endif
 
-#ifndef ALLEGRO
 #ifdef JOYSTICK
 #include <linux/joystick.h>
 #include <unistd.h>
@@ -246,19 +241,11 @@ int ReadJoystick (void)
  return i;
 }
 #endif
-#endif
 
 /****************************************************************************/
 /*** Return the time elapsed in microseconds                              ***/
 /****************************************************************************/
 int ReadTimer (void)
 {
-#ifdef HAVE_CLOCK
  return (int)((float)clock()*1000000.0/(float)CLOCKS_PER_SEC);
-#else
- /* If clock() is unavailable, just return a large number */
- static int a=0;
- a+=1000000;
- return a;
-#endif
 }

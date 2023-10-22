@@ -57,9 +57,6 @@ extern int SaveCPU;
 extern int videomode;
 
 static int  CpuSpeed;
-#ifdef ALLEGRO
-#include <allegro5/allegro.h>
-#endif
 static int  shadow_argc;
 static char *shadow_argv[256];
 static unsigned char MainConfigFile[MAX_CONFIG_FILE_SIZE];
@@ -74,15 +71,7 @@ static char ProgramPath[MAX_FILE_NAME];
 /* Get full path name, convert all backslashes to UNIX style slashes */
 static void _fixpath (char *old,char *new)
 {
- strcpy (new,old);
-}
-#endif
-
-#ifdef _WIN32
-/* Get full path name, convert all backslashes to UNIX style slashes */
-static void _fixpath (char *old,char *new)
-{
- strcpy (new,old);
+ strcpy (new,old); //WHUT??
 }
 #endif
 
@@ -431,7 +420,7 @@ int main(int argc,char *argv[])
  UPeriod=1;
  CpuSpeed=100;
  IFreq=50;
-#ifdef MSDOS
+#if defined(MSDOS) || defined(WIN32)
  PrnName="PRN";
 #endif
  /* Load m2000.cfg */
@@ -441,6 +430,7 @@ int main(int argc,char *argv[])
  strlwr (argv[0]);
 #endif
  GetPath (argv[0],ProgramPath);
+ //printf("argv[0] = %s\n",argv[0] );
  shadow_argc=1;
  shadow_argv[0]=argv[0];
  strcpy (szTempFileName,ProgramPath);
@@ -471,13 +461,13 @@ int main(int argc,char *argv[])
  if (CpuSpeed>1000) CpuSpeed=1000;
  Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
  /* Start emulated P2000 */
-#ifndef MSDOS
+#if !defined(MSDOS) && !defined(WIN32)
  if (!InitMachine()) return 0;
 #endif
  StartP2000();
  /* Trash emulated P2000 */
  TrashP2000();
-#ifndef MSDOS
+#if !defined(MSDOS) && !defined(WIN32)
  TrashMachine ();
 #endif
  return 0;

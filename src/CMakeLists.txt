@@ -35,7 +35,7 @@ project(m2000win)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
-set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DMSDOS")
+set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DSOUND")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -62,7 +62,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${allegro5_SOURCE_DIR}/include)
 
 # Add sources
-set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c unix.c allegro.c)
+set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c allegro.c)
 add_executable(m2000win ${SOURCES})
 
 # link libraries

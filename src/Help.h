@@ -29,16 +29,12 @@ char *HelpText[] =
   "                               0 - Dot no sync   1 - Sync",
   "  -uperiod <value>           - Set number of interrupts per screen update [1]",
   "  -t / -m                    - Select P2000 model [-t]",
-#if defined(MSDOS) || defined(LINUX_SVGA)
+#if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
 #ifdef ALLEGRO
   "                               0 - 960x720 (pixel perfect) 1 - 960x720 (bold)",
 #else
-#ifdef MSDOS
   "                               0 - 256x240   1 - 640x480",
-#else
-  "                               0 - 320x240   1 - 640x480",
-#endif
 #endif
 #else
   "  -video <mode>              - Select window size [0]",
@@ -46,7 +42,7 @@ char *HelpText[] =
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
   "  -printer <filename>        - Select file for printer output "
-#ifdef MSDOS
+#if defined(MSDOS) || defined(WIN32)
                                  "[PRN]",
 #else
                                  "[stdout]",
@@ -66,7 +62,9 @@ char *HelpText[] =
   "                               1 - PC Speaker",
   "                               2 - SoundBlaster",
 #else
+#ifdef UNIX_X
   "                               1 - /dev/dsp",
+#endif
 #endif
   "                               255 - Detect",
   "  -volume <value>            - Select initial volume [10]",

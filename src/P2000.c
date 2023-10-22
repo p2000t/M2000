@@ -192,7 +192,7 @@ byte Z80_In (byte Port)
 /*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and ***/
 /*** the emulation. This function returns 0 in case of a failure          ***/
 /****************************************************************************/
-#ifdef MSDOS
+#if defined(MSDOS) || defined(WIN32)
 int InitMachineDone=0;
 #endif
 word Exit_PC;
@@ -320,7 +320,7 @@ int StartP2000 (void)
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
 
-#ifdef MSDOS
+#if defined(MSDOS) || defined(WIN32)
   if (!InitMachine())
    return 0;
   InitMachineDone=1;
@@ -329,7 +329,7 @@ int StartP2000 (void)
 #endif
   Z80_Reset ();
   Exit_PC=Z80 ();
-#ifndef MSDOS
+#if !defined(MSDOS) && !defined(WIN32)
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
 #endif
   return(1);
@@ -340,7 +340,7 @@ int StartP2000 (void)
 /****************************************************************************/
 void TrashP2000 (void)
 {
-#ifdef MSDOS
+#if defined(MSDOS) || defined(WIN32)
  if (InitMachineDone)
  {
   TrashMachine ();

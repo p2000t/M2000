@@ -16,6 +16,22 @@
             "linux": {
                 "command": "make x"
             },
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build and Run",
+            "type": "process",
+            "command": "m2000win",
+            "args": [
+                "-t",
+                "-video", "0",
+                //"-tape", "test/cas/SAA5050.cas",
+                //"-boot", "1"
+            ],
+            "dependsOn": [
+                "Make"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true

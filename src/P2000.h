@@ -9,23 +9,6 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#ifdef UNIX_X
-#define UNIX
-#endif
-#ifdef LINUX_SVGA
-#define UNIX
-#endif
-
-#ifndef UNIX_X
-#undef MITSHM
-#endif
-
-#ifdef MSDOS
-#define SOUND
-#define JOYSTICK
-#define HAVE_CLOCK
-#endif
-
 #include "Z80.h"            /* Z80 emulation declarations    */
 
 /******** Variables used to control emulator behavior ***********************/

@@ -7,7 +7,6 @@
 # __128BIT__            Compile for 128 bit machines
 # X86_ASM		Use inline 80x86 assembly
 # HAVE_FTRUNCATE	We have ftruncate()
-# HAVE_CLOCK		clock() is available on this machine
 # JOYSTICK		Use Linux joystick driver
 # SOUND			Use USS(/Lite) sound driver
 # MITSHM		Use MIT shared memory extensions for X
@@ -22,8 +21,7 @@ CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -I/usr/X11/include \
-	  -DLSB_FIRST -DHAVE_FTRUNCATE -DHAVE_CLOCK -DUNIX_X \
-	  -DSOUND -DMITSHM
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DUNIX_X -DSOUND -DMITSHM
 
 LFLAGS	= -s -L/usr/X11/lib
 
