@@ -35,7 +35,7 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define NUM_STACKS      16         /* Number of IRQ stacks                  */
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
-char *Title="M2000 v0.6.1-SNAPSHOT";    /* Title for -help output                */
+char *Title="M2000 v0.7-SNAPSHOT";    /* Title for -help output                */
 
 int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
