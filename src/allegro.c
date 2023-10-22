@@ -11,11 +11,12 @@
 /****************************************************************************/
 
 #define ALLEGRO_STATICLINK
-#define CHAR_TILE_WIDTH 24
-#define CHAR_TILE_HEIGHT 30
-#define CHAR_TILE_HSPACE 4 // extra spacing to create "fat" font
+#define SCREEN_TILE_WIDTH 24
+#define SCREEN_TILE_HEIGHT 30
+#define CHAR_TILE_WIDTH 12
+#define CHAR_TILE_HEIGHT 20
 
-#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH+CHAR_TILE_HSPACE) 
+#define FONT_BITMAP_WIDTH (96+64+64)*CHAR_TILE_WIDTH
 
 #include "P2000.h"
 #include "Unix.h"
@@ -399,14 +400,27 @@ int InitMachine(void)
   return 1;
 }
 
+void drawFontRegion(float x1, float y1, float x2, float y2)
+{
+  /* Draw the font on an internal bitmap */
+  al_set_target_bitmap(FontBuf);
+  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 255, 255));
+
+  /* Draw the inverted font on an internal bitmap */
+  al_set_target_bitmap(FontBuf_bk);
+  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(0, 0, 0));
+}
+
 /****************************************************************************/
 /*** This function loads a font and converts it if necessary              ***/
 /****************************************************************************/
 int LoadFont(char *filename)
 {
-  FILE *F;
-  int i, j, k, c;
+  int i, j, x, y, b;
+  int c, cPrev, cNext;
+  int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
   char *TempBuf;
+  FILE *F;
 
   if (Verbose)
     printf("Initialising Allegro drivers...");
@@ -504,47 +518,52 @@ int LoadFont(char *filename)
   if (!i)
     return 0;
 
-  float x1, y1, x2, y2;
-  // rx and ry are used for rounded pixels (videomode 1)
-  float rx = (videomode == 1) ? 4.0 : 0.0;
-  float ry = (videomode == 1) ? 3.0 : 0.0;
-  float hscale = P2000_Mode ? 0.5 : 1.0;
-
-  /* Stretch 6x10 characters to 24x30, so we can display a 4:3 aspect ratio */
+  /* Stretch 6x10 characters to 12x20, so we can do character rounding */
   for (i = 0; i < (96 + 64 + 64) * 10; i += 10) //96 alpha + 64 graphic (cont) + 64 graphic (sep)
   {
-    for (j = 0; j < 10; ++j)  // char height
+    c = 0;
+    cNext = TempBuf[i] << 6;
+    for (j = 0; j < 10; ++j)
     {
-      c = TempBuf[i + j];
-
-      for (k = 0; k < 6; ++k) // char width
+      y = j * 2;
+      cPrev = c >> 6;
+      c = cNext >> 6;
+      cNext = j < 9 ? TempBuf[i + j + 1] : 0;
+      for (b = 0; b < 6; ++b)
       {
+        x = (i * 6 / 10 + b) * 2;
         if (c & 0x20) // bit 6 set = pixel set
         {
-          x1 = (i * 7.0 /10.0 + k) * hscale * 4.0; // using 7 instead of 6 for 4 pixels hspace
-          y1 = j * 3.0;
-          x2 = (i * 7.0 / 10.0 + k + 1) * hscale * 4.0;
-          y2 = (j + 1) * 3.0;
-          
-          // videomode 1 displays fat chars and uses pixel rounding
-          if (videomode == 1 && !P2000_Mode) 
-          {
-            // for alpha chars, the outside borders are non-fat
-            if (i >= 96 * 10 || k != 0) x1 = x1 - 1.49;
-            if (i >= 96 * 10 || j != 0) y1 = y1 - 1.49;
-            if (i >= 96 * 10 || k != 5) x2 = x2 + 1.49;
-            if (i >= 96 * 10 || j != 9) y2 = y2 + 1.49;
-          } 
-
-          /* Draw the font on an internal bitmap */
-          al_set_target_bitmap(FontBuf);
-          al_draw_filled_rounded_rectangle(x1, y1, x2, y2, rx, ry, al_map_rgb(255, 255, 255));
-
-          /* Draw the inverted font on an internal bitmap */
-          al_set_target_bitmap(FontBuf_bk);
-          al_draw_filled_rounded_rectangle(x1, y1, x2, y2, rx, ry, al_map_rgb(0, 0, 0));
+          drawFontRegion(x, y, x + 2, y + 2);
         }
-        c<<=1; //shift bits
+        else 
+        {
+          if (i < 96 * 10 && videomode == 0) // check if within alpanum character range
+          {
+            // for character rounding, look at surrounding pixels
+            pixelN = j > 0 ? (cPrev & 0x20) : 0;
+            pixelE = b < 5 ? (c & 0x10) : 0;
+            pixelS = j < 9 ? (cNext & 0x20) : 0;
+            pixelW = b > 0 ? (c & 0x40) : 0;
+            pixelNE = (j > 0 && b < 5) ? (cPrev & 0x10) : 0;
+            pixelSE = (j < 9 && b < 5) ? (cNext & 0x10) : 0;
+            pixelSW = (j < 9 && b > 0) ? (cNext & 0x40) : 0;
+            pixelNW = (j > 0 && b > 0) ? (cPrev & 0x40) : 0;
+
+            // set NW sub-pixel?
+            if (pixelN && pixelW && !pixelNW) drawFontRegion( x, y, x + 1, y + 1);
+            // set NE sub-pixel?
+            if (pixelN && pixelE && !pixelNE) drawFontRegion( x + 1, y, x + 2, y + 1);
+            // set SE sub-pixel?
+            if (pixelS && pixelE && !pixelSE) drawFontRegion( x + 1, y + 1, x + 2, y + 2);
+            // set SW sub-pixel?
+            if (pixelS && pixelW && !pixelSW) drawFontRegion( x, y + 1, x + 1, y + 2);
+          }
+        }
+        //shift bits
+        c<<=1;
+        cPrev<<=1;
+        cNext<<=1;
       }
     }
   }
@@ -828,7 +847,7 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
   // printf("-M-");
 
   al_draw_bitmap_region(
-      (eor ? FontBuf_bk : FontBuf), 0.5 * c * (CHAR_TILE_WIDTH + CHAR_TILE_HSPACE), 
+      (eor ? FontBuf_bk : FontBuf), 0.5 * c * CHAR_TILE_WIDTH, 
       0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0.5 * x * CHAR_TILE_WIDTH,
       y * CHAR_TILE_HEIGHT, 0);
   if (ul)
@@ -854,19 +873,17 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
 
-  al_draw_tinted_bitmap_region(
+  al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
-      c * (CHAR_TILE_WIDTH+CHAR_TILE_HSPACE),
-      (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
+      c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
+      x * SCREEN_TILE_WIDTH, y * SCREEN_TILE_HEIGHT, SCREEN_TILE_WIDTH, SCREEN_TILE_HEIGHT, 0);
   if (bg)
-    al_draw_tinted_bitmap_region(
+    al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * (CHAR_TILE_WIDTH+CHAR_TILE_HSPACE),
-        (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
+        c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        x * SCREEN_TILE_WIDTH, y * SCREEN_TILE_HEIGHT, SCREEN_TILE_WIDTH, SCREEN_TILE_HEIGHT, 0);
 }
 
 /****************************************************************************/
