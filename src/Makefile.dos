@@ -12,8 +12,7 @@ AS	= gcc	# Assembler used
 
 CFLAGS	= -Wall -m486 -fomit-frame-pointer -O2 \
 	  -DLSB_FIRST -DHAVE_FTRUNCATE -DMSDOS \
-	  -DSOUND -DJOYSTICK
-	  -DX86_ASM
+	  -DSOUND -DJOYSTICK -DX86_ASM
 ASFLAGS	= -c -Wall
 LFLAGS  = -s
 
