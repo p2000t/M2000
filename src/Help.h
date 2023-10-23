@@ -27,7 +27,9 @@ char *HelpText[] =
   "  -ifreq <frequency>         - Set interrupt frequency [50Hz]",
   "  -sync <value>              - Sync/Do not sync emulation [1]",
   "                               0 - Dot no sync   1 - Sync",
+#ifndef ALLEGRO
   "  -uperiod <value>           - Set number of interrupts per screen update [1]",
+#endif
   "  -t / -m                    - Select P2000 model [-t]",
 #if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
@@ -55,7 +57,6 @@ char *HelpText[] =
   "                               0 - Don't allow booting",
   "                               1 - Allow booting",
   "  -font <filename>           - Select font to use [Default.fnt]",
-#ifdef SOUND
   "  -sound <mode>              - Select sound mode [255]",
   "                               0 - No sound",
 #ifdef MSDOS
@@ -69,7 +70,6 @@ char *HelpText[] =
   "                               255 - Detect",
   "  -volume <value>            - Select initial volume [10]",
   "                               0 - Silent    15 - Maximum",
-#endif
 #ifdef JOYSTICK
   "  -joystick <mode>           - Select joystick mode [1]",
   "                               0 - No joystick support  1 - Joystick support",

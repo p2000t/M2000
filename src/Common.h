@@ -266,16 +266,10 @@ void RefreshScreen(void)
 {
   static int BCount = 0;
   // Update blanking count
-  switch (++BCount)
-  {
-  case 35:
-    doblank = 1;
-    break;
-  case 50:
-    doblank = 0;
-    BCount = 0;
-    break;
-  }
+  // flashing is on for 48 cycles and off for 16 cycles (64-48)
+  BCount++;
+  if (BCount == 48 / (UPeriod+1)) doblank = 1;
+  if (BCount == 64 / (UPeriod+1)) doblank = BCount = 0;
   // Update the screen buffer
   if (!P2000_Mode)
     RefreshScreen_T();

@@ -3,14 +3,14 @@
 # DEBUG			Compile with builtin debugger
 # LSB_FIRST		Compile for a low-endian machine
 # HAVE_FTRUNCATE	We have ftruncate()
-# SOUND			Allegro sound (incomplete)
 
 CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
-	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DSOUND 
-LFLAGS  = -s -mwindows
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO
+LFLAGS  = -s
+#-mwindows
 #-Wl,-subsystem,windows 
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o allegro.o

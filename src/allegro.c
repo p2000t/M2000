@@ -11,36 +11,23 @@
 /****************************************************************************/
 
 #define ALLEGRO_STATICLINK
-// #define SCREEN_TILE_WIDTH 24
-// #define SCREEN_TILE_HEIGHT 30
 #define CHAR_TILE_WIDTH 24
 #define CHAR_TILE_HEIGHT 30
 #define CHAR_PIXEL_WIDTH 4
 #define CHAR_PIXEL_HEIGHT 3
-
 #define FONT_BITMAP_WIDTH (96+64+64)*CHAR_TILE_WIDTH
 
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-  ((byte) & 0x80 ? '1' : '0'), \
-  ((byte) & 0x40 ? '1' : '0'), \
-  ((byte) & 0x20 ? '1' : '0'), \
-  ((byte) & 0x10 ? '1' : '0'), \
-  ((byte) & 0x08 ? '1' : '0'), \
-  ((byte) & 0x04 ? '1' : '0'), \
-  ((byte) & 0x02 ? '1' : '0'), \
-  ((byte) & 0x01 ? '1' : '0') 
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/time.h>
 #include "P2000.h"
 #include "Unix.h"
 #include "Utils.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
-
-//#undef SOUND
-
-#ifdef SOUND
 #include <allegro5/allegro_audio.h>
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
@@ -49,30 +36,15 @@ ALLEGRO_EVENT_QUEUE *queue = NULL;
 ALLEGRO_EVENT event;
 int buf_size;
 int sample_rate;
-
 signed char *soundbuf;      /* Pointer to sound buffer               */
-
 int8_t *playbuf;
 int mastervolume=4;               /* Master volume setting                 */
 static int sound_active=1;
-#endif
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <sys/time.h>
-
-#ifndef NR_KEYS
-#define NR_KEYS 128
-#endif
 
 ALLEGRO_DISPLAY *display = NULL;
-
-char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
-
 ALLEGRO_KEYBOARD_STATE kbdstate;
+char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
@@ -85,6 +57,9 @@ ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
 ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
+ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
+ALLEGRO_TIMER *timer;
+
 //byte *DisplayBuf;               /* Screen buffer                            */
 
 //unsigned ReadTimerMin;             /* Minimum number of micro seconds       */
@@ -94,13 +69,7 @@ static int height = 720;          /* Width and height of the display buffer   */
 //static int OldTimer=0;             /* Value of timer at previous interrupt  */
 //static int NewTimer=0;             /* New value of the timer                */
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
-#ifdef SOUND
 static int soundoff=0;             /* If 1, sound is turned off             */
-#endif
-#ifdef JOYSTICK
-int joymode=1;                     /* If 0, do not use joystick             */
-#endif
-//static struct termios termold;     /* Original terminal settings            */
 
 static byte Pal[8*3] =             /* SAA5050 palette                       */
 {
@@ -115,24 +84,26 @@ static byte Pal[8*3] =             /* SAA5050 palette                       */
 };
 
 //static int PausePressed=0;               /* 1 if pause key is pressed       */
-//static byte keybstatus[NR_KEYS];         /* 1 if a certain key is pressed   */
 //static int makeshot=0;                   /* 1 -> take a screen shot         */
 static int calloptions=0;                /* 1 -> call OptionsDialogue()     */
 
 /*
-Y \ X   0       1        2       3        4       5        6       7
-0       LEFT    6        up      Q        3       5        7       4
-1       TAB     H        Z       S        D       G        J       F
-2       . *     SPACE    00 *    0 *      #       DOWN     ,       RIGHT
-3       SHLOCK  N        <       X        C       B        M       V
-4       CODE    Y        A       W        E       T        U       R
-5       CLRLN   9        + *     - *      BACKSP  0        1       -
-6       9 *     O        8 *     7 *      ENTER   P        8       @
-7       3 *     .        2 *     1 *      ->      /        K       2
-8       6 *     L        5 *     4 *      1/4     ;        I       :
-9       LSHIFT                                                     RSHIFT
-*/
+    P2000 Keyboard layout
 
+    Y \ X   0       1        2       3        4       5        6       7
+    0       LEFT    6        up      Q        3       5        7       4
+    1       TAB     H        Z       S        D       G        J       F
+    2       . *     SPACE    00 *    0 *      #       DOWN     ,       RIGHT
+    3       SHLOCK  N        <       X        C       B        M       V
+    4       CODE    Y        A       W        E       T        U       R
+    5       CLRLN   9        + *     - *      BACKSP  0        1       -
+    6       9 *     O        8 *     7 *      ENTER   P        8       @
+    7       3 *     .        2 *     1 *      ->      /        K       2
+    8       6 *     L        5 *     4 *      1/4     ;        I       :
+    9       LSHIFT                                                     RSHIFT
+
+    Keys marked with an asterix (*) are on the numeric keypad
+*/
 static unsigned char keymask[]=
 {
   ALLEGRO_KEY_LEFT,       ALLEGRO_KEY_6,         ALLEGRO_KEY_UP,          ALLEGRO_KEY_Q,          ALLEGRO_KEY_3,          ALLEGRO_KEY_5,         ALLEGRO_KEY_7,      ALLEGRO_KEY_4,
@@ -147,18 +118,6 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-
-/****************************************************************************/
-/*** This function is called by the screen refresh drivers to copy the    ***/
-/*** off-screen buffer to the actual display                              ***/
-/****************************************************************************/
-static void PutImage (void)
-{
-  al_unlock_bitmap(al_get_backbuffer(display));
-  al_flip_display();
-}
-
-
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
 /****************************************************************************/
@@ -169,21 +128,14 @@ void TrashMachine(void)
   al_uninstall_keyboard();
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
-#ifdef SOUND
+
+  al_destroy_timer(timer);
+  al_destroy_event_queue(timerQueue);
+
   al_destroy_event_queue(queue);
   al_destroy_audio_stream(stream);
   al_uninstall_audio();
   free (soundbuf);
-#endif
-
- /*
-#ifdef SOUND
- TrashSound ();
-#endif
-#ifdef JOYSTICK
- TrashJoystick ();
-#endif
-*/
 
   if (FontBuf) al_destroy_bitmap(FontBuf);
   if (FontBuf_bk) al_destroy_bitmap(FontBuf_bk);
@@ -191,7 +143,6 @@ void TrashMachine(void)
   if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
   if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf);
   if (OldCharacter) free (OldCharacter);
-  //if (CharacterCache) free (CharacterCache);
 }
 
 /****************************************************************************/
@@ -202,15 +153,18 @@ int InitMachine(void)
   // int c,i,j;
   int i;
 
-  /* This block has been moved in 'LoadFont' */
-  /*
-  if (Verbose)
-   printf ("Initialising Allegro drivers:\n");
-  if (!al_init() || !al_init_primitives_addon()) {
-    fprintf(stderr, "Failed to initialize allegro!\n");
+  UPeriod = 0; // modern PCs can update the screen 50 times/sec no problem
+
+  // init allegro
+  if (Verbose) printf("Initialising Allegro drivers...");
+  if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
+  {
+    if (Verbose) puts("FAILED");
     return -1;
   }
-  */
+  if (Verbose) puts("OK");
+
+  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
 
   if (Verbose)
     printf("Initialising keyboard...");
@@ -223,17 +177,13 @@ int InitMachine(void)
   }
 
   printf("OK\nCreating the output window... ");
-
   display = al_create_display(width, height);
-
-  al_set_window_title(display, Title);
-
-  al_clear_to_color(al_map_rgb(0, 0, 0));
-  // al_flip_display();
-
+  queue = al_create_event_queue();
+  timerQueue =  al_create_event_queue();
+  timer = al_create_timer(1.0 / IFreq);
   if (Verbose)
   {
-    if (!display)
+    if (!display || !queue || !timerQueue)
     {
       printf("FAILED\n");
       return -1;
@@ -241,27 +191,16 @@ int InitMachine(void)
     else
       printf("OK\n");
   }
+  al_set_window_title(display, Title);
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_register_event_source(queue, al_get_display_event_source(display));
+  al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
   if (P2000_Mode)
   {
     Pal[0] = Pal[1] = Pal[2] = 0;
     Pal[3] = Pal[4] = Pal[5] = 255;
   }
-
-  /*
-  if (!P2000_Mode && !videomode)
-  {
-   if(Verbose)
-    printf("OK\n  Allocating screen buffer... ");
-   DisplayBuf=(byte *)malloc(240*240);
-   if (!DisplayBuf)
-   {
-    if (Verbose) puts ("FAILED");
-    return(0);
-   }
-   memset (DisplayBuf,0,240*240);
-  }
-  */
 
   if (Verbose)
     printf("  Allocating cache buffers... ");
@@ -276,34 +215,13 @@ int InitMachine(void)
       puts("FAILED");
     return (0);
   }
-
   memset(OldCharacter, -1, i * sizeof(int));
-
-  /*
-  if (!P2000_Mode && videomode)
-  {
-   i=(96+128)*3*sizeof(int);
-   CharacterCache=malloc(i);
-   if (!CharacterCache)
-   {
-    if (Verbose) puts ("FAILED");
-    return(0);
-   }
-   memset (CharacterCache,-1,i);
-  }*/
-
   if (Verbose)
     puts("OK");
-  /*
-   #ifdef JOYSTICK
-   InitJoystick (joymode);
-  #endif
-  */
   
   InitScreenshotFile();
   InitVRAMFile();
 
-#ifdef SOUND
   if (Verbose)
     printf("Initializing sound...");
 
@@ -360,37 +278,18 @@ int InitMachine(void)
   if (Verbose)
     printf("  Connecting to the default mixer...");
   mixer = al_get_default_mixer();
-  if (Verbose)
+  if (!al_attach_audio_stream_to_mixer(stream, mixer))
   {
-    if (!al_attach_audio_stream_to_mixer(stream, mixer))
-    {
-      printf("FAILED\n");
-      sound_active = 0;
-    }
-    else
-      printf("OK\n");
+    if (Verbose) printf("FAILED\n");
+    sound_active = 0;
   }
   else
-  {
-    if (!al_attach_audio_stream_to_mixer(stream, mixer))
-      sound_active = 0;
-  }
+    if (Verbose) printf("OK\n");
 
   if (Verbose)
     printf("  Registering the sound event...");
-  queue = al_create_event_queue();
   al_register_event_source(queue, al_get_audio_stream_event_source(stream));
-  al_register_event_source(queue, al_get_display_event_source(display));
-
-  if (!queue)
-  {
-    if (Verbose)
-      printf("FAILED\n");
-    sound_active = 0;
-  }
-  while ((playbuf = al_get_audio_stream_fragment(stream)) == NULL)
-  {
-  };
+  while ((playbuf = al_get_audio_stream_fragment(stream)) == NULL);
 
   if (Verbose)
     printf("OK\n");
@@ -398,7 +297,6 @@ int InitMachine(void)
     // al_set_mixer_postprocess_callback(mixer, mixer_pp_callback, mixer);
 
 //  InitSound (soundmode);
-#endif
 
   /*
    if (Verbose) printf ("  Initialising timer...");
@@ -412,6 +310,9 @@ int InitMachine(void)
   keyboard_seteventhandler (keyb_handler);
   */
   // if (Verbose) printf ("OK\n");
+
+  al_start_timer(timer);
+
   return 1;
 }
 
@@ -438,19 +339,6 @@ int LoadFont(char *filename)
   FILE *F;
 
   if (Verbose)
-    printf("Initialising Allegro drivers...");
-  if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
-  {
-    if (Verbose)
-      puts("FAILED");
-    return -1;
-  }
-  if (Verbose)
-    puts("OK");
-
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
-
-  if (Verbose)
     printf("Loading font %s...\n", filename);
   if (Verbose)
     printf("  Allocating memory... ");
@@ -460,8 +348,7 @@ int LoadFont(char *filename)
     FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
     if (!FontBuf)
     {
-      if (Verbose)
-        puts("FAILED");
+      if (Verbose) puts("FAILED");
       return -1;
     }
   }
@@ -471,8 +358,7 @@ int LoadFont(char *filename)
     FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
     if (!FontBuf_bk)
     {
-      if (Verbose)
-        puts("FAILED");
+      if (Verbose) puts("FAILED");
       return -1;
     }
   }
@@ -484,8 +370,7 @@ int LoadFont(char *filename)
       FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
       if (!FontBuf_scaled)
       {
-        if (Verbose)
-          puts("FAILED");
+        if (Verbose) puts("FAILED");
         return -1;
       }
     }
@@ -495,8 +380,7 @@ int LoadFont(char *filename)
       FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
       if (!FontBuf_bk_scaled)
       {
-        if (Verbose)
-          puts("FAILED");
+        if (Verbose) puts("FAILED");
         return -1;
       }
     }
@@ -511,27 +395,21 @@ int LoadFont(char *filename)
   TempBuf = malloc(2240);
   if (!TempBuf)
   {
-    if (Verbose)
-      puts("FAILED");
+    if (Verbose) puts("FAILED");
     return -1;
   }
-  if (Verbose)
-    puts("OK");
-  if (Verbose)
-    printf("  Opening... ");
+  if (Verbose) puts("OK");
+  if (Verbose) printf("  Opening... ");
   i = 0;
   F = fopen(filename, "rb");
   if (F)
   {
     printf("Reading... ");
-    if (fread(TempBuf, 2240, 1, F))
-      i = 1;
+    if (fread(TempBuf, 2240, 1, F)) i = 1;
     fclose(F);
   }
-  if (Verbose)
-    puts((i) ? "OK" : "FAILED");
-  if (!i)
-    return 0;
+  if (Verbose) puts((i) ? "OK" : "FAILED");
+  if (!i) return 0;
 
   /* Stretch 6x10 characters to 12x20, so we can do character rounding */
   for (i = 0; i < (96 + 64 + 64) * 10; i += 10) //96 alpha + 64 graphic (cont) + 64 graphic (sep)
@@ -567,7 +445,6 @@ int LoadFont(char *filename)
             pixelNW = (line > 0 && pixelPos > 0) ? (linePixelsPrev & 0x40) : 0;
 
             // the extra rounding pixels are in the shape of a (rotated) L
-
             // rounding in NW direction
             if (pixelN && pixelW && !pixelNW)
             {
@@ -616,10 +493,6 @@ int LoadFont(char *filename)
       2*(CHAR_TILE_HEIGHT), 0);
   }
 
-  // al_set_target_bitmap((ALLEGRO_BITMAP *)display);
-
-  //al_save_bitmap("test.bmp", FontBuf);
-
   return 1;
 }
 
@@ -658,10 +531,6 @@ void Keyboard(void)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F4))
     Z80_Trace = !Z80_Trace;
 #endif
-
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_ENTER))
-  {
-  }
 
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F6))
     calloptions = 1;
@@ -719,71 +588,25 @@ void Keyboard(void)
       ++mastervolume;
   }
 
-  FlushSound();
-  al_rest(0.96 / IFreq);
-
-  if ((!soundoff) && (sound_active))
+  while (al_get_next_event(queue, &event))
   {
-    while (al_get_next_event(queue, &event))
+    if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
+
+    if (!soundoff && sound_active && event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT)
     {
-      if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-        Z80_Running = 0;
-      if (event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT)
-      {
-        // playbuf=al_get_audio_stream_fragment(stream);
-        al_set_audio_stream_fragment(stream, playbuf);
-      }
+      // playbuf=al_get_audio_stream_fragment(stream);
+      al_set_audio_stream_fragment(stream, playbuf);
     }
   }
-  else
-  {
-    while (al_get_next_event(queue, &event))
-    {
-      if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-        Z80_Running = 0;
-    }
-    al_rest(0.04 / IFreq);
-  }
 
-#ifdef DEBUG
   if (calloptions)
   {
     calloptions = 0;
-    //al_flip_display();
+    //TODO: move options dialogue to UI
+#ifdef DEBUG
     OptionsDialogue();
-    //al_flip_display();
-  }
 #endif
-
-  /*
-  #ifdef JOYSTICK
-  i=ReadJoystick ();
-  if (i&0x40)
-   KeyMap[0]&=0xFE;
-  else if (!keybstatus[SCANCODE_LEFTCONTROL] &&
-           !keybstatus[SCANCODE_CURSORBLOCKLEFT])
-   KeyMap[0]|=0x01;
-  if (i&0x80)
-   KeyMap[2]&=0x7F;
-  else if (!keybstatus[SCANCODE_RIGHTCONTROL] &&
-           !keybstatus[SCANCODE_CURSORBLOCKRIGHT])
-   KeyMap[2]|=0x80;
-  if (i&0x10)
-   KeyMap[0]&=0xFB;
-  else if (!keybstatus[SCANCODE_LEFTALT] &&
-           !keybstatus[SCANCODE_CURSORBLOCKUP])
-   KeyMap[0]|=0x04;
-  if (i&0x20)
-   KeyMap[2]&=0xDF;
-  else if (!keybstatus[SCANCODE_RIGHTALT] &&
-           !keybstatus[SCANCODE_CURSORBLOCKDOWN])
-   KeyMap[2]|=0x20;
-  if (i&0x0F)
-   KeyMap[2]&=0xFD;
-  else if (!keybstatus[SCANCODE_SPACE])
-   KeyMap[2]|=0x02;
- #endif
- */
+  }
 }
 
 /****************************************************************************/
@@ -796,32 +619,33 @@ void FlushSound(void)
   static int soundstate = 0;
   static int sample_count = 1;
 
-#ifdef SOUND
-  if ((soundoff) || (!sound_active))
-    return;
-
-  for (i = 0; i < buf_size; ++i)
-  {
-    if (soundbuf)
+  if (!soundoff && sound_active)
+  { 
+    for (i = 0; i < buf_size; ++i)
     {
-      soundstate = soundbuf[i];
-      soundbuf[i] = 0;
-      sample_count = sample_rate / 1000;
-    }
+      if (soundbuf)
+      {
+        soundstate = soundbuf[i];
+        soundbuf[i] = 0;
+        sample_count = sample_rate / 1000;
+      }
 
-    if (playbuf)
-      playbuf[i] = soundstate + 128;
+      if (playbuf)
+        playbuf[i] = soundstate + 128;
 
-    if (!--sample_count)
-    {
-      sample_count = sample_rate / 1000;
-      if (soundstate > 0)
-        --soundstate;
-      if (soundstate < 0)
-        ++soundstate;
+      if (!--sample_count)
+      {
+        sample_count = sample_rate / 1000;
+        if (soundstate > 0)
+          --soundstate;
+        if (soundstate < 0)
+          ++soundstate;
+      }
     }
   }
-#endif
+
+  //wait for next timer event (fired 50 times a second)
+  al_wait_for_event(timerQueue, &event);
 }
 
 /****************************************************************************/
@@ -869,18 +693,25 @@ void Pause(int ms)
 }
 
 /****************************************************************************/
+/*** This function is called by the screen refresh drivers to copy the    ***/
+/*** off-screen buffer to the actual display                              ***/
+/****************************************************************************/
+static void PutImage (void)
+{
+  al_flip_display();
+}
+
+/****************************************************************************/
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
 static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 {
-  int K;
-  K = c + (eor << 8) + (ul << 16);
+  int K = c + (eor << 8) + (ul << 16);
   if (K == OldCharacter[y * 80 + x])
     return;
   OldCharacter[y * 80 + x] = K;
 
-  // printf("-M-");
-
+  al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_bitmap_region(
       (eor ? FontBuf_bk : FontBuf), 0.5 * c * CHAR_TILE_WIDTH, 
       0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0.5 * x * CHAR_TILE_WIDTH,
@@ -897,17 +728,12 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 /****************************************************************************/
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 {
-  int K;
-  K = c + (fg << 8) + (bg << 16) + (si << 24);
+  int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
 
-  // printf("-T-");
-  //  printf("%c",c);
-
-  al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
-
+  al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_bitmap_region(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
