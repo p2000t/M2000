@@ -461,13 +461,13 @@ int main(int argc,char *argv[])
  if (CpuSpeed>1000) CpuSpeed=1000;
  Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
  /* Start emulated P2000 */
-#if !defined(MSDOS) && !defined(WIN32)
+#if !defined(MSDOS)
  if (!InitMachine()) return 0;
 #endif
  StartP2000();
  /* Trash emulated P2000 */
  TrashP2000();
-#if !defined(MSDOS) && !defined(WIN32)
+#if !defined(MSDOS)
  TrashMachine ();
 #endif
  return 0;

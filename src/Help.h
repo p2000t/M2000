@@ -55,7 +55,6 @@ char *HelpText[] =
   "                               0 - Don't allow booting",
   "                               1 - Allow booting",
   "  -font <filename>           - Select font to use [Default.fnt]",
-#ifdef SOUND
   "  -sound <mode>              - Select sound mode [255]",
   "                               0 - No sound",
 #ifdef MSDOS
@@ -69,7 +68,6 @@ char *HelpText[] =
   "                               255 - Detect",
   "  -volume <value>            - Select initial volume [10]",
   "                               0 - Silent    15 - Maximum",
-#endif
 #ifdef JOYSTICK
   "  -joystick <mode>           - Select joystick mode [1]",
   "                               0 - No joystick support  1 - Joystick support",
