@@ -505,11 +505,6 @@ void Keyboard(void)
 
   int i, j, k;
 
-  // al_rest(0.005);
-  // al_rest(0.015);
-  // al_rest(1.0/IFreq-(IFreq/10000));
-
-  // keyboard_update ();
   al_get_keyboard_state(&kbdstate);
 
   for (i = 0; i < 80; i++)
@@ -603,9 +598,7 @@ void Keyboard(void)
   {
     calloptions = 0;
     //TODO: move options dialogue to UI
-#ifdef DEBUG
     OptionsDialogue();
-#endif
   }
 }
 
@@ -682,13 +675,6 @@ void Sound(int toggle)
 /****************************************************************************/
 void Pause(int ms)
 {
-  /*
-  int i,j;
-  j=ReadTimer();
-  i=j+ms*1000;
-  while ((j-i)<0) j=ReadTimer();
-  OldTimer=j;
-  */
   al_rest((float)ms / 1000.0);
 }
 
