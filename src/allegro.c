@@ -226,6 +226,8 @@ int InitMachine(void)
 
   display = al_create_display(width, height);
 
+  al_set_window_title(display, Title);
+
   al_clear_to_color(al_map_rgb(0, 0, 0));
   // al_flip_display();
 
@@ -615,7 +617,6 @@ int LoadFont(char *filename)
   }
 
   // al_set_target_bitmap((ALLEGRO_BITMAP *)display);
-  al_set_window_title(display, Title);
 
   //al_save_bitmap("test.bmp", FontBuf);
 
@@ -744,6 +745,7 @@ void Keyboard(void)
     al_rest(0.04 / IFreq);
   }
 
+#ifdef DEBUG
   if (calloptions)
   {
     calloptions = 0;
@@ -751,6 +753,7 @@ void Keyboard(void)
     OptionsDialogue();
     //al_flip_display();
   }
+#endif
 
   /*
   #ifdef JOYSTICK
@@ -905,17 +908,17 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_lock_bitmap(al_get_backbuffer(display), ALLEGRO_PIXEL_FORMAT_ANY, 0);
 
-  al_draw_tinted_scaled_bitmap(
+  al_draw_tinted_bitmap_region(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
+      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
   if (bg)
-    al_draw_tinted_scaled_bitmap(
+    al_draw_tinted_bitmap_region(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
+        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
 }
 
 /****************************************************************************/

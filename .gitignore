@@ -11,3 +11,5 @@
 /CWSDPMI.SWP
 /djgpp/*
 build/*
+.vscode/settings.json
+
