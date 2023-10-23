@@ -57,6 +57,9 @@ ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
 ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
+ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
+ALLEGRO_TIMER *timer;
+
 //byte *DisplayBuf;               /* Screen buffer                            */
 
 //unsigned ReadTimerMin;             /* Minimum number of micro seconds       */
@@ -126,6 +129,9 @@ void TrashMachine(void)
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
 
+  al_destroy_timer(timer);
+  al_destroy_event_queue(timerQueue);
+
   al_destroy_event_queue(queue);
   al_destroy_audio_stream(stream);
   al_uninstall_audio();
@@ -146,6 +152,8 @@ int InitMachine(void)
 {
   // int c,i,j;
   int i;
+
+  UPeriod = 0; // modern PCs can update the screen 50 times/sec no problem
 
   // init allegro
   if (Verbose) printf("Initialising Allegro drivers...");
@@ -169,14 +177,13 @@ int InitMachine(void)
   }
 
   printf("OK\nCreating the output window... ");
-
   display = al_create_display(width, height);
-  al_set_window_title(display, Title);
-  al_clear_to_color(al_map_rgb(0, 0, 0));
-
+  queue = al_create_event_queue();
+  timerQueue =  al_create_event_queue();
+  timer = al_create_timer(1.0 / IFreq);
   if (Verbose)
   {
-    if (!display)
+    if (!display || !queue || !timerQueue)
     {
       printf("FAILED\n");
       return -1;
@@ -184,6 +191,10 @@ int InitMachine(void)
     else
       printf("OK\n");
   }
+  al_set_window_title(display, Title);
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_register_event_source(queue, al_get_display_event_source(display));
+  al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
   if (P2000_Mode)
   {
@@ -267,37 +278,18 @@ int InitMachine(void)
   if (Verbose)
     printf("  Connecting to the default mixer...");
   mixer = al_get_default_mixer();
-  if (Verbose)
+  if (!al_attach_audio_stream_to_mixer(stream, mixer))
   {
-    if (!al_attach_audio_stream_to_mixer(stream, mixer))
-    {
-      printf("FAILED\n");
-      sound_active = 0;
-    }
-    else
-      printf("OK\n");
+    if (Verbose) printf("FAILED\n");
+    sound_active = 0;
   }
   else
-  {
-    if (!al_attach_audio_stream_to_mixer(stream, mixer))
-      sound_active = 0;
-  }
+    if (Verbose) printf("OK\n");
 
   if (Verbose)
     printf("  Registering the sound event...");
-  queue = al_create_event_queue();
   al_register_event_source(queue, al_get_audio_stream_event_source(stream));
-  al_register_event_source(queue, al_get_display_event_source(display));
-
-  if (!queue)
-  {
-    if (Verbose)
-      printf("FAILED\n");
-    sound_active = 0;
-  }
-  while ((playbuf = al_get_audio_stream_fragment(stream)) == NULL)
-  {
-  };
+  while ((playbuf = al_get_audio_stream_fragment(stream)) == NULL);
 
   if (Verbose)
     printf("OK\n");
@@ -318,6 +310,9 @@ int InitMachine(void)
   keyboard_seteventhandler (keyb_handler);
   */
   // if (Verbose) printf ("OK\n");
+
+  al_start_timer(timer);
+
   return 1;
 }
 
@@ -649,7 +644,8 @@ void FlushSound(void)
     }
   }
 
-  al_rest(0.96 / IFreq);
+  //wait for next timer event (fired 50 times a second)
+  al_wait_for_event(timerQueue, &event);
 }
 
 /****************************************************************************/

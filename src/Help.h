@@ -27,7 +27,9 @@ char *HelpText[] =
   "  -ifreq <frequency>         - Set interrupt frequency [50Hz]",
   "  -sync <value>              - Sync/Do not sync emulation [1]",
   "                               0 - Dot no sync   1 - Sync",
+#ifndef ALLEGRO
   "  -uperiod <value>           - Set number of interrupts per screen update [1]",
+#endif
   "  -t / -m                    - Select P2000 model [-t]",
 #if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
