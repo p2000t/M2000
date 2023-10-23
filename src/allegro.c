@@ -4,8 +4,8 @@
 /***                                                                      ***/
 /*** This file contains the Allegro 5 drivers.                            ***/
 /***                                                                      ***/
-/*** Copyright (C) Marcel de Kogel 1996,1997                              ***/
 /*** Copyright (C) Stefano Bodrato 2013                                   ***/
+/*** Copyright (C) Dion Olsthoorn  2023                                   ***/
 /***     You are not allowed to distribute this software commercially     ***/
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
@@ -29,20 +29,20 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
+//#include <allegro5/allegro_native_dialog.h>
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
-ALLEGRO_EVENT_QUEUE *queue = NULL;
-ALLEGRO_EVENT event;
+
 int buf_size;
 int sample_rate;
 signed char *soundbuf;      /* Pointer to sound buffer               */
-int8_t *playbuf;
 int mastervolume=4;               /* Master volume setting                 */
 static int sound_active=1;
 
-
+ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
+ALLEGRO_EVENT_QUEUE *displayQueue = NULL;
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
 
@@ -60,14 +60,9 @@ ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
 
-//byte *DisplayBuf;               /* Screen buffer                            */
-
-//unsigned ReadTimerMin;             /* Minimum number of micro seconds       */
-//                                   /* between interrupts                    */
 static int width = 960;
 static int height = 720;          /* Width and height of the display buffer   */
-//static int OldTimer=0;             /* Value of timer at previous interrupt  */
-//static int NewTimer=0;             /* New value of the timer                */
+
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
 
@@ -83,8 +78,6 @@ static byte Pal[8*3] =             /* SAA5050 palette                       */
   0xFF,0xFF,0xFF  //white
 };
 
-//static int PausePressed=0;               /* 1 if pause key is pressed       */
-//static int makeshot=0;                   /* 1 -> take a screen shot         */
 static int calloptions=0;                /* 1 -> call OptionsDialogue()     */
 
 /*
@@ -125,6 +118,7 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   al_destroy_display(display);
+  al_destroy_event_queue(displayQueue);
   al_uninstall_keyboard();
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
@@ -132,8 +126,8 @@ void TrashMachine(void)
   al_destroy_timer(timer);
   al_destroy_event_queue(timerQueue);
 
-  al_destroy_event_queue(queue);
   al_destroy_audio_stream(stream);
+  al_destroy_mixer(mixer);
   al_uninstall_audio();
   free (soundbuf);
 
@@ -150,7 +144,6 @@ void TrashMachine(void)
 /****************************************************************************/
 int InitMachine(void)
 {
-  // int c,i,j;
   int i;
 
   UPeriod = 0; // modern PCs can update the screen 50 times/sec no problem
@@ -178,12 +171,12 @@ int InitMachine(void)
 
   printf("OK\nCreating the output window... ");
   display = al_create_display(width, height);
-  queue = al_create_event_queue();
+  displayQueue = al_create_event_queue();
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
   if (Verbose)
   {
-    if (!display || !queue || !timerQueue)
+    if (!display || !displayQueue || !timerQueue)
     {
       printf("FAILED\n");
       return -1;
@@ -193,42 +186,37 @@ int InitMachine(void)
   }
   al_set_window_title(display, Title);
   al_clear_to_color(al_map_rgb(0, 0, 0));
-  al_register_event_source(queue, al_get_display_event_source(display));
+  al_register_event_source(displayQueue, al_get_display_event_source(display));
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
-  if (P2000_Mode)
+  //al_show_native_message_box(display, "wwaa", "www", "123", "OK", 0);
+
+  if (P2000_Mode) /* black and white palette */
   {
     Pal[0] = Pal[1] = Pal[2] = 0;
     Pal[3] = Pal[4] = Pal[5] = 255;
   }
 
-  if (Verbose)
-    printf("  Allocating cache buffers... ");
-  if (P2000_Mode)
-    i = 80 * 24;
-  else
-    i = 40 * 24;
+  if (Verbose) printf("  Allocating cache buffers... ");
+  i = P2000_Mode ? 80 * 24 : 40 * 24;
   OldCharacter = malloc(i * sizeof(int));
   if (!OldCharacter)
   {
-    if (Verbose)
-      puts("FAILED");
+    if (Verbose) puts("FAILED");
     return (0);
   }
   memset(OldCharacter, -1, i * sizeof(int));
-  if (Verbose)
-    puts("OK");
+  if (Verbose) puts("OK");
   
   InitScreenshotFile();
   InitVRAMFile();
 
-  if (Verbose)
-    printf("Initializing sound...");
+  /* sound init */
+  if (Verbose) printf("Initializing sound...");
 
   if (!al_install_audio())
   {
-    if (Verbose)
-      printf("FAILED\n");
+    if (Verbose) printf("FAILED\n");
     sound_active = 0;
   }
 
@@ -245,24 +233,19 @@ int InitMachine(void)
   if (Verbose)
     printf("  Creating the audio stream: ");
 
-  for (i = 4096; i >= 128; i /= 2)
-    if (i * IFreq <= 44100)
-      break;
-  sample_rate = i * IFreq; // should this be within for loop?
+  for (i = 4096; i >= 128; i /= 2) if (i * IFreq <= 44100) break;
+  sample_rate = i * IFreq;
   if (Verbose)
     printf("%d Hz...", sample_rate);
   /* The actual sampling rate might be different from the optimal one.
      Here we calculate the optimal buffer size */
   buf_size = sample_rate / IFreq;
-  for (i = 1; (1 << i) <= buf_size; ++i)
-    ;
-  if (((1 << i) - buf_size) > (buf_size - (1 << (i - 1))))
-    --i;
-
+  for (i = 1; (1 << i) <= buf_size; ++i);
+  if (((1 << i) - buf_size) > (buf_size - (1 << (i - 1)))) --i;
   buf_size = 1 << i;
   soundbuf = malloc(buf_size);
 
-  stream = al_create_audio_stream(2, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+  stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
 
   if (Verbose)
   {
@@ -275,45 +258,77 @@ int InitMachine(void)
       printf("OK\n");
   }
 
-  if (Verbose)
-    printf("  Connecting to the default mixer...");
+  if (Verbose) printf("  Connecting to the default mixer...");
   mixer = al_get_default_mixer();
   if (!al_attach_audio_stream_to_mixer(stream, mixer))
   {
     if (Verbose) printf("FAILED\n");
     sound_active = 0;
   }
-  else
-    if (Verbose) printf("OK\n");
+  else if (Verbose) printf("OK\n");
 
-  if (Verbose)
-    printf("  Registering the sound event...");
-  al_register_event_source(queue, al_get_audio_stream_event_source(stream));
-  while ((playbuf = al_get_audio_stream_fragment(stream)) == NULL);
-
-  if (Verbose)
-    printf("OK\n");
-
-    // al_set_mixer_postprocess_callback(mixer, mixer_pp_callback, mixer);
-
-//  InitSound (soundmode);
-
-  /*
-   if (Verbose) printf ("  Initialising timer...");
-   ReadTimerMin=1000000/IFreq;
-   OldTimer=ReadTimer ();
-  */
-
-  /*
-  if (Verbose) printf ("  Initialising keyboard...");
-  if (keyboard_init()) { if (Verbose) printf ("FAILED\n"); return 0; }
-  keyboard_seteventhandler (keyb_handler);
-  */
-  // if (Verbose) printf ("OK\n");
-
+  /* start the 50Hz timer */
   al_start_timer(timer);
-
   return 1;
+}
+
+/****************************************************************************/
+/*** This function is called every interrupt to flush sound pipes and     ***/
+/*** sync emulation                                                       ***/
+/****************************************************************************/
+void FlushSound(void)
+{
+  int i;
+  static int soundstate = 0;
+  static int sample_count = 1;
+
+  if (!soundoff && sound_active)
+  {
+    int8_t *playbuf = al_get_audio_stream_fragment(stream);
+    if (playbuf)
+    {
+      for (i=0;i<buf_size;++i)
+      {
+        if (soundbuf[i])
+        {
+          soundstate=soundbuf[i];
+          soundbuf[i]=0;
+          sample_count=sample_rate/1000;
+        }
+        playbuf[i]=soundstate+128;
+        if (!--sample_count)
+        {
+          sample_count=sample_rate/1000;
+          if (soundstate>0) --soundstate;
+          if (soundstate<0) ++soundstate;
+        }
+      }
+      al_set_audio_stream_fragment(stream, playbuf);
+    }
+  }
+
+  // sync emulation by waiting for timer event (fired 50 times a second)
+  al_wait_for_event(timerQueue, &event);
+}
+
+/****************************************************************************/
+/*** This function is called when the sound register is written to        ***/
+/****************************************************************************/
+void Sound(int toggle)
+{
+  static int last=-1;
+  int pos,val;
+
+  if (soundoff || !sound_active) 
+    return;
+
+  if (toggle!=last)
+  {
+    last=toggle;
+    pos=(buf_size-1)-(buf_size*Z80_ICount/Z80_IPeriod);
+    val=(toggle)? (-mastervolume*8):(mastervolume*8);
+    soundbuf[pos]=val;
+  }
 }
 
 void drawFontRegion(float x1, float y1, float x2, float y2)
@@ -502,7 +517,6 @@ int LoadFont(char *filename)
 /****************************************************************************/
 void Keyboard(void)
 {
-
   int i, j, k;
 
   al_get_keyboard_state(&kbdstate);
@@ -568,8 +582,8 @@ void Keyboard(void)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F5))
   {
     soundoff = (!soundoff);
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F5))
-      al_get_keyboard_state(&kbdstate);
+    do al_get_keyboard_state(&kbdstate); 
+    while (al_key_down(&kbdstate, ALLEGRO_KEY_F5));
   }
 
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F11))
@@ -583,15 +597,9 @@ void Keyboard(void)
       ++mastervolume;
   }
 
-  while (al_get_next_event(queue, &event))
-  {
+  while (al_get_next_event(displayQueue, &event))
+  { 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
-
-    if (!soundoff && sound_active && event.type == ALLEGRO_EVENT_AUDIO_STREAM_FRAGMENT)
-    {
-      // playbuf=al_get_audio_stream_fragment(stream);
-      al_set_audio_stream_fragment(stream, playbuf);
-    }
   }
 
   if (calloptions)
@@ -599,74 +607,6 @@ void Keyboard(void)
     calloptions = 0;
     //TODO: move options dialogue to UI
     OptionsDialogue();
-  }
-}
-
-/****************************************************************************/
-/*** This function is called every interrupt to flush sound pipes and     ***/
-/*** sync emulation                                                       ***/
-/****************************************************************************/
-void FlushSound(void)
-{
-  int i;
-  static int soundstate = 0;
-  static int sample_count = 1;
-
-  if (!soundoff && sound_active)
-  { 
-    for (i = 0; i < buf_size; ++i)
-    {
-      if (soundbuf)
-      {
-        soundstate = soundbuf[i];
-        soundbuf[i] = 0;
-        sample_count = sample_rate / 1000;
-      }
-
-      if (playbuf)
-        playbuf[i] = soundstate + 128;
-
-      if (!--sample_count)
-      {
-        sample_count = sample_rate / 1000;
-        if (soundstate > 0)
-          --soundstate;
-        if (soundstate < 0)
-          ++soundstate;
-      }
-    }
-  }
-
-  //wait for next timer event (fired 50 times a second)
-  al_wait_for_event(timerQueue, &event);
-}
-
-/****************************************************************************/
-/*** This function is called when the sound register is written to        ***/
-/****************************************************************************/
-void Sound(int toggle)
-{
-  static int last = -1;
-  int pos, val;
-  int p;
-
-  if ((soundoff) || (!sound_active))
-    return;
-
-  if (toggle != last)
-  {
-    last = toggle;
-    // pos=(buf_size-1)-(buf_size*Z80_ICount/Z80_IPeriod);
-    pos = (buf_size - 1) - (buf_size * Z80_ICount / Z80_IPeriod);
-    val = (toggle) ? (-mastervolume * 8) : (mastervolume * 8);
-
-    for (p = 0; p < (sample_rate / 2600); p++)
-    {
-      // if ((pos-p)>0)
-      //	soundbuf[pos-p]=val;
-      if ((pos + p) < buf_size)
-        soundbuf[pos + p] = val;
-    }
   }
 }
 
