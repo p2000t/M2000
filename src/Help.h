@@ -32,7 +32,7 @@ char *HelpText[] =
 #if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
 #ifdef ALLEGRO
-  "                               0 - 960x720 (pixel perfect) 1 - 960x720 (bold)",
+  "                               0 - 960x720   1 - 960x720 (pixelated font)",
 #else
   "                               0 - 256x240   1 - 640x480",
 #endif
