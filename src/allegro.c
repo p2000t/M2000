@@ -11,12 +11,25 @@
 /****************************************************************************/
 
 #define ALLEGRO_STATICLINK
-#define SCREEN_TILE_WIDTH 24
-#define SCREEN_TILE_HEIGHT 30
-#define CHAR_TILE_WIDTH 12
-#define CHAR_TILE_HEIGHT 20
+// #define SCREEN_TILE_WIDTH 24
+// #define SCREEN_TILE_HEIGHT 30
+#define CHAR_TILE_WIDTH 24
+#define CHAR_TILE_HEIGHT 30
+#define CHAR_PIXEL_WIDTH 4
+#define CHAR_PIXEL_HEIGHT 3
 
 #define FONT_BITMAP_WIDTH (96+64+64)*CHAR_TILE_WIDTH
+
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  ((byte) & 0x80 ? '1' : '0'), \
+  ((byte) & 0x40 ? '1' : '0'), \
+  ((byte) & 0x20 ? '1' : '0'), \
+  ((byte) & 0x10 ? '1' : '0'), \
+  ((byte) & 0x08 ? '1' : '0'), \
+  ((byte) & 0x04 ? '1' : '0'), \
+  ((byte) & 0x02 ? '1' : '0'), \
+  ((byte) & 0x01 ? '1' : '0') 
 
 #include "P2000.h"
 #include "Unix.h"
@@ -62,8 +75,8 @@ char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
 ALLEGRO_KEYBOARD_STATE kbdstate;
 
 int videomode;                    /* T emulation only: 
-                                        0=960x720 (pixel perfect) 
-                                        1=960x720 (fat font mode)          */ 
+                                        0=960x720
+                                        1=960x720 (pixelated font)         */ 
 static int *OldCharacter;         /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
@@ -416,8 +429,8 @@ void drawFontRegion(float x1, float y1, float x2, float y2)
 /****************************************************************************/
 int LoadFont(char *filename)
 {
-  int i, j, x, y, b;
-  int c, cPrev, cNext;
+  int i, line, x, y, pixelPos, forceRounding = 0, triangleRounding =0;
+  int linePixels, linePixelsPrev, linePixelsNext;
   int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
   char *TempBuf;
   FILE *F;
@@ -521,49 +534,132 @@ int LoadFont(char *filename)
   /* Stretch 6x10 characters to 12x20, so we can do character rounding */
   for (i = 0; i < (96 + 64 + 64) * 10; i += 10) //96 alpha + 64 graphic (cont) + 64 graphic (sep)
   {
-    c = 0;
-    cNext = TempBuf[i] << 6;
-    for (j = 0; j < 10; ++j)
+    linePixels = 0;
+    linePixelsNext = TempBuf[i] << 6;
+    for (line = 0; line < 10; ++line)
     {
-      y = j * 2;
-      cPrev = c >> 6;
-      c = cNext >> 6;
-      cNext = j < 9 ? TempBuf[i + j + 1] : 0;
-      for (b = 0; b < 6; ++b)
+      y = line * CHAR_PIXEL_HEIGHT;
+      linePixelsPrev = linePixels >> 6;
+      linePixels = linePixelsNext >> 6;
+      linePixelsNext = line < 9 ? TempBuf[i + line + 1] : 0;
+
+      // Special cases where rounding of straight "L"-angled pixels is forced
+      // For a given character and line-position, set forceRounding to:
+      //   0x0f to allow rounding in all directions
+      //   0x08 to allow in NW direction
+      //   0x04 to allow in NE direction
+      //   0x02 to allow in SE direction
+      //   0x01 to allow in SW direction
+      switch (i / 10 + 0x20)
       {
-        x = (i * 6 / 10 + b) * 2;
-        if (c & 0x20) // bit 6 set = pixel set
+        case (0x31): // "1"
+        case (0x34): // "4"
+        case (0x4d): // "M"
+          forceRounding = line == 1 ? 0x0f : 0;
+          break;
+        case (0x5e): // "^"
+          forceRounding = line == 2 ? 0x0f : 0;
+          break;
+        case (0x33): // "3"
+          forceRounding = line == 3 ? 0x0f : 0;
+          break;
+        case (0x2a): // "*"
+          forceRounding = line == 4 ? 0x0f : 0;
+          break;
+        case (0x52): // "R"
+          forceRounding = line == 5 ? 0x04 : 0;
+          break;
+        case (0x72): // "r"
+        case (0x7b): // "1/4"
+        case (0x7d): // "3/4"
+          forceRounding = line == 5 ? 0x0f : 0;
+          break;
+        case (0x4e): // "N"
+          forceRounding = (line == 2 || line == 6) ? 0x0f : 0;
+          break;
+        case (0x5b): // "<-"
+          if (line==3) forceRounding = 0x02;
+          if (line==5) forceRounding = 0x04;
+          break;
+        case (0x5d): // "->"
+          if (line==3) forceRounding = 0x01;
+          if (line==5) forceRounding = 0x08;
+          break;
+        case (0x7a): // "z"
+          if (line==4) forceRounding = 0x08;
+          if (line==6) forceRounding = 0x02;
+          break;
+        case (0x56): // "V"
+        case (0x76): // "v"
+          triangleRounding = 1;
+          break;
+        default:
+          forceRounding = 0;
+          triangleRounding = 0;
+      }
+
+      for (pixelPos = 0; pixelPos < 6; ++pixelPos)
+      {
+        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
+        if (linePixels & 0x20) // bit 6 set = pixel set
         {
-          drawFontRegion(x, y, x + 2, y + 2);
+          drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
         }
         else 
         {
           if (i < 96 * 10 && videomode == 0) // check if within alpanum character range
           {
             // for character rounding, look at surrounding pixels
-            pixelN = j > 0 ? (cPrev & 0x20) : 0;
-            pixelE = b < 5 ? (c & 0x10) : 0;
-            pixelS = j < 9 ? (cNext & 0x20) : 0;
-            pixelW = b > 0 ? (c & 0x40) : 0;
-            pixelNE = (j > 0 && b < 5) ? (cPrev & 0x10) : 0;
-            pixelSE = (j < 9 && b < 5) ? (cNext & 0x10) : 0;
-            pixelSW = (j < 9 && b > 0) ? (cNext & 0x40) : 0;
-            pixelNW = (j > 0 && b > 0) ? (cPrev & 0x40) : 0;
+            pixelN = line > 0 ? (linePixelsPrev & 0x20) : 0;
+            pixelE = pixelPos < 5 ? (linePixels & 0x10) : 0;
+            pixelS = line < 9 ? (linePixelsNext & 0x20) : 0;
+            pixelW = pixelPos > 0 ? (linePixels & 0x40) : 0;
+            pixelNE = (line > 0 && pixelPos < 5) ? (linePixelsPrev & 0x10) : 0;
+            pixelSE = (line < 9 && pixelPos < 5) ? (linePixelsNext & 0x10) : 0;
+            pixelSW = (line < 9 && pixelPos > 0) ? (linePixelsNext & 0x40) : 0;
+            pixelNW = (line > 0 && pixelPos > 0) ? (linePixelsPrev & 0x40) : 0;
 
-            // set NW sub-pixel?
-            if (pixelN && pixelW && !pixelNW) drawFontRegion( x, y, x + 1, y + 1);
-            // set NE sub-pixel?
-            if (pixelN && pixelE && !pixelNE) drawFontRegion( x + 1, y, x + 2, y + 1);
-            // set SE sub-pixel?
-            if (pixelS && pixelE && !pixelSE) drawFontRegion( x + 1, y + 1, x + 2, y + 2);
-            // set SW sub-pixel?
-            if (pixelS && pixelW && !pixelSW) drawFontRegion( x, y + 1, x + 1, y + 2);
+            // by default the rounding pixels are in the shape of a (rotated) L
+            // triangleRounding uses pixels in the shape of a (rotated) triangle
+
+            // rounding in NW direction
+            if (pixelN && pixelW && (!pixelNW || (forceRounding & 0x08)))
+            {
+              drawFontRegion(x,   y,   x+3, y+1);
+              drawFontRegion(x,   y+1, x+1, y+2);
+              if (triangleRounding) drawFontRegion(x,   y+1, x+2, y+2);
+              if (triangleRounding) drawFontRegion(x,   y+2, x+1, y+3);
+            }
+            // rounding in NE direction
+            if (pixelN && pixelE && (!pixelNE || (forceRounding & 0x04)))
+            {
+              drawFontRegion(x+1, y,   x+4, y+1);
+              drawFontRegion(x+3, y+1, x+4, y+2);
+              if (triangleRounding) drawFontRegion(x+2, y+1, x+4, y+2);
+              if (triangleRounding) drawFontRegion(x+3, y+2, x+4, y+3);
+            }
+            // rounding in SE direction
+            if (pixelS && pixelE && (!pixelSE || (forceRounding & 0x02)))
+            {
+              if (triangleRounding) drawFontRegion(x+3, y  , x+4, y+1);
+              if (triangleRounding) drawFontRegion(x+2, y+1, x+4, y+2);
+              drawFontRegion(x+3, y+1, x+4, y+2);
+              drawFontRegion(x+1, y+2, x+4, y+3);
+            }
+            // rounding in SW direction
+            if (pixelS && pixelW && (!pixelSW || (forceRounding & 0x01)))
+            {
+              if (triangleRounding) drawFontRegion(x  , y  , x+1, y+1);
+              if (triangleRounding) drawFontRegion(x  , y+1, x+2, y+2);
+              drawFontRegion(x  , y+1, x+1, y+2);
+              drawFontRegion(x  , y+2, x+3, y+3);
+            }
           }
         }
-        //shift bits
-        c<<=1;
-        cPrev<<=1;
-        cNext<<=1;
+        //process next pixel to the right
+        linePixels<<=1;
+        linePixelsPrev<<=1;
+        linePixelsNext<<=1;
       }
     }
   }
@@ -877,13 +973,13 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      x * SCREEN_TILE_WIDTH, y * SCREEN_TILE_HEIGHT, SCREEN_TILE_WIDTH, SCREEN_TILE_HEIGHT, 0);
+      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        x * SCREEN_TILE_WIDTH, y * SCREEN_TILE_HEIGHT, SCREEN_TILE_WIDTH, SCREEN_TILE_HEIGHT, 0);
+        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
 }
 
 /****************************************************************************/

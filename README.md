@@ -77,10 +77,10 @@ ESC/F10      -  Quit emulator
                        slow
 -t / -m                Select P2000 model [-t]
 -video <mode>          Select video mode/window size [0]
-                       0 - 960x720 (Windows) [pixel perfect]
+                       0 - 960x720 (Windows)
                            500x300 (Unix/X)
                            256x240 (MS-DOS, T-model emulation only)
-                       1 - 960x720 (Windows) [fat font]
+                       1 - 960x720 (Windows) [pixelated font]
                            520x490 (Unix/X)
                            640x480 (MS-DOS)
 -printer <filename>    Select file for printer output

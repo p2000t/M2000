@@ -25,7 +25,7 @@
             "command": "m2000win",
             "args": [
                 "-t",
-                "-video", "0",
+                // "-video", "0",
                 // "-tape", "test/cas/SAA5050.cas",
                 // "-boot", "1"
             ],
