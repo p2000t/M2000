@@ -429,7 +429,7 @@ void drawFontRegion(float x1, float y1, float x2, float y2)
 /****************************************************************************/
 int LoadFont(char *filename)
 {
-  int i, line, x, y, pixelPos, forceRounding = 0, triangleRounding =0;
+  int i, line, x, y, pixelPos, forceRounding = 0, vRounding = 0;
   int linePixels, linePixelsPrev, linePixelsNext;
   int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
   char *TempBuf;
@@ -591,11 +591,11 @@ int LoadFont(char *filename)
           break;
         case (0x56): // "V"
         case (0x76): // "v"
-          triangleRounding = 1;
+          vRounding = 1;
           break;
         default:
           forceRounding = 0;
-          triangleRounding = 0;
+          vRounding = 0;
       }
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos)
@@ -620,35 +620,35 @@ int LoadFont(char *filename)
             pixelNW = (line > 0 && pixelPos > 0) ? (linePixelsPrev & 0x40) : 0;
 
             // by default the rounding pixels are in the shape of a (rotated) L
-            // triangleRounding uses pixels in the shape of a (rotated) triangle
+            // vRounding uses some additional pixels for rounding of the V and v
 
             // rounding in NW direction
             if (pixelN && pixelW && (!pixelNW || (forceRounding & 0x08)))
             {
               drawFontRegion(x,   y,   x+3, y+1);
-              drawFontRegion(x,   y+1, x+1+triangleRounding, y+2);
-              if (triangleRounding) drawFontRegion(x,   y+2, x+1, y+3+(linePixelsNext?1:0));
+              drawFontRegion(x,   y+1, x+1+vRounding, y+2);
+              if (vRounding) drawFontRegion(x,   y+2, x+1, y+3+(linePixelsNext?1:0));
             }
             // rounding in NE direction
             if (pixelN && pixelE && (!pixelNE || (forceRounding & 0x04)))
             {
               drawFontRegion(x+1, y,   x+4, y+1);
-              drawFontRegion(x+3-triangleRounding, y+1, x+4, y+2);
-              if (triangleRounding) drawFontRegion(x+3, y+2, x+4, y+3+(linePixelsNext?1:0));
+              drawFontRegion(x+3-vRounding, y+1, x+4, y+2);
+              if (vRounding) drawFontRegion(x+3, y+2, x+4, y+3+(linePixelsNext?1:0));
             }
             // rounding in SE direction
             if (pixelS && pixelE && (!pixelSE || (forceRounding & 0x02)))
             {
-              if (triangleRounding) drawFontRegion(x+3, y-(linePixelsPrev?1:0), x+4, y+1);
-              drawFontRegion(x+3-triangleRounding, y+1, x+4, y+2);
-              drawFontRegion(x+1, y+2, x+4, y+3);
+              if (vRounding) drawFontRegion(x+3, y  , x+4, y+1);
+              drawFontRegion(x+3, y+1, x+4, y+2);
+              drawFontRegion(x+1+vRounding, y+2, x+4, y+3);
             }
             // rounding in SW direction
             if (pixelS && pixelW && (!pixelSW || (forceRounding & 0x01)))
             {
-              if (triangleRounding) drawFontRegion(x  , y-(linePixelsPrev?1:0), x+1, y+1);
-              drawFontRegion(x  , y+1, x+1+triangleRounding, y+2);
-              drawFontRegion(x  , y+2, x+3, y+3);
+              if (vRounding) drawFontRegion(x  , y  , x+1, y+1);
+              drawFontRegion(x  , y+1, x+1, y+2);
+              drawFontRegion(x  , y+2, x+3-vRounding, y+3);
             }
           }
         }
