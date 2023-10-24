@@ -45,15 +45,14 @@ Shift-Delete          -  >
 
 ### Special Keys
 ```
-F3           -  Dump video RAM to file (P2000T mode only)
 F4           -  Toggle tracing on/off (Debugging version only)
 F5           -  Toggle sound on/off
 F11          -  Decrease sound volume
 F12          -  Increase sound volume
 F6           -  Change options
 F7           -  Make screen shot (Not implemented in the Unix/X version)
-F8           -  Pause & Blank screen
-F9           -  Pause
+F8           -  Dump video RAM to file (P2000T mode only)
+F9           -  Pause / unpause
 ESC/F10      -  Quit emulator
 ```
 

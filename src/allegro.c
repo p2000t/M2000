@@ -126,7 +126,7 @@ void TrashMachine(void)
   al_destroy_timer(timer);
   al_destroy_event_queue(timerQueue);
 
-  al_drain_audio_stream(stream);
+  //al_drain_audio_stream(stream);
   al_destroy_audio_stream(stream);
   al_destroy_mixer(mixer);
   al_uninstall_audio();
@@ -514,6 +514,13 @@ int LoadFont(char *filename)
   return 1;
 }
 
+bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
+{
+  if (!al_key_down(kb_state, kb_event)) return false;
+  while (al_key_down(kb_state, kb_event)) al_get_keyboard_state(kb_state);
+  return true;
+}
+
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
@@ -524,6 +531,7 @@ void Keyboard(void)
 
   al_get_keyboard_state(&kbdstate);
 
+  //fill P2000 KeyMap
   for (i = 0; i < 80; i++)
   {
     k = i / 8;
@@ -536,70 +544,68 @@ void Keyboard(void)
       KeyMap[k] |= j;
   }
 
+  /* press F10 or Escape to quit M2000 */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE) || al_key_down(&kbdstate, ALLEGRO_KEY_F10))
     Z80_Running = 0;
 
 #ifdef DEBUG
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F4))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
     Z80_Trace = !Z80_Trace;
 #endif
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F6))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6))
     calloptions = 1;
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
+  /* F7 = screenshot */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7))
   {
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
-      al_get_keyboard_state(&kbdstate);
-    printf("  Writing screen shot to %s...", szBitmapFile);
-
+    if (Verbose) 
+      printf("  Writing screen shot to %s...", szBitmapFile);
     if (ScreenshotBuf)
       al_destroy_bitmap(ScreenshotBuf); // clean up previous screenshot
     ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
     al_save_bitmap(szBitmapFile, ScreenshotBuf);
-    printf("OK\n");
+    if (Verbose)
+      printf("OK\n");
     NextOutputFile(szBitmapFile);
   }
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F3) && !P2000_Mode)
+  /* F8 = save video RAM to file */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8) && !P2000_Mode)
   {
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F3))
-      al_get_keyboard_state(&kbdstate);
     WriteVRAMFile();
     NextOutputFile(szVideoRamFile);
   }
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F9))
+  /* F9 = pause / unpause */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F9))
   {
-    // PausePressed=2;
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F9))
+    if (Verbose)
+      printf("  Paused...\n");
+    //wait for unpause
+    while (!al_key_up(&kbdstate, ALLEGRO_KEY_F9))
       al_get_keyboard_state(&kbdstate);
-    // al_clear_to_color(al_map_rgb(0,0,0));
-    // al_flip_display();
-    while (!al_key_down(&kbdstate, ALLEGRO_KEY_F9))
-      al_get_keyboard_state(&kbdstate);
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F9))
-      al_get_keyboard_state(&kbdstate);
+    if (Verbose)
+      printf("  ...Unpaused\n");
   }
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F5))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
   {
     soundoff = (!soundoff);
-    do al_get_keyboard_state(&kbdstate); 
-    while (al_key_down(&kbdstate, ALLEGRO_KEY_F5));
   }
 
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F11))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
   {
     if (mastervolume)
       --mastervolume;
   }
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F12))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F12))
   {
     if (mastervolume < 15)
       ++mastervolume;
   }
 
+  //check if Window was closed
   while (al_get_next_event(displayQueue, &event))
   { 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
