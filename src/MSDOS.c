@@ -281,17 +281,9 @@ static int keyb_interrupt (void)
      if (in_options_dialogue)
       return 1;
      tmp=keymask[code];
-     if (code==VK_F8 || code==VK_F9)
+     if (code==VK_F9)
      {
-      if (PausePressed)
-       PausePressed=0;
-      else
-      {
-       if (code==VK_F8)
-        PausePressed=2;
-       else
-        PausePressed=1;
-      }
+      PausePressed = !PausePressed;
      }
      else
       PausePressed=0;
@@ -309,7 +301,7 @@ static int keyb_interrupt (void)
       case VK_F7:
        makeshot=1;
        break;
-      case VK_F3:
+      case VK_F8:
        if (!P2000_Mode) dumpVRAM=1;
        break;
       case VK_F5:
@@ -677,21 +669,7 @@ void Keyboard(void)
  int i;
  if (PausePressed)
  {
-  i=0;
-  if (PausePressed==2)             /* Blank screen                          */
-  {
-   i=1;
-   inportb (0x3BA);
-   inportb (0x3DA);
-   outportb (0x3C0,0);
-  }
   while (PausePressed);
-  if (i)
-  {
-   inportb (0x3BA);
-   inportb (0x3DA);
-   outportb (0x3C0,0x20);
-  }
   OldTimer=ReadTimer ();
  }
  if (dumpVRAM)

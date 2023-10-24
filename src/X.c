@@ -157,17 +157,9 @@ static void keyb_handler (int code,int newstatus)
   {
    keybstatus[code&255]=1;
    tmp=keymask[code&255];
-   if (code==XK_F8 || code==XK_F9)
+   if (code==XK_F9)
    {
-    if (PausePressed)
-     PausePressed=0;
-    else
-    {
-     if (code==XK_F8)
-      PausePressed=2;
-     else
-      PausePressed=1;
-    }
+    PausePressed = !PausePressed;
    }
    else
     PausePressed=0;
@@ -193,7 +185,7 @@ static void keyb_handler (int code,int newstatus)
      IncreaseSoundVolume ();
      break;
 #endif
-    case XK_F3:
+    case XK_F8:
       if (!P2000_Mode) {
         WriteVRAMFile();
         NextOutputFile(szVideoRamFile);

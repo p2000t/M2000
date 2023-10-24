@@ -67,10 +67,12 @@ static int WriteVRAMFile()
   FILE *out;
   if ((out = fopen(szVideoRamFile, "wb")) != NULL)
   {
-    printf("  Writing video memory to %s...", szVideoRamFile);
+    if (Verbose) 
+      printf("  Writing video memory to %s...", szVideoRamFile);
     fwrite(VRAM, 1, 24 * 80, out);
     fclose(out);
-    printf("OK\n");
+    if (Verbose) 
+      printf("OK\n");
     return EXIT_SUCCESS;
   }
   return EXIT_FAILURE;
