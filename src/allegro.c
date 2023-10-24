@@ -126,6 +126,7 @@ void TrashMachine(void)
   al_destroy_timer(timer);
   al_destroy_event_queue(timerQueue);
 
+  al_drain_audio_stream(stream);
   al_destroy_audio_stream(stream);
   al_destroy_mixer(mixer);
   al_uninstall_audio();
@@ -137,6 +138,8 @@ void TrashMachine(void)
   if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
   if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf);
   if (OldCharacter) free (OldCharacter);
+  
+  al_uninstall_system();
 }
 
 /****************************************************************************/
