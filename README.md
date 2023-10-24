@@ -178,24 +178,18 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
 * Ensure you have [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) installed 
   and have downloaded the latest Ubuntu image from the Windows store.
 * Install the required following packages in Ubuntu
-
-```bash
-sudo apt install mingw-w64 build-essential cmake zip curl
-```
-
+  ```bash
+  sudo apt install mingw-w64 build-essential cmake zip curl
+  ```
 * Clone this repository, create a `build` folder in its root directory, go to the `build` folder and compile
   a Makefile using `cmake`
-
-```bash
-mkdir build && cd build && cmake ../src
-```
-
+  ```bash
+  mkdir build && cd build && cmake ../src
+  ```
 * Compile the program by running
-
-```bash
-make -j
-```
-
+  ```bash
+  make -j
+  ```
 * The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
   the `.zip` file found in the same folder and deploy the emulator in another folder.
 
