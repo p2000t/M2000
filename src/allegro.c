@@ -619,9 +619,9 @@ static byte keyMappings[71][5] =
   { ALLEGRO_KEY_PAD_3,      56,      0,       56,      1 }, // 3       START
   { ALLEGRO_KEY_PAD_2,      58,      0,       58,      1 }, // 2       ?
   { ALLEGRO_KEY_PAD_1,      59,      0,       59,      1 }, // 1       ZOEK
-  { ALLEGRO_KEY_PAD_0,      19,      0,       18,      0 }, // 0       00
-  { ALLEGRO_KEY_PAD_DELETE, 57,      0,       16,      1 }, // .       STOP
-  { ALLEGRO_KEY_PAD_ENTER,  52,      0,       52,      0 }, // ENTER   [free]
+  { ALLEGRO_KEY_PAD_0,      19,      0,       19,      1 }, // 0       ?
+  { ALLEGRO_KEY_PAD_DELETE, 18,      0,       18,      1 }, // 00      ?
+  { ALLEGRO_KEY_PAD_ENTER,  16,      0,       16,      1 }, // .       STOP
 };
 
 /****************************************************************************/
