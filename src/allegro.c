@@ -591,11 +591,11 @@ static byte keyMappings[71][5] =
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_EQUALS,     45,      1,       42,      0 }, // =       +
   { ALLEGRO_KEY_MINUS,      47,      0,       47,      1 }, // -       _
-  { ALLEGRO_KEY_OPENBRACE,  60,      1,       68,      0 }, // ->      1/4
-  { ALLEGRO_KEY_CLOSEBRACE, 60,      0,       68,      1 }, // <-      3/4
+  { ALLEGRO_KEY_OPENBRACE,  60,      1,       68,      0 }, // ←       ¼
+  { ALLEGRO_KEY_CLOSEBRACE, 60,      0,       68,      1 }, // →       ¾
   { ALLEGRO_KEY_SEMICOLON,  69,      0,       71,      0 }, // ;       :
   { ALLEGRO_KEY_QUOTE,       6,      1,       63,      1 }, // '       "
-  { ALLEGRO_KEY_LEFT,        0,      0,        0,      1 }, // LEFT    LEFTLN
+  { ALLEGRO_KEY_LEFT,        0,      0,        0,      1 }, // LEFT    LEFT LINE
   { ALLEGRO_KEY_RIGHT,      23,      0,       23,      0 }, // RIGHT   [free]
   { ALLEGRO_KEY_UP,          2,      0,        2,      1 }, // UP      LEFTUP
   { ALLEGRO_KEY_DOWN,       21,      0,       21,      1 }, // DOWN    RIGHTDOWN
@@ -612,7 +612,7 @@ static byte keyMappings[71][5] =
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
   { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
-  { ALLEGRO_KEY_PAD_7,      51,      0,       51,      1 }, // 7       CAS WIS
+  { ALLEGRO_KEY_PAD_7,      51,      0,       51,      1 }, // 7       CASS WIS
   { ALLEGRO_KEY_PAD_6,      64,      0,       64,      1 }, // 6       ?
   { ALLEGRO_KEY_PAD_5,      66,      0,       66,      1 }, // 5       CLR+LIST
   { ALLEGRO_KEY_PAD_4,      67,      0,       67,      1 }, // 4       ?
