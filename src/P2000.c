@@ -364,7 +364,7 @@ void OptionsDialogue (void)
  FILE *f;
  do
  {
-  printf ("Options currently in use are:\n"
+  printf ("\nOptions currently in use are:\n"
           "Tape image       - %s\n"
           "Printer log file - %s\n"
           "Font file name   - %s\n"
@@ -373,7 +373,7 @@ void OptionsDialogue (void)
           (PrnStream)? PrnName:"none",
           FontName,
           Z80_IPeriod*IFreq*100/2500000);
-  printf ("Available commands are:\n"
+  printf ("\nAvailable commands are:\n"
           "t <filename>     - Change tape image\n"
           "p <filename>     - Change printer log file\n"
           "f <filename>     - Change font file name\n"

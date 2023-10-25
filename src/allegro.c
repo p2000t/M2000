@@ -22,6 +22,10 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/time.h>
+#ifdef WIN32
+#include <windows.h>
+int consoleHiddenOnInit = 0;
+#endif
 #include "P2000.h"
 #include "Unix.h"
 #include "Utils.h"
@@ -29,7 +33,7 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
-//#include <allegro5/allegro_native_dialog.h>
+//#include <allegro5/allegro_native_dialog.h> 
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -630,6 +634,14 @@ void Keyboard(void)
   if (!al_get_timer_started(timer))
     al_start_timer(timer);
 
+#ifdef WIN32
+  //hide console window
+  if (!consoleHiddenOnInit && IsWindowVisible(GetConsoleWindow()) != FALSE)
+    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
+  else 
+    consoleHiddenOnInit = 1;
+#endif
+
   int i;
   byte key;
   bool keyShiftDown;
@@ -797,8 +809,13 @@ void Keyboard(void)
   if (calloptions)
   {
     calloptions = 0;
-    //TODO: move options dialogue to UI
+#ifdef WIN32
+    ShowWindow(GetConsoleWindow(), SW_RESTORE);
+#endif
     OptionsDialogue();
+#ifdef WIN32
+    ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
   }
 }
 
