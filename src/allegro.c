@@ -38,6 +38,7 @@ int consoleHiddenOnInit = 0;
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
 ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
+ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
 
 int buf_size;
 int sample_rate;
@@ -50,8 +51,8 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char Title[255]="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
-#define SYMBOLIC_KEY_MAPPING_INFO "  [ F1=ZOEK  F2=START  F3=STOP  F4=INSERT CASSETTE ]"
-int KeyboardMapping = 0;
+#define SYMBOLIC_KEY_MAPPING_INFO "  [ F1=ZOEK  F2=START  Shift+F2=STOP  F3=Insert Cassette  F4=Insert Cartridge  F5=Reset ]"
+int KeyboardMapping = 1;
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
@@ -118,12 +119,12 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-static byte keyMappings[71][5] =
+#define NUMBER_OF_KEYMAPPINGS 70
+static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
-  { ALLEGRO_KEY_F2,         56,      1,       56,      1 }, // START   [free]
-  { ALLEGRO_KEY_F3,         16,      1,       16,      1 }, // STOP    [free]
+  { ALLEGRO_KEY_F2,         56,      1,       16,      1 }, // START   STOP
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
   { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b
@@ -170,19 +171,19 @@ static byte keyMappings[71][5] =
   { ALLEGRO_KEY_SEMICOLON,  69,      0,       71,      0 }, // ;       :
   { ALLEGRO_KEY_QUOTE,       6,      1,       63,      1 }, // '       "
   { ALLEGRO_KEY_LEFT,        0,      0,        0,      1 }, // LEFT    LEFT LINE
-  { ALLEGRO_KEY_RIGHT,      23,      0,       23,      0 }, // RIGHT   [free]
+  { ALLEGRO_KEY_RIGHT,      23,      0,       23,      1 }, // RIGHT   [free]
   { ALLEGRO_KEY_UP,          2,      0,        2,      1 }, // UP      LEFTUP
   { ALLEGRO_KEY_DOWN,       21,      0,       21,      1 }, // DOWN    RIGHTDOWN
-  { ALLEGRO_KEY_TAB,         8,      0,        8,      0 }, // TAB     [free]
+  { ALLEGRO_KEY_TAB,         8,      0,        8,      1 }, // TAB     [free]
   { ALLEGRO_KEY_COMMA,      22,      0,       26,      0 }, // ,       <
   { ALLEGRO_KEY_FULLSTOP,   57,      0,       26,      1 }, // .       >
-  { ALLEGRO_KEY_SPACE,      17,      0,       17,      0 }, // SPACE   [free]
+  { ALLEGRO_KEY_SPACE,      17,      0,       17,      1 }, // SPACE   [free]
   { ALLEGRO_KEY_BACKSPACE,  44,      0,       40,      0 }, // BACKSP  CLRLN
   { ALLEGRO_KEY_DELETE,     40,      1,       40,      1 }, // CLRSCR  [free]
   { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
-  { ALLEGRO_KEY_ENTER,      52,      0,       52,      0 }, // ENTER   [free]
+  { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
   { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
-  { ALLEGRO_KEY_LCTRL,      32,      0,       32,      0 }, // CODE    [free]
+  { ALLEGRO_KEY_LCTRL,      32,      0,       32,      1 }, // CODE    [free]
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
   { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
@@ -210,6 +211,7 @@ void TrashMachine(void)
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
   al_destroy_native_file_dialog(cassetteChooser);
+  al_destroy_native_file_dialog(cartridgeChooser);
   al_shutdown_native_dialog_addon();
 
   al_destroy_timer(timer);
@@ -261,6 +263,8 @@ int InitMachine(void)
   al_init_native_dialog_addon();
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select a .cas file", "*.cas", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+  cartridgeChooser = al_create_native_file_dialog(NULL, 
+    "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
 
   if (Verbose)
     printf("Initialising keyboard...");
@@ -653,17 +657,18 @@ void Keyboard(void)
   int i,j,k;
   byte key;
   bool keyShiftDown;
-  bool keyHandled = 0;
-  byte mCol, mRow, mCol2, mRow2;
-  bool has2;
+  bool isKeyPressed = 0;
+  byte mCol, mRow, mColInactive, mRowInactive;
+  bool isCombiKey, isNormalKey;
   bool al_shift_down;
   bool p2000ShiftDown;
 
-  static byte queuedKey = 0;
-  static byte lastKey = 0;
+  static byte queuedKeys[NUMBER_OF_KEYMAPPINGS] = {0};
+  static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
 
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
+  al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
   if (KeyboardMapping == 0)
   {
@@ -684,52 +689,56 @@ void Keyboard(void)
   else
   {
     /* Symbolic Key Mapping */
-    al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
     p2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
 
-    for (i = 0; i < sizeof(keyMappings) / sizeof(keyMappings[0]); i++)
+    for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++)
     {
       key = keyMappings[i][0];
+      isCombiKey = keyMappings[i][1] != keyMappings[i][3];
+      isNormalKey = !isCombiKey && !keyMappings[2] && keyMappings[4];
+
       mRow = keyMappings[i][al_shift_down ? 3 : 1] / 8;
       mCol = 1 << (keyMappings[i][al_shift_down ? 3 : 1] % 8);
       keyShiftDown = keyMappings[i][al_shift_down ? 4 : 2];
 
-      mRow2 = keyMappings[i][al_shift_down ? 1 : 3] / 8;
-      mCol2 = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
-      has2 = (mCol != mCol2 && mRow != mRow2);
-
-      if ((lastKey == 0 || lastKey == key) && (queuedKey == key || al_key_down(&kbdstate, key)))
+      if (isCombiKey)
       {
-        if (has2)
-          KeyMap[mRow2] |= mCol2; //clean second key
-        if (keyShiftDown != p2000ShiftDown) 
+        mRowInactive = keyMappings[i][al_shift_down ? 1 : 3] / 8;
+        mColInactive = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
+      }
+      if (queuedKeys[i] || al_key_down(&kbdstate, key))
+      {
+        if (isCombiKey)
+          KeyMap[mRowInactive] |= mColInactive; //clean inactive combi key
+
+        if (isNormalKey || keyShiftDown == p2000ShiftDown) 
+        {
+          queuedKeys[i] = 0;
+          KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
+        }
+        else 
         {
           // first, the shift must be pressed/un-pressed in this interrupt
           // then in the next interrupt the target key itself will be pressed
           KeyMap[9] = keyShiftDown ? 0xfe : 0xff; // 0xfe = LSHIFT
-          queuedKey = key;
+          queuedKeys[i] = 1;
         }
-        else 
-        {
-          queuedKey = 0;
-          KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
-        }
-        lastKey = key;
-        keyHandled = 1;
-        break; //don't handle simultanious keys
+        activeKeys[i] = 1;
+        isKeyPressed = 1;
       }
       else
       {
-        if (lastKey == key) 
+        if (activeKeys[i]) 
         {
           // unpress key and second key in P2000's keyboard matrix
-          KeyMap[mRow2] |= mCol2;
+          if (isCombiKey)
+            KeyMap[mRowInactive] |= mColInactive;
           KeyMap[mRow] |= mCol;
-          lastKey = 0;
+          activeKeys[i] = 0;
         }
       }
     }
-    if (!keyHandled) {
+    if (!isKeyPressed) {
       if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
@@ -740,18 +749,29 @@ void Keyboard(void)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
     Z80_Running = 0;
 
-  /* F4 to load a .cas file */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
+  /* F3 to load a .cas cassette file */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F3))
   {
     if (al_show_native_file_dialog(display, cassetteChooser)) {
-      const char* path = al_get_native_file_dialog_path(cassetteChooser, 0);
-      InsertCassette(path);
+      InsertCassette(al_get_native_file_dialog_path(cassetteChooser, 0));
     }
   }
 
-#ifdef DEBUG
+  /* F4 to load a .bin cartridge file */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
+  {
+    if (al_show_native_file_dialog(display, cartridgeChooser))
+    {
+      InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
+      Z80_Reset ();
+    }
+  }
+
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
+#ifdef DEBUG
     Z80_Trace = !Z80_Trace;
+#else
+    Z80_Reset ();
 #endif
 
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6))

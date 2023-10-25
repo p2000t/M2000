@@ -293,11 +293,13 @@ static int keyb_interrupt (void)
       case VK_Escape:
        Z80_Running=0;
        break;
-#ifdef DEBUG
       case VK_F5:
+#ifdef DEBUG
        Z80_Trace=!Z80_Trace;
-       break;
+#else
+       Z80_Reset ();
 #endif
+       break;
       case VK_F7:
        makeshot=1;
        break;

@@ -45,18 +45,22 @@ Shift-Delete          -  >
 
 ### Special Keys
 ```
-F1           -  ZOEK key press (Windows version only)
-F2           -  START key press (Windows version only)
-F3           -  STOP key press (Windows version only)
-F5           -  Toggle tracing on/off (Debugging version only)
+F5           -  Reset P2000
 F6           -  Change options
 F7           -  Make screen shot (Not in the Unix/X version)
-F8           -  Dump video RAM to file (P2000T mode only)
+F8           -  Dump video RAM to file    (P2000T mode only)
 F9           -  Pause / unpause
 F10          -  Toggle sound on/off
 F11          -  Decrease sound volume
 F12          -  Increase sound volume
 ESC          -  Quit emulator
+
+Windows version only:
+F1           -  ZOEK key      (show cassette index)
+F2           -  START key    (start loaded program)
+Shift + F2   -  STOP key             (halt program)
+F3           -  Insert cassette  (choose .cas file)
+F4           -  Insert cartridge (choose .bin file)
 ```
 
 ## Command line options
@@ -78,7 +82,7 @@ ESC          -  Quit emulator
                        Try -uperiod 2 or -uperiod 3 if emulation is a bit
                        slow
 -t / -m                Select P2000 model [-t]
--keymap <mode>         Select keyboard mapping [0]
+-keymap <mode>         Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping (only for Windows version)
 -video <mode>          Select video mode/window size [0]

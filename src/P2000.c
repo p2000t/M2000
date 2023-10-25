@@ -377,6 +377,26 @@ void InsertCassette(const char *filename)
 }
 
 /****************************************************************************/
+/*** Insert cassette tape file.                                           ***/
+/****************************************************************************/
+void InsertCartridge(const char *filename)
+{
+  static char _CartName[256];
+  int success=0;
+  FILE *f;
+  strcpy (_CartName,filename);
+  CartName=_CartName;
+
+  if(Verbose) printf(" OK\n  Opening cartridge %s... ",_CartName);
+  if ((f=fopen(CartName,"rb")) != NULL)
+  {
+    if (fread(ROM+0x1000,1,0x4000,f)) success=1;
+    fclose(f);
+  }
+  if(Verbose) puts (success? "OK":"FAILED");
+}
+
+/****************************************************************************/
 /*** Change tape image, font used, etc.                                   ***/
 /****************************************************************************/
 void OptionsDialogue (void)

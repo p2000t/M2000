@@ -32,7 +32,7 @@ char *HelpText[] =
 #endif
   "  -t / -m                    - Select P2000 model [-t]",
 #ifdef ALLEGRO
-  "  -keymap <mode>             - Select keyboard mapping [0]",
+  "  -keymap <mode>             - Select keyboard mapping [1]",
   "                                0 - Positional mapping",
   "                                1 - Symbolic mapping",
 #endif
