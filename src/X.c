@@ -166,16 +166,15 @@ static void keyb_handler (int code,int newstatus)
    switch (code)
    {
     case XK_Escape:
-    case XK_F10:
      Z80_Running=0;
      break;
 #ifdef DEBUG
-    case XK_F4:
+    case XK_F5:
      Z80_Trace=!Z80_Trace;
      break;
 #endif
 #ifdef SOUND
-    case XK_F5:
+    case XK_F10:
      soundoff=(!soundoff);
      break;
     case XK_F11:

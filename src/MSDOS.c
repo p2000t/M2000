@@ -290,11 +290,10 @@ static int keyb_interrupt (void)
      switch (code)
      {
       case VK_Escape:
-      case VK_F10:
        Z80_Running=0;
        break;
 #ifdef DEBUG
-      case VK_F4:
+      case VK_F5:
        Z80_Trace=!Z80_Trace;
        break;
 #endif
@@ -304,7 +303,7 @@ static int keyb_interrupt (void)
       case VK_F8:
        if (!P2000_Mode) dumpVRAM=1;
        break;
-      case VK_F5:
+      case VK_F10:
        soundoff=(!soundoff);
        break;
       case VK_F11:

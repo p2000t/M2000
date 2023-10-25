@@ -45,15 +45,18 @@ Shift-Delete          -  >
 
 ### Special Keys
 ```
-F4           -  Toggle tracing on/off (Debugging version only)
-F5           -  Toggle sound on/off
-F11          -  Decrease sound volume
-F12          -  Increase sound volume
+F1           -  ZOEK key press (Windows version only)
+F2           -  START key press (Windows version only)
+F3           -  STOP key press (Windows version only)
+F5           -  Toggle tracing on/off (Debugging version only)
 F6           -  Change options
-F7           -  Make screen shot (Not implemented in the Unix/X version)
+F7           -  Make screen shot (Not in the Unix/X version)
 F8           -  Dump video RAM to file (P2000T mode only)
 F9           -  Pause / unpause
-ESC/F10      -  Quit emulator
+F10          -  Toggle sound on/off
+F11          -  Decrease sound volume
+F12          -  Increase sound volume
+ESC          -  Quit emulator
 ```
 
 ## Command line options

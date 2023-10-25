@@ -44,7 +44,7 @@ ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
-char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
+char *Title="M2000 v0.7-SNAPSHOT  [F1=ZOEK]  [F2=START]  [F3=STOP]"; /* Title for Window  */
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
@@ -538,9 +538,12 @@ bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event)
   return true;
 }
 
-
-static byte keyMappings[68][5] =
-{    
+static byte keyMappings[71][5] =
+{
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
+  { ALLEGRO_KEY_F2,         56,      1,       56,      1 }, // START   [free]
+  { ALLEGRO_KEY_F3,         16,      1,       16,      1 }, // STOP    [free]
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
   { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b
@@ -722,12 +725,12 @@ void Keyboard(void)
   //   KeyMap[9] = 0b11111111;
   // }
 
-  /* press F10 or Escape to quit M2000 */
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE) || al_key_down(&kbdstate, ALLEGRO_KEY_F10))
+  /* press Escape to quit M2000 */
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
     Z80_Running = 0;
 
 #ifdef DEBUG
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
     Z80_Trace = !Z80_Trace;
 #endif
 
@@ -767,11 +770,11 @@ void Keyboard(void)
       printf("  ...Unpaused\n");
   }
 
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
+  /* F10, F11 and F12 for sound optioons */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F10))
   {
     soundoff = (!soundoff);
   }
-
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
   {
     if (mastervolume)
