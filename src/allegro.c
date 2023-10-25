@@ -42,7 +42,7 @@ static int sound_active=1;
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_EVENT_QUEUE *displayQueue = NULL;
+ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output            */
 
@@ -118,7 +118,7 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   al_destroy_display(display);
-  al_destroy_event_queue(displayQueue);
+  al_destroy_event_queue(eventQueue);
   al_uninstall_keyboard();
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
@@ -142,6 +142,22 @@ void TrashMachine(void)
   al_uninstall_system();
 }
 
+int InitAllegro()
+{
+  if (!al_is_system_installed())
+  {
+    // init allegro
+    if (Verbose) printf("Initialising Allegro drivers...");
+    if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
+    {
+      if (Verbose) puts("FAILED");
+      return 0;
+    }
+    if (Verbose) puts("OK");
+  }
+  return 1;
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
@@ -149,16 +165,7 @@ int InitMachine(void)
 {
   int i;
 
-  UPeriod = 0; // modern PCs can update the screen 50 times/sec no problem
-
-  // init allegro
-  if (Verbose) printf("Initialising Allegro drivers...");
-  if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
-  {
-    if (Verbose) puts("FAILED");
-    return -1;
-  }
-  if (Verbose) puts("OK");
+  if (!InitAllegro()) return 0;
 
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
 
@@ -169,30 +176,31 @@ int InitMachine(void)
   {
     if (Verbose)
       printf("FAILED\n");
-    return -1;
+    return 0;
   }
 
   printf("OK\nCreating the output window... ");
   display = al_create_display(width, height);
-  displayQueue = al_create_event_queue();
+  eventQueue = al_create_event_queue();
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
   if (Verbose)
   {
-    if (!display || !displayQueue || !timerQueue)
+    if (!display || !eventQueue || !timerQueue)
     {
       printf("FAILED\n");
-      return -1;
+      return 0;
     }
     else
       printf("OK\n");
   }
   al_set_window_title(display, Title);
   al_clear_to_color(al_map_rgb(0, 0, 0));
-  al_register_event_source(displayQueue, al_get_display_event_source(display));
+  al_register_event_source(eventQueue, al_get_display_event_source(display));
+  //al_register_event_source(eventQueue, al_get_keyboard_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
-  //al_show_native_message_box(display, "wwaa", "www", "123", "OK", 0);
+  //al_show_native_message_box(display, "test", "test", "test", "OK", 0);
 
   if (P2000_Mode) /* black and white palette */
   {
@@ -248,7 +256,7 @@ int InitMachine(void)
   buf_size = 1 << i;
   soundbuf = malloc(buf_size);
 
-  stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+  stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
 
   if (Verbose)
   {
@@ -270,8 +278,6 @@ int InitMachine(void)
   }
   else if (Verbose) printf("OK\n");
 
-  /* start the 50Hz timer */
-  al_start_timer(timer);
   return 1;
 }
 
@@ -311,7 +317,16 @@ void FlushSound(void)
   }
 
   // sync emulation by waiting for timer event (fired 50 times a second)
-  al_wait_for_event(timerQueue, &event);
+  if (Sync) 
+  {
+#ifdef DEBUG
+    if (al_get_next_event(timerQueue, &event))
+      if (Verbose) 
+        printf("  Sync too slow [%f]...\n", event.timer.timestamp);
+    else
+#endif
+      al_wait_for_event(timerQueue, &event);
+  }
 }
 
 /****************************************************************************/
@@ -356,6 +371,9 @@ int LoadFont(char *filename)
   char *TempBuf;
   FILE *F;
 
+  if (!InitAllegro())
+    return 0;
+
   if (Verbose)
     printf("Loading font %s...\n", filename);
   if (Verbose)
@@ -367,7 +385,7 @@ int LoadFont(char *filename)
     if (!FontBuf)
     {
       if (Verbose) puts("FAILED");
-      return -1;
+      return 0;
     }
   }
 
@@ -377,7 +395,7 @@ int LoadFont(char *filename)
     if (!FontBuf_bk)
     {
       if (Verbose) puts("FAILED");
-      return -1;
+      return 0;
     }
   }
 
@@ -389,7 +407,7 @@ int LoadFont(char *filename)
       if (!FontBuf_scaled)
       {
         if (Verbose) puts("FAILED");
-        return -1;
+        return 0;
       }
     }
 
@@ -399,7 +417,7 @@ int LoadFont(char *filename)
       if (!FontBuf_bk_scaled)
       {
         if (Verbose) puts("FAILED");
-        return -1;
+        return 0;
       }
     }
   }
@@ -414,7 +432,7 @@ int LoadFont(char *filename)
   if (!TempBuf)
   {
     if (Verbose) puts("FAILED");
-    return -1;
+    return 0;
   }
   if (Verbose) puts("OK");
   if (Verbose) printf("  Opening... ");
@@ -510,7 +528,6 @@ int LoadFont(char *filename)
       CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
       2*(CHAR_TILE_HEIGHT), 0);
   }
-
   return 1;
 }
 
@@ -521,28 +538,192 @@ bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event)
   return true;
 }
 
+
+static byte keyMappings[67][5] =
+{
+//  Allegro key         MatrixYX -shift  ShiftMatrixYX -shift
+  { ALLEGRO_KEY_A,      34,    0,      34,         1 }, // A  a
+  { ALLEGRO_KEY_B,      29,    0,      29,         1 }, // B  b
+  { ALLEGRO_KEY_C,      28,    0,      28,         1 }, // C  c
+  { ALLEGRO_KEY_D,      12,    0,      12,         1 }, // D  d
+  { ALLEGRO_KEY_E,      36,    0,      36,         1 }, // E  e
+  { ALLEGRO_KEY_F,      15,    0,      15,         1 }, // F  f
+  { ALLEGRO_KEY_G,      13,    0,      13,         1 }, // G  g
+  { ALLEGRO_KEY_H,       9,    0,       9,         1 }, // H  h
+  { ALLEGRO_KEY_I,      70,    0,      70,         1 }, // I  i
+  { ALLEGRO_KEY_J,      14,    0,      14,         1 }, // J  j
+  { ALLEGRO_KEY_K,      62,    0,      62,         1 }, // K  k
+  { ALLEGRO_KEY_L,      65,    0,      65,         1 }, // L  l
+  { ALLEGRO_KEY_M,      30,    0,      30,         1 }, // M  m
+  { ALLEGRO_KEY_N,      25,    0,      25,         1 }, // N  n
+  { ALLEGRO_KEY_O,      49,    0,      49,         1 }, // O  o
+  { ALLEGRO_KEY_P,      53,    0,      53,         1 }, // P  p
+  { ALLEGRO_KEY_Q,       3,    0,       3,         1 }, // Q  q
+  { ALLEGRO_KEY_R,      39,    0,      39,         1 }, // R  r
+  { ALLEGRO_KEY_S,      11,    0,      11,         1 }, // S  s
+  { ALLEGRO_KEY_T,      37,    0,      37,         1 }, // T  t
+  { ALLEGRO_KEY_U,      38,    0,      38,         1 }, // U  u
+  { ALLEGRO_KEY_V,      31,    0,      31,         1 }, // V  v
+  { ALLEGRO_KEY_W,      35,    0,      35,         1 }, // W  w
+  { ALLEGRO_KEY_X,      27,    0,      27,         1 }, // X  x
+  { ALLEGRO_KEY_Y,      33,    0,      33,         1 }, // Y  y
+  { ALLEGRO_KEY_Z,      10,    0,      10,         1 }, // Z  z
+
+  { ALLEGRO_KEY_1,      46,    0,      46,         1 }, // 1     !
+  { ALLEGRO_KEY_2,      63,    0,      55,         0 }, // 2     @
+  { ALLEGRO_KEY_3,       4,    0,      20,         0 }, // 3     #
+  { ALLEGRO_KEY_4,       7,    0,       7,         1 }, // 4     $
+  { ALLEGRO_KEY_5,       5,    0,       5,         1 }, // 5     %
+  { ALLEGRO_KEY_6,       1,    0,      55,         1 }, // 6     ↑
+  { ALLEGRO_KEY_7,       6,    0,       1,         1 }, // 7     &
+  { ALLEGRO_KEY_8,      54,    0,      71,         1 }, // 8     *  
+  { ALLEGRO_KEY_9,      41,    0,      54,         1 }, // 9     (
+  { ALLEGRO_KEY_0,      45,    0,      41,         1 }, // 0     )
+
+  { ALLEGRO_KEY_EQUALS,     45,    1,      42,        0 }, // =     +
+  { ALLEGRO_KEY_MINUS,      47,    0,      47,        1 }, // -     _
+  { ALLEGRO_KEY_OPENBRACE,  60,    1,      68,        0 }, // ->     1/4
+  { ALLEGRO_KEY_CLOSEBRACE, 60,    0,      68,        1 }, // <-     3/4
+  { ALLEGRO_KEY_SEMICOLON , 69,    0,      71,        0 }, // ;      :
+  { ALLEGRO_KEY_QUOTE,       6,    1,      63,        1 }, // '      "
+
+  { ALLEGRO_KEY_LEFT,       0,    0,       0,         1 }, // LEFT   LEFTLN
+  { ALLEGRO_KEY_RIGHT,     23,    0,      23,         0 }, // RIGHT  [free]
+  { ALLEGRO_KEY_UP,         2,    0,       2,         1 }, // UP     LEFTUP
+  { ALLEGRO_KEY_DOWN,      21,    0,      21,         1 }, // DOWN   RIGHTDOWN
+  { ALLEGRO_KEY_TAB,        8,    0,       8,         0 }, // TAB     [free]
+  { ALLEGRO_KEY_COMMA,     22,    0,      26,         0 }, // ,       <
+  { ALLEGRO_KEY_FULLSTOP,  57,    0,      26,         1 }, // .       >
+  { ALLEGRO_KEY_SPACE,     17,    0,      17,         0 }, // SPACE   [free]
+  { ALLEGRO_KEY_BACKSPACE, 44,    0,      40,         0 }, // BACKSP  CLRLN
+  { ALLEGRO_KEY_DELETE,    40,    1,      40,         1 }, // CLRSCR  [free]
+  { ALLEGRO_KEY_SLASH,     61,    0,      61,         1 }, // /       ?
+  { ALLEGRO_KEY_ENTER,     52,    0,      52,         0 }, // ENTER   [free]
+  { ALLEGRO_KEY_BACKSLASH, 20,    1,      20,         1 }, // █       [free]
+
+  { ALLEGRO_KEY_LCTRL,     32,    0,      32,         0 }, // CODE    [free]
+
+  { ALLEGRO_KEY_PAD_9,     48,    0,      48,         1 }, // 9       ?
+  { ALLEGRO_KEY_PAD_8,     50,    0,      50,         1 }, // 8       ?
+  { ALLEGRO_KEY_PAD_7,     51,    0,      51,         1 }, // 7       CAS WIS
+  { ALLEGRO_KEY_PAD_6,     64,    0,      64,         1 }, // 6       ?
+  { ALLEGRO_KEY_PAD_5,     66,    0,      66,         1 }, // 5       CLRSCR-OK
+  { ALLEGRO_KEY_PAD_4,     67,    0,      67,         1 }, // 4       ?
+  { ALLEGRO_KEY_PAD_3,     56,    0,      56,         1 }, // 3       START
+  { ALLEGRO_KEY_PAD_2,     58,    0,      58,         1 }, // 2       ?
+  { ALLEGRO_KEY_PAD_1,     59,    0,      59,         1 }, // 1       ZOEK
+  { ALLEGRO_KEY_PAD_0,     19,    0,      19,         1 }, // 0       ?
+  { ALLEGRO_KEY_PAD_ENTER, 52,    0,      16,         1 }, // ENTER   STOP
+
+  { 0 }
+};
+
+
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
 /****************************************************************************/
+static byte queuedChar = 0;
+static byte lastChar = 0;
 void Keyboard(void)
 {
-  int i, j, k;
+  /* first, make sure the 50Hz timer in started */
+  if (!al_get_timer_started(timer))
+    al_start_timer(timer);
 
+  int i;
+  byte k, s;
+  byte  X, Y;
+  byte  Xalt, Yalt;
+  bool hasAlt;
+  bool al_shift_key;
+  bool keyHandled = 0;
+
+  //read keyboard state
   al_get_keyboard_state(&kbdstate);
+  al_shift_key = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
-  //fill P2000 KeyMap
-  for (i = 0; i < 80; i++)
+  unsigned char sP2000 = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+  for (i = 0; i < sizeof(keyMappings) / sizeof(keyMappings[0]); i++)
   {
-    k = i / 8;
-    j = 1 << (i % 8);
-    if (!keymask[i])
-      continue;
-    if (al_key_down(&kbdstate, keymask[i]))
-      KeyMap[k] &= ~j;
+    k = keyMappings[i][0];
+    if (!k) { /* printf("keymappings: %i\n", i); */ break; } //debug
+    Y = keyMappings[i][al_shift_key ? 3 : 1] / 8;
+    X = 1 << (keyMappings[i][al_shift_key ? 3 : 1] % 8);
+    s = keyMappings[i][al_shift_key ? 4 : 2];
+
+    Yalt = keyMappings[i][al_shift_key ? 1 : 3] / 8;
+    Xalt = 1 << (keyMappings[i][al_shift_key ? 1 : 3] % 8);
+    hasAlt = (X == Xalt && Y == Yalt);
+
+    if ((lastChar == 0 || lastChar == k) && (queuedChar == k || al_key_down(&kbdstate, k)))
+    {
+      if (hasAlt) 
+        KeyMap[Yalt] |= Xalt; //clean alt keys
+      if (s != sP2000) 
+      {
+        //shift must be pressed or un-pressed first
+        KeyMap[9] = s ? 0b11111110 : 0xff; // press LSHIFT or release all
+        queuedChar = k;
+      }
+      else 
+      {
+        queuedChar = 0;
+        KeyMap[Y] &= ~X;
+      }
+      lastChar = k;
+      keyHandled = 1;
+      break; //don't handle simultanious key
+    }
     else
-      KeyMap[k] |= j;
+    {
+      if (lastChar == k) 
+      {
+        //clean key and all alt-keys
+        KeyMap[Yalt] |= Xalt;
+        KeyMap[Y] |= X;
+        lastChar = 0;
+      }
+    }
   }
+
+  if (!keyHandled) {
+    if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+    if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+    if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+  }
+
+
+  // //fill P2000 KeyMap
+  // for (i = 0; i < 80; i++)
+  // {
+  //   k = i / 8;
+  //   j = 1 << (i % 8);
+  //   if (!keymask[i])
+  //     continue;
+  //   if (al_key_down(&kbdstate, keymask[i]))
+  //     KeyMap[k] &= ~j;
+  //   else
+  //     KeyMap[k] |= j;  
+  // }
+
+
+  // static int keepKey = 0;
+  // memset (KeyMap,0xFF,sizeof(KeyMap));
+  // if (keepKey) {
+  //   keepKey--;
+  //   KeyMap[9] = 0b11111110; //shift
+  //   KeyMap[4] = 0b11111011; //A
+  // }
+  // else if (al_key_down(&kbdstate, ALLEGRO_KEY_A)) {
+  //   KeyMap[9] = 0b11111110; //shift
+  //   keepKey = 1;
+  // }
+  // else
+  // { 
+  //   KeyMap[4] = 0b11111111;
+  //   KeyMap[9] = 0b11111111;
+  // }
 
   /* press F10 or Escape to quit M2000 */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE) || al_key_down(&kbdstate, ALLEGRO_KEY_F10))
@@ -606,7 +787,7 @@ void Keyboard(void)
   }
 
   //check if Window was closed
-  while (al_get_next_event(displayQueue, &event))
+  while (al_get_next_event(eventQueue, &event))
   { 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
   }
@@ -624,7 +805,7 @@ void Keyboard(void)
 /****************************************************************************/
 void Pause(int ms)
 {
-  al_rest((float)ms / 1000.0);
+  al_rest((double)ms / 1000.0);
 }
 
 /****************************************************************************/
