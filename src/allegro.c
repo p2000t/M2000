@@ -33,10 +33,11 @@ int consoleHiddenOnInit = 0;
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
-//#include <allegro5/allegro_native_dialog.h> 
+#include <allegro5/allegro_native_dialog.h> 
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
+ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
 
 int buf_size;
 int sample_rate;
@@ -48,7 +49,9 @@ ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
-char *Title="M2000 v0.7-SNAPSHOT  [F1=ZOEK]  [F2=START]  [F3=STOP]"; /* Title for Window  */
+char Title[255]="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
+#define SYMBOLIC_KEY_MAPPING_INFO "  [ F1=ZOEK  F2=START  F3=STOP  F4=INSERT CASSETTE ]"
+int KeyboardMapping = 0;
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
@@ -126,6 +129,8 @@ void TrashMachine(void)
   al_uninstall_keyboard();
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
+  al_destroy_native_file_dialog(cassetteChooser);
+  al_shutdown_native_dialog_addon();
 
   al_destroy_timer(timer);
   al_destroy_event_queue(timerQueue);
@@ -168,12 +173,14 @@ int InitAllegro()
 int InitMachine(void)
 {
   int i;
-
   UPeriod = 0; //modern PCs are able to update the screen at 50Hz
 
   if (!InitAllegro()) return 0;
-
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
+
+  al_init_native_dialog_addon();
+  cassetteChooser = al_create_native_file_dialog(NULL, 
+    "Select a .cas file", "*.cas", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
 
   if (Verbose)
     printf("Initialising keyboard...");
@@ -200,13 +207,11 @@ int InitMachine(void)
     else
       printf("OK\n");
   }
-  al_set_window_title(display, Title);
+  al_set_window_title(display, strcat(Title, KeyboardMapping ? SYMBOLIC_KEY_MAPPING_INFO : ""));
   al_clear_to_color(al_map_rgb(0, 0, 0));
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
-
-  //al_show_native_message_box(display, "test", "test", "test", "OK", 0);
 
   if (P2000_Mode) /* black and white palette */
   {
@@ -325,13 +330,17 @@ void FlushSound(void)
   // sync emulation by waiting for timer event (fired 50 times a second)
   if (Sync) 
   {
-#ifdef DEBUG
+
     if (al_get_next_event(timerQueue, &event))
+    {
+#ifdef DEBUG
       if (Verbose) 
         printf("  Sync too slow [%f]...\n", event.timer.timestamp);
-    else
 #endif
-      al_wait_for_event(timerQueue, &event);
+      while (al_get_next_event(timerQueue, &event)); //drain the queue
+    }
+    else
+      al_wait_for_event(timerQueue, &event);   
   }
 }
 
@@ -642,7 +651,7 @@ void Keyboard(void)
     consoleHiddenOnInit = 1;
 #endif
 
-  int i;
+  int i,j,k;
   byte key;
   bool keyShiftDown;
   bool keyHandled = 0;
@@ -653,95 +662,93 @@ void Keyboard(void)
 
   static byte queuedKey = 0;
   static byte lastKey = 0;
-  
+
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
-  al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
-  p2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
 
-  for (i = 0; i < sizeof(keyMappings) / sizeof(keyMappings[0]); i++)
+  if (KeyboardMapping == 0)
   {
-    key = keyMappings[i][0];
-    mRow = keyMappings[i][al_shift_down ? 3 : 1] / 8;
-    mCol = 1 << (keyMappings[i][al_shift_down ? 3 : 1] % 8);
-    keyShiftDown = keyMappings[i][al_shift_down ? 4 : 2];
-
-    mRow2 = keyMappings[i][al_shift_down ? 1 : 3] / 8;
-    mCol2 = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
-    has2 = (mCol != mCol2 && mRow != mRow2);
-
-    if ((lastKey == 0 || lastKey == key) && (queuedKey == key || al_key_down(&kbdstate, key)))
+    /* Positional Key Mapping */
+    //fill P2000 KeyMap
+    for (i = 0; i < 80; i++)
     {
-      if (has2)
-        KeyMap[mRow2] |= mCol2; //clean second key
-      if (keyShiftDown != p2000ShiftDown) 
-      {
-        // first, the shift must be pressed/un-pressed in this interrupt
-        // then in the next interrupt the target key itself will be pressed
-        KeyMap[9] = keyShiftDown ? 0xfe : 0xff; // 0xfe = LSHIFT
-        queuedKey = key;
-      }
-      else 
-      {
-        queuedKey = 0;
-        KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
-      }
-      lastKey = key;
-      keyHandled = 1;
-      break; //don't handle simultanious keys
-    }
-    else
-    {
-      if (lastKey == key) 
-      {
-        // unpress key and second key in P2000's keyboard matrix
-        KeyMap[mRow2] |= mCol2;
-        KeyMap[mRow] |= mCol;
-        lastKey = 0;
-      }
+      k = i / 8;
+      j = 1 << (i % 8);
+      if (!keymask[i])
+        continue;
+      if (al_key_down(&kbdstate, keymask[i]))
+        KeyMap[k] &= ~j;
+      else
+        KeyMap[k] |= j;  
     }
   }
-  if (!keyHandled) {
-    if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
-    if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
-    if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+  else
+  {
+    /* Symbolic Key Mapping */
+    al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
+    p2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+
+    for (i = 0; i < sizeof(keyMappings) / sizeof(keyMappings[0]); i++)
+    {
+      key = keyMappings[i][0];
+      mRow = keyMappings[i][al_shift_down ? 3 : 1] / 8;
+      mCol = 1 << (keyMappings[i][al_shift_down ? 3 : 1] % 8);
+      keyShiftDown = keyMappings[i][al_shift_down ? 4 : 2];
+
+      mRow2 = keyMappings[i][al_shift_down ? 1 : 3] / 8;
+      mCol2 = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
+      has2 = (mCol != mCol2 && mRow != mRow2);
+
+      if ((lastKey == 0 || lastKey == key) && (queuedKey == key || al_key_down(&kbdstate, key)))
+      {
+        if (has2)
+          KeyMap[mRow2] |= mCol2; //clean second key
+        if (keyShiftDown != p2000ShiftDown) 
+        {
+          // first, the shift must be pressed/un-pressed in this interrupt
+          // then in the next interrupt the target key itself will be pressed
+          KeyMap[9] = keyShiftDown ? 0xfe : 0xff; // 0xfe = LSHIFT
+          queuedKey = key;
+        }
+        else 
+        {
+          queuedKey = 0;
+          KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
+        }
+        lastKey = key;
+        keyHandled = 1;
+        break; //don't handle simultanious keys
+      }
+      else
+      {
+        if (lastKey == key) 
+        {
+          // unpress key and second key in P2000's keyboard matrix
+          KeyMap[mRow2] |= mCol2;
+          KeyMap[mRow] |= mCol;
+          lastKey = 0;
+        }
+      }
+    }
+    if (!keyHandled) {
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+    }
   }
-
-
-  // //fill P2000 KeyMap
-  // for (i = 0; i < 80; i++)
-  // {
-  //   k = i / 8;
-  //   j = 1 << (i % 8);
-  //   if (!keymask[i])
-  //     continue;
-  //   if (al_key_down(&kbdstate, keymask[i]))
-  //     KeyMap[k] &= ~j;
-  //   else
-  //     KeyMap[k] |= j;  
-  // }
-
-
-  // static int keepKey = 0;
-  // memset (KeyMap,0xFF,sizeof(KeyMap));
-  // if (keepKey) {
-  //   keepKey--;
-  //   KeyMap[9] = 0b11111110; //shift
-  //   KeyMap[4] = 0b11111011; //A
-  // }
-  // else if (al_key_down(&kbdstate, ALLEGRO_KEY_A)) {
-  //   KeyMap[9] = 0b11111110; //shift
-  //   keepKey = 1;
-  // }
-  // else
-  // { 
-  //   KeyMap[4] = 0b11111111;
-  //   KeyMap[9] = 0b11111111;
-  // }
 
   /* press Escape to quit M2000 */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
     Z80_Running = 0;
+
+  /* F4 to load a .cas file */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
+  {
+    if (al_show_native_file_dialog(display, cassetteChooser)) {
+      const char* path = al_get_native_file_dialog_path(cassetteChooser, 0);
+      InsertCassette(path);
+    }
+  }
 
 #ifdef DEBUG
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))

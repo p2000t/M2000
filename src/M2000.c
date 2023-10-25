@@ -20,6 +20,7 @@
 #include "Help.h"
 
 extern char *Title;
+extern int KeyboardMapping;
 
 /* Maximum configuration file size in bytes */
 #define MAX_CONFIG_FILE_SIZE    1024
@@ -36,7 +37,7 @@ static char *Options[]=
   "verbose","help","cpuspeed","ifreq","t","m",
   "sound","joystick","romfile","uperiod","trap","printertype",
   "printer","font","tape","boot","volume","ram","sync","shm",
-  "savecpu","video","cart",
+  "savecpu","video","cart","keymap",
   NULL
 };
 #define AbvOptions      Options         /* No abrevations yet */
@@ -241,9 +242,15 @@ static int ParseOptions (int argc,char *argv[])
              else
               misparm=1;
              break;
-    case 22: N++;
+    case 22: N++; /* cart */
              if (N<argc)
               CartName=argv[N];
+             else
+              misparm=1;
+             break;
+    case 23: N++;  /* keymap */
+             if (N<argc)
+              KeyboardMapping=atoi(argv[N]);
              else
               misparm=1;
              break;
@@ -455,7 +462,7 @@ int main(int argc,char *argv[])
  /* Check for valid variables */
  if (IFreq<10) IFreq=10;
  if (IFreq>200) IFreq=200;
- if (UPeriod<1) UPeriod=1;
+ if (UPeriod<0) UPeriod=0;
  if (UPeriod>10) UPeriod=10;
  if (CpuSpeed<10) CpuSpeed=10;
  if (CpuSpeed>1000) CpuSpeed=1000;

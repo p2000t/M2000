@@ -51,6 +51,11 @@ void TrashP2000(void);
 void OptionsDialogue(void);
 
 /****************************************************************************/
+/*** Insert cassette tape file.                                           ***/
+/****************************************************************************/
+void InsertCassette(const char *filename);
+
+/****************************************************************************/
 /*** Allocate resources needed by the machine-dependent code              ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 int InitMachine(void);

@@ -27,7 +27,7 @@ FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
 int P2000_Mode   = 0;
-int UPeriod      = 2;
+int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
 int TapeBootEnabled = 0;
@@ -353,11 +353,35 @@ void TrashP2000 (void)
 }
 
 /****************************************************************************/
+/*** Insert cassette tape file.                                           ***/
+/****************************************************************************/
+void InsertCassette(const char *filename)
+{
+  static char _TapeName[256];
+  FILE *f;
+  strcpy (_TapeName,filename);
+
+  if (Verbose) printf ("Opening tape image %s... ",_TapeName);
+  if ((f = fopen(_TapeName, "rb")) != NULL)
+    fclose(f);
+  else 
+  {
+    if (Verbose) puts ("FAILED");
+    return;
+  }
+  TapeName=_TapeName;
+  fclose (TapeStream);  
+  TapeStream=fopen (_TapeName,"a+b");
+  if (TapeStream) rewind (TapeStream);
+  if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+}
+
+/****************************************************************************/
 /*** Change tape image, font used, etc.                                   ***/
 /****************************************************************************/
 void OptionsDialogue (void)
 {
- static char _TapeName[256],_FontName[256],_PrnName[256];
+ static char _FontName[256],_PrnName[256];
  char buf[256];
  char *p;
  int tmp;
@@ -390,13 +414,7 @@ void OptionsDialogue (void)
   switch (buf[0])
   {
    case 't': case 'T':
-    strcpy (_TapeName,buf+2);
-    TapeName=_TapeName;
-    fclose (TapeStream);
-    if (Verbose) printf ("Opening tape image %s... ",TapeName);
-    TapeStream=fopen (_TapeName,"a+b");
-    if (TapeStream) rewind (TapeStream);
-    if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+    InsertCassette(buf+2);
     break;
    case 'v': case 'V':
       if (Verbose) printf ("Opening video RAM file %s... ",buf+2);

@@ -31,6 +31,11 @@ char *HelpText[] =
   "  -uperiod <value>           - Set number of interrupts per screen update [1]",
 #endif
   "  -t / -m                    - Select P2000 model [-t]",
+#ifdef ALLEGRO
+  "  -keymap <mode>             - Select keyboard mapping [0]",
+  "                                0 - Positional mapping",
+  "                                1 - Symbolic mapping",
+#endif
 #if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
 #ifdef ALLEGRO

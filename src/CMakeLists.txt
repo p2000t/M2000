@@ -73,10 +73,11 @@ target_link_libraries(
     -lallegro_primitives
     -lallegro_image
     -lallegro_audio
+    -lallegro_dialog
 )
 
 # copy all dependencies to build a self-contained zip file 
-set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll)
+set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll allegro_dialog-5.2.dll)
 FOREACH(FDLL ${DEPDLL})
     file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL} DESTINATION ${CMAKE_BINARY_DIR})
 ENDFOREACH()

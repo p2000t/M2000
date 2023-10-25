@@ -25,6 +25,7 @@
 #include <X11/keysym.h>
 
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output                   */
+int KeyboardMapping = 0;
 
 static int bpp;                 /* Bits per pixel of the display device     */
 static Display *Dsp;            /* Our display                              */

@@ -78,6 +78,9 @@ ESC          -  Quit emulator
                        Try -uperiod 2 or -uperiod 3 if emulation is a bit
                        slow
 -t / -m                Select P2000 model [-t]
+-keymap <mode>         Select keyboard mapping [0]
+                       0 - Positional mapping
+                       1 - Symbolic mapping (only for Windows version)
 -video <mode>          Select video mode/window size [0]
                        0 - 960x720 (Windows)
                            500x300 (Unix/X)
