@@ -165,6 +165,8 @@ int InitMachine(void)
 {
   int i;
 
+  UPeriod = 0; //modern PCs are able to update the screen at 50Hz
+
   if (!InitAllegro()) return 0;
 
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
