@@ -118,6 +118,86 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
+static byte keyMappings[71][5] =
+{
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
+  { ALLEGRO_KEY_F2,         56,      1,       56,      1 }, // START   [free]
+  { ALLEGRO_KEY_F3,         16,      1,       16,      1 }, // STOP    [free]
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
+  { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b
+  { ALLEGRO_KEY_C,          28,      0,       28,      1 }, // C       c
+  { ALLEGRO_KEY_D,          12,      0,       12,      1 }, // D       d
+  { ALLEGRO_KEY_E,          36,      0,       36,      1 }, // E       e
+  { ALLEGRO_KEY_F,          15,      0,       15,      1 }, // F       f
+  { ALLEGRO_KEY_G,          13,      0,       13,      1 }, // G       g
+  { ALLEGRO_KEY_H,           9,      0,        9,      1 }, // H       h
+  { ALLEGRO_KEY_I,          70,      0,       70,      1 }, // I       i
+  { ALLEGRO_KEY_J,          14,      0,       14,      1 }, // J       j
+  { ALLEGRO_KEY_K,          62,      0,       62,      1 }, // K       k
+  { ALLEGRO_KEY_L,          65,      0,       65,      1 }, // L       l
+  { ALLEGRO_KEY_M,          30,      0,       30,      1 }, // M       m
+  { ALLEGRO_KEY_N,          25,      0,       25,      1 }, // N       n
+  { ALLEGRO_KEY_O,          49,      0,       49,      1 }, // O       o
+  { ALLEGRO_KEY_P,          53,      0,       53,      1 }, // P       p
+  { ALLEGRO_KEY_Q,           3,      0,        3,      1 }, // Q       q
+  { ALLEGRO_KEY_R,          39,      0,       39,      1 }, // R       r
+  { ALLEGRO_KEY_S,          11,      0,       11,      1 }, // S       s
+  { ALLEGRO_KEY_T,          37,      0,       37,      1 }, // T       t
+  { ALLEGRO_KEY_U,          38,      0,       38,      1 }, // U       u
+  { ALLEGRO_KEY_V,          31,      0,       31,      1 }, // V       v
+  { ALLEGRO_KEY_W,          35,      0,       35,      1 }, // W       w
+  { ALLEGRO_KEY_X,          27,      0,       27,      1 }, // X       x
+  { ALLEGRO_KEY_Y,          33,      0,       33,      1 }, // Y       y
+  { ALLEGRO_KEY_Z,          10,      0,       10,      1 }, // Z       z
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_1,          46,      0,       46,      1 }, // 1       !
+  { ALLEGRO_KEY_2,          63,      0,       55,      0 }, // 2       @
+  { ALLEGRO_KEY_3,           4,      0,       20,      0 }, // 3       #
+  { ALLEGRO_KEY_4,           7,      0,        7,      1 }, // 4       $
+  { ALLEGRO_KEY_5,           5,      0,        5,      1 }, // 5       %
+  { ALLEGRO_KEY_6,           1,      0,       55,      1 }, // 6       ↑
+  { ALLEGRO_KEY_7,           6,      0,        1,      1 }, // 7       &
+  { ALLEGRO_KEY_8,          54,      0,       71,      1 }, // 8       *  
+  { ALLEGRO_KEY_9,          41,      0,       54,      1 }, // 9       (
+  { ALLEGRO_KEY_0,          45,      0,       41,      1 }, // 0       )
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_EQUALS,     45,      1,       42,      0 }, // =       +
+  { ALLEGRO_KEY_MINUS,      47,      0,       47,      1 }, // -       _
+  { ALLEGRO_KEY_OPENBRACE,  60,      1,       68,      0 }, // ←       ¼
+  { ALLEGRO_KEY_CLOSEBRACE, 60,      0,       68,      1 }, // →       ¾
+  { ALLEGRO_KEY_SEMICOLON,  69,      0,       71,      0 }, // ;       :
+  { ALLEGRO_KEY_QUOTE,       6,      1,       63,      1 }, // '       "
+  { ALLEGRO_KEY_LEFT,        0,      0,        0,      1 }, // LEFT    LEFT LINE
+  { ALLEGRO_KEY_RIGHT,      23,      0,       23,      0 }, // RIGHT   [free]
+  { ALLEGRO_KEY_UP,          2,      0,        2,      1 }, // UP      LEFTUP
+  { ALLEGRO_KEY_DOWN,       21,      0,       21,      1 }, // DOWN    RIGHTDOWN
+  { ALLEGRO_KEY_TAB,         8,      0,        8,      0 }, // TAB     [free]
+  { ALLEGRO_KEY_COMMA,      22,      0,       26,      0 }, // ,       <
+  { ALLEGRO_KEY_FULLSTOP,   57,      0,       26,      1 }, // .       >
+  { ALLEGRO_KEY_SPACE,      17,      0,       17,      0 }, // SPACE   [free]
+  { ALLEGRO_KEY_BACKSPACE,  44,      0,       40,      0 }, // BACKSP  CLRLN
+  { ALLEGRO_KEY_DELETE,     40,      1,       40,      1 }, // CLRSCR  [free]
+  { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
+  { ALLEGRO_KEY_ENTER,      52,      0,       52,      0 }, // ENTER   [free]
+  { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
+  { ALLEGRO_KEY_LCTRL,      32,      0,       32,      0 }, // CODE    [free]
+  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
+  { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
+  { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
+  { ALLEGRO_KEY_PAD_7,      51,      0,       51,      1 }, // 7       CASS WIS
+  { ALLEGRO_KEY_PAD_6,      64,      0,       64,      1 }, // 6       ?
+  { ALLEGRO_KEY_PAD_5,      66,      0,       66,      1 }, // 5       CLR+LIST
+  { ALLEGRO_KEY_PAD_4,      67,      0,       67,      1 }, // 4       ?
+  { ALLEGRO_KEY_PAD_3,      56,      0,       56,      1 }, // 3       START
+  { ALLEGRO_KEY_PAD_2,      58,      0,       58,      1 }, // 2       ?
+  { ALLEGRO_KEY_PAD_1,      59,      0,       59,      1 }, // 1       ZOEK
+  { ALLEGRO_KEY_PAD_0,      19,      0,       19,      1 }, // 0       ?
+  { ALLEGRO_KEY_PAD_DELETE, 18,      0,       18,      1 }, // 00      ?
+  { ALLEGRO_KEY_PAD_ENTER,  16,      0,       16,      1 }, // .       STOP
+};
+
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
 /****************************************************************************/
@@ -330,14 +410,13 @@ void FlushSound(void)
   // sync emulation by waiting for timer event (fired 50 times a second)
   if (Sync) 
   {
-
     if (al_get_next_event(timerQueue, &event))
     {
 #ifdef DEBUG
       if (Verbose) 
         printf("  Sync too slow [%f]...\n", event.timer.timestamp);
 #endif
-      while (al_get_next_event(timerQueue, &event)); //drain the queue
+      while (al_get_next_event(timerQueue, &event)); //drain the timer queue
     }
     else
       al_wait_for_event(timerQueue, &event);   
@@ -552,86 +631,6 @@ bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event)
   while (al_key_down(kb_state, kb_event)) al_get_keyboard_state(kb_state);
   return true;
 }
-
-static byte keyMappings[71][5] =
-{
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
-  { ALLEGRO_KEY_F2,         56,      1,       56,      1 }, // START   [free]
-  { ALLEGRO_KEY_F3,         16,      1,       16,      1 }, // STOP    [free]
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
-  { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b
-  { ALLEGRO_KEY_C,          28,      0,       28,      1 }, // C       c
-  { ALLEGRO_KEY_D,          12,      0,       12,      1 }, // D       d
-  { ALLEGRO_KEY_E,          36,      0,       36,      1 }, // E       e
-  { ALLEGRO_KEY_F,          15,      0,       15,      1 }, // F       f
-  { ALLEGRO_KEY_G,          13,      0,       13,      1 }, // G       g
-  { ALLEGRO_KEY_H,           9,      0,        9,      1 }, // H       h
-  { ALLEGRO_KEY_I,          70,      0,       70,      1 }, // I       i
-  { ALLEGRO_KEY_J,          14,      0,       14,      1 }, // J       j
-  { ALLEGRO_KEY_K,          62,      0,       62,      1 }, // K       k
-  { ALLEGRO_KEY_L,          65,      0,       65,      1 }, // L       l
-  { ALLEGRO_KEY_M,          30,      0,       30,      1 }, // M       m
-  { ALLEGRO_KEY_N,          25,      0,       25,      1 }, // N       n
-  { ALLEGRO_KEY_O,          49,      0,       49,      1 }, // O       o
-  { ALLEGRO_KEY_P,          53,      0,       53,      1 }, // P       p
-  { ALLEGRO_KEY_Q,           3,      0,        3,      1 }, // Q       q
-  { ALLEGRO_KEY_R,          39,      0,       39,      1 }, // R       r
-  { ALLEGRO_KEY_S,          11,      0,       11,      1 }, // S       s
-  { ALLEGRO_KEY_T,          37,      0,       37,      1 }, // T       t
-  { ALLEGRO_KEY_U,          38,      0,       38,      1 }, // U       u
-  { ALLEGRO_KEY_V,          31,      0,       31,      1 }, // V       v
-  { ALLEGRO_KEY_W,          35,      0,       35,      1 }, // W       w
-  { ALLEGRO_KEY_X,          27,      0,       27,      1 }, // X       x
-  { ALLEGRO_KEY_Y,          33,      0,       33,      1 }, // Y       y
-  { ALLEGRO_KEY_Z,          10,      0,       10,      1 }, // Z       z
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_1,          46,      0,       46,      1 }, // 1       !
-  { ALLEGRO_KEY_2,          63,      0,       55,      0 }, // 2       @
-  { ALLEGRO_KEY_3,           4,      0,       20,      0 }, // 3       #
-  { ALLEGRO_KEY_4,           7,      0,        7,      1 }, // 4       $
-  { ALLEGRO_KEY_5,           5,      0,        5,      1 }, // 5       %
-  { ALLEGRO_KEY_6,           1,      0,       55,      1 }, // 6       ↑
-  { ALLEGRO_KEY_7,           6,      0,        1,      1 }, // 7       &
-  { ALLEGRO_KEY_8,          54,      0,       71,      1 }, // 8       *  
-  { ALLEGRO_KEY_9,          41,      0,       54,      1 }, // 9       (
-  { ALLEGRO_KEY_0,          45,      0,       41,      1 }, // 0       )
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_EQUALS,     45,      1,       42,      0 }, // =       +
-  { ALLEGRO_KEY_MINUS,      47,      0,       47,      1 }, // -       _
-  { ALLEGRO_KEY_OPENBRACE,  60,      1,       68,      0 }, // ←       ¼
-  { ALLEGRO_KEY_CLOSEBRACE, 60,      0,       68,      1 }, // →       ¾
-  { ALLEGRO_KEY_SEMICOLON,  69,      0,       71,      0 }, // ;       :
-  { ALLEGRO_KEY_QUOTE,       6,      1,       63,      1 }, // '       "
-  { ALLEGRO_KEY_LEFT,        0,      0,        0,      1 }, // LEFT    LEFT LINE
-  { ALLEGRO_KEY_RIGHT,      23,      0,       23,      0 }, // RIGHT   [free]
-  { ALLEGRO_KEY_UP,          2,      0,        2,      1 }, // UP      LEFTUP
-  { ALLEGRO_KEY_DOWN,       21,      0,       21,      1 }, // DOWN    RIGHTDOWN
-  { ALLEGRO_KEY_TAB,         8,      0,        8,      0 }, // TAB     [free]
-  { ALLEGRO_KEY_COMMA,      22,      0,       26,      0 }, // ,       <
-  { ALLEGRO_KEY_FULLSTOP,   57,      0,       26,      1 }, // .       >
-  { ALLEGRO_KEY_SPACE,      17,      0,       17,      0 }, // SPACE   [free]
-  { ALLEGRO_KEY_BACKSPACE,  44,      0,       40,      0 }, // BACKSP  CLRLN
-  { ALLEGRO_KEY_DELETE,     40,      1,       40,      1 }, // CLRSCR  [free]
-  { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
-  { ALLEGRO_KEY_ENTER,      52,      0,       52,      0 }, // ENTER   [free]
-  { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
-  { ALLEGRO_KEY_LCTRL,      32,      0,       32,      0 }, // CODE    [free]
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
-  { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
-  { ALLEGRO_KEY_PAD_7,      51,      0,       51,      1 }, // 7       CASS WIS
-  { ALLEGRO_KEY_PAD_6,      64,      0,       64,      1 }, // 6       ?
-  { ALLEGRO_KEY_PAD_5,      66,      0,       66,      1 }, // 5       CLR+LIST
-  { ALLEGRO_KEY_PAD_4,      67,      0,       67,      1 }, // 4       ?
-  { ALLEGRO_KEY_PAD_3,      56,      0,       56,      1 }, // 3       START
-  { ALLEGRO_KEY_PAD_2,      58,      0,       58,      1 }, // 2       ?
-  { ALLEGRO_KEY_PAD_1,      59,      0,       59,      1 }, // 1       ZOEK
-  { ALLEGRO_KEY_PAD_0,      19,      0,       19,      1 }, // 0       ?
-  { ALLEGRO_KEY_PAD_DELETE, 18,      0,       18,      1 }, // 00      ?
-  { ALLEGRO_KEY_PAD_ENTER,  16,      0,       16,      1 }, // .       STOP
-};
 
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
