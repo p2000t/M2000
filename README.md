@@ -14,7 +14,7 @@ Until then, get the M2000 emulator and games from here: https://github.com/p2000
 
 ### Files included in the release packages
 ```
-m2000          The emulator
+M2000          The emulator
 README.md      This readme file
 Default.fnt    SAA5050 font
 P2000ROM.bin   P2000 ROM image

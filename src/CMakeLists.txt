@@ -29,7 +29,7 @@ endif()
 
 set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
 set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
-project(m2000win)
+project(M2000)
 
 # add custom directory to look for .cmake files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
@@ -63,11 +63,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 
 # Add sources
 set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c allegro.c)
-add_executable(m2000win ${SOURCES})
+add_executable(M2000 ${SOURCES})
 
 # link libraries
 target_link_libraries(
-    m2000win 
+    M2000 
     -L${allegro5_SOURCE_DIR}/lib 
     -lallegro
     -lallegro_primitives
@@ -89,8 +89,8 @@ ENDFOREACH()
 
 # create a zip archive for deployment
 add_custom_command(
-    TARGET m2000win
-    COMMAND ${CMAKE_COMMAND} -E tar cvf m2000win.zip --format=zip -- m2000win.exe ${DEPDLL} ${SUPPORTFILES}
+    TARGET M2000
+    COMMAND ${CMAKE_COMMAND} -E tar cvf M2000_${{env.GIT_BUILD_ID}}.zip --format=zip -- M2000.exe ${DEPDLL} ${SUPPORTFILES}
     DEPENDS ${CMAKE_BINARY_DIR}/m2000win.exe
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     VERBATIM
