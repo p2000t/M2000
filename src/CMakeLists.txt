@@ -86,12 +86,3 @@ set(SUPPORTFILES Default.fnt P2000ROM.bin BASIC.bin)
 FOREACH(SFILE ${SUPPORTFILES})
     file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/../${SFILE} DESTINATION ${CMAKE_BINARY_DIR})
 ENDFOREACH()
-
-# create a zip archive for deployment
-add_custom_command(
-    TARGET M2000
-    COMMAND ${CMAKE_COMMAND} -E tar cvf M2000_${env.GIT_BUILD_ID}.zip --format=zip -- M2000.exe ${DEPDLL} ${SUPPORTFILES}
-    DEPENDS ${CMAKE_BINARY_DIR}/m2000win.exe
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    VERBATIM
-)

@@ -20,13 +20,14 @@ jobs:
     - name: Upload launcher
       uses: actions/upload-artifact@v3
       with:
-        name: m2000win
+        name: M2000_${env.GIT_BUILD_ID}
         path: |
-          build/m2000win.exe
+          build/M2000.exe
           build/allegro-5.2.dll
           build/allegro_primitives-5.2.dll
           build/allegro_image-5.2.dll
           build/allegro_audio-5.2.dll
+          build/allegro_dialog-5.2.dll
           build/Default.fnt
           build/P2000ROM.bin
           build/BASIC.bin
