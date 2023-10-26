@@ -58,9 +58,11 @@ ESC          -  Quit emulator
 Windows version only:
 F1           -  ZOEK key      (show cassette index)
 F2           -  START key    (start loaded program)
-Shift + F2   -  STOP key             (halt program)
+   + Shift   -  STOP key       (pause/halt program)
 F3           -  Insert cassette  (choose .cas file)
+   + Shift   -  Remove cassette
 F4           -  Insert cartridge (choose .bin file)
+   + Shift   -  Remove cartridge
 ```
 
 ## Command line options
