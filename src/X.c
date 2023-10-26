@@ -25,6 +25,7 @@
 #include <X11/keysym.h>
 
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output                   */
+int KeyboardMapping = 0;
 
 static int bpp;                 /* Bits per pixel of the display device     */
 static Display *Dsp;            /* Our display                              */
@@ -166,16 +167,19 @@ static void keyb_handler (int code,int newstatus)
    switch (code)
    {
     case XK_Escape:
-    case XK_F10:
      Z80_Running=0;
      break;
-#ifdef DEBUG
-    case XK_F4:
-     Z80_Trace=!Z80_Trace;
-     break;
-#endif
-#ifdef SOUND
+
     case XK_F5:
+#ifdef DEBUG
+     Z80_Trace=!Z80_Trace;
+#else
+     Z80_Reset ();
+#endif
+     break;
+
+#ifdef SOUND
+    case XK_F10:
      soundoff=(!soundoff);
      break;
     case XK_F11:
@@ -186,10 +190,8 @@ static void keyb_handler (int code,int newstatus)
      break;
 #endif
     case XK_F8:
-      if (!P2000_Mode) {
-        WriteVRAMFile();
-        NextOutputFile(szVideoRamFile);
-      }
+      WriteVRAMFile();
+      NextOutputFile(szVideoRamFile);
       break;
     case XK_F6:
      calloptions=1;

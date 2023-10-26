@@ -27,7 +27,7 @@ FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
 int P2000_Mode   = 0;
-int UPeriod      = 2;
+int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
 int TapeBootEnabled = 0;
@@ -353,18 +353,83 @@ void TrashP2000 (void)
 }
 
 /****************************************************************************/
+/*** Removes current cassette                                             ***/
+/****************************************************************************/
+void RemoveCassette()
+{
+  if (Verbose) printf ("Removing tape... ");
+  if (TapeStream) fclose (TapeStream);
+  TapeName = NULL;
+  if (Verbose) puts ("OK");
+}
+
+/****************************************************************************/
+/*** Insert cassette tape file.                                           ***/
+/****************************************************************************/
+void InsertCassette(const char *filename)
+{
+  static char _TapeName[256];
+  FILE *f;
+  strcpy (_TapeName,filename);
+
+  if ((f = fopen(_TapeName, "rb")) != NULL) {
+    fclose(f);
+    if (Verbose) printf ("Reading tape image %s... ",_TapeName);
+  }
+  else 
+  {
+    if (Verbose) printf ("Creating tape image %s... ",_TapeName);
+  }
+  TapeName=_TapeName;
+  fclose (TapeStream);  
+  TapeStream=fopen (_TapeName,"a+b");
+  if (TapeStream) rewind (TapeStream);
+  if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+}
+
+/****************************************************************************/
+/*** Removes current cartridge                                            ***/
+/****************************************************************************/
+void RemoveCartridge()
+{
+  memset (ROM + 0x1000, 0xFF, 0x4000);
+  Z80_Reset ();
+}
+
+/****************************************************************************/
+/*** Insert cartridge file and resets Z80                                 ***/
+/****************************************************************************/
+void InsertCartridge(const char *filename)
+{
+  static char _CartName[256];
+  int success=0;
+  FILE *f;
+  strcpy (_CartName,filename);
+  CartName=_CartName;
+
+  if(Verbose) printf(" OK\n  Opening cartridge %s... ",_CartName);
+  if ((f=fopen(CartName,"rb")) != NULL)
+  {
+    if (fread(ROM+0x1000,1,0x4000,f)) success=1;
+    fclose(f);
+    Z80_Reset ();
+  }
+  if(Verbose) puts (success? "OK":"FAILED");
+}
+
+/****************************************************************************/
 /*** Change tape image, font used, etc.                                   ***/
 /****************************************************************************/
 void OptionsDialogue (void)
 {
- static char _TapeName[256],_FontName[256],_PrnName[256];
+ static char _FontName[256],_PrnName[256];
  char buf[256];
  char *p;
  int tmp;
  FILE *f;
  do
  {
-  printf ("Options currently in use are:\n"
+  printf ("\nOptions currently in use are:\n"
           "Tape image       - %s\n"
           "Printer log file - %s\n"
           "Font file name   - %s\n"
@@ -373,7 +438,7 @@ void OptionsDialogue (void)
           (PrnStream)? PrnName:"none",
           FontName,
           Z80_IPeriod*IFreq*100/2500000);
-  printf ("Available commands are:\n"
+  printf ("\nAvailable commands are:\n"
           "t <filename>     - Change tape image\n"
           "p <filename>     - Change printer log file\n"
           "f <filename>     - Change font file name\n"
@@ -390,19 +455,13 @@ void OptionsDialogue (void)
   switch (buf[0])
   {
    case 't': case 'T':
-    strcpy (_TapeName,buf+2);
-    TapeName=_TapeName;
-    fclose (TapeStream);
-    if (Verbose) printf ("Opening tape image %s... ",TapeName);
-    TapeStream=fopen (_TapeName,"a+b");
-    if (TapeStream) rewind (TapeStream);
-    if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+    InsertCassette(buf+2);
     break;
    case 'v': case 'V':
       if (Verbose) printf ("Opening video RAM file %s... ",buf+2);
       if ((f = fopen(buf+2, "rb")) != NULL)
       {
-        fread(VRAM, 1, 24 * 80, f);
+        fread(VRAM, 1, 0x1000, f); //read full 4K
         fclose(f);
         RefreshScreen();
       } 
@@ -442,9 +501,7 @@ int Z80_Interrupt(void)
  static int UCount=1;
  Keyboard ();
  FlushSound ();
- if (UCount)
-  --UCount;
- else
+ if (!--UCount)
  {
   UCount=UPeriod;
   RefreshScreen ();

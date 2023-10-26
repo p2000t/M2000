@@ -36,6 +36,7 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
 char *Title="M2000 v0.7-SNAPSHOT";    /* Title for -help output                */
+int KeyboardMapping = 0;
 
 int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
@@ -290,21 +291,22 @@ static int keyb_interrupt (void)
      switch (code)
      {
       case VK_Escape:
-      case VK_F10:
        Z80_Running=0;
        break;
+      case VK_F5:
 #ifdef DEBUG
-      case VK_F4:
        Z80_Trace=!Z80_Trace;
-       break;
+#else
+       Z80_Reset ();
 #endif
+       break;
       case VK_F7:
        makeshot=1;
        break;
       case VK_F8:
-       if (!P2000_Mode) dumpVRAM=1;
+       dumpVRAM=1;
        break;
-      case VK_F5:
+      case VK_F10:
        soundoff=(!soundoff);
        break;
       case VK_F11:

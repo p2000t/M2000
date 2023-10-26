@@ -20,6 +20,7 @@
 #include "Help.h"
 
 extern char *Title;
+extern int KeyboardMapping;
 
 /* Maximum configuration file size in bytes */
 #define MAX_CONFIG_FILE_SIZE    1024
@@ -33,10 +34,30 @@ extern char *Title;
 
 static char *Options[]=
 { 
-  "verbose","help","cpuspeed","ifreq","t","m",
-  "sound","joystick","romfile","uperiod","trap","printertype",
-  "printer","font","tape","boot","volume","ram","sync","shm",
-  "savecpu","video","cart",
+  /*  1 */ "verbose",
+  /*  2 */ "help",
+  /*  3 */ "cpuspeed",
+  /*  4 */ "ifreq",
+  /*  5 */ "t",
+  /*  6 */ "m",
+  /*  7 */ "sound",
+  /*  8 */ "joystick",
+  /*  9 */ "romfile",
+  /* 10 */ "uperiod",
+  /* 11 */ "trap",
+  /* 12 */ "printertype",
+  /* 13 */ "printer",
+  /* 14 */ "font",
+  /* 15 */ "tape",
+  /* 16 */ "boot",
+  /* 17 */ "volume",
+  /* 18 */ "ram",
+  /* 19 */ "sync",
+  /* 20 */ "shm",
+  /* 21 */ "savecpu",
+  /* 22 */ "video",
+  /* 23 */ "cart",
+  /* 24 */ "keymap",
   NULL
 };
 #define AbvOptions      Options         /* No abrevations yet */
@@ -241,9 +262,15 @@ static int ParseOptions (int argc,char *argv[])
              else
               misparm=1;
              break;
-    case 22: N++;
+    case 22: N++; /* cart */
              if (N<argc)
               CartName=argv[N];
+             else
+              misparm=1;
+             break;
+    case 23: N++;  /* keymap */
+             if (N<argc)
+              KeyboardMapping=atoi(argv[N]);
              else
               misparm=1;
              break;
