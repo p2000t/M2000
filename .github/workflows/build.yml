@@ -17,10 +17,13 @@ jobs:
       run: mkdir build && cd build && cmake ../src
     - name: Build
       run: cd build && make -j
+    - name: Generate artifact name
+      run: |
+          echo "::set-output name=artifact::M2000_${{ github.run_id }}"
     - name: Upload launcher
       uses: actions/upload-artifact@v3
       with:
-        name: M2000_$({ env.GIT_BUILD_ID )}
+        name: ${{ steps.generate-name.outputs.artifact }}
         path: |
           build/M2000.exe
           build/allegro-5.2.dll
