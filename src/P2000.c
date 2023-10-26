@@ -353,6 +353,17 @@ void TrashP2000 (void)
 }
 
 /****************************************************************************/
+/*** Removes current cassette                                             ***/
+/****************************************************************************/
+void RemoveCassette()
+{
+  if (Verbose) printf ("Removing tape... ");
+  if (TapeStream) fclose (TapeStream);
+  TapeName = NULL;
+  if (Verbose) puts ("OK");
+}
+
+/****************************************************************************/
 /*** Insert cassette tape file.                                           ***/
 /****************************************************************************/
 void InsertCassette(const char *filename)
@@ -377,7 +388,16 @@ void InsertCassette(const char *filename)
 }
 
 /****************************************************************************/
-/*** Insert cassette tape file.                                           ***/
+/*** Removes current cartridge                                            ***/
+/****************************************************************************/
+void RemoveCartridge()
+{
+  memset (ROM + 0x1000, 0xFF, 0x4000);
+  Z80_Reset ();
+}
+
+/****************************************************************************/
+/*** Insert cartridge file and resets Z80                                 ***/
 /****************************************************************************/
 void InsertCartridge(const char *filename)
 {
@@ -392,6 +412,7 @@ void InsertCartridge(const char *filename)
   {
     if (fread(ROM+0x1000,1,0x4000,f)) success=1;
     fclose(f);
+    Z80_Reset ();
   }
   if(Verbose) puts (success? "OK":"FAILED");
 }

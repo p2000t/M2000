@@ -51,7 +51,6 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char Title[255]="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
-#define SYMBOLIC_KEY_MAPPING_INFO "  [ F1=ZOEK  F2=START  Shift+F2=STOP  F3=Insert Cassette  F4=Insert Cartridge  F5=Reset ]"
 int KeyboardMapping = 1;
 
 int videomode;                    /* T emulation only: 
@@ -290,7 +289,7 @@ int InitMachine(void)
     else
       printf("OK\n");
   }
-  al_set_window_title(display, strcat(Title, KeyboardMapping ? SYMBOLIC_KEY_MAPPING_INFO : ""));
+  al_set_window_title(display, Title);
   al_clear_to_color(al_map_rgb(0, 0, 0));
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
@@ -751,7 +750,9 @@ void Keyboard(void)
   /* F3 to load a .cas cassette file */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F3))
   {
-    if (al_show_native_file_dialog(display, cassetteChooser)) {
+    if (al_shift_down) 
+      RemoveCassette();
+    else if (al_show_native_file_dialog(display, cassetteChooser)) {
       InsertCassette(al_get_native_file_dialog_path(cassetteChooser, 0));
     }
   }
@@ -759,11 +760,10 @@ void Keyboard(void)
   /* F4 to load a .bin cartridge file */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
   {
-    if (al_show_native_file_dialog(display, cartridgeChooser))
-    {
+    if (al_shift_down) 
+      RemoveCartridge();
+    else if (al_show_native_file_dialog(display, cartridgeChooser))
       InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
-      Z80_Reset ();
-    }
   }
 
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
