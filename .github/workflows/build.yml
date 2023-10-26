@@ -19,7 +19,7 @@ jobs:
       run: cd build && make -j
     - name: Generate artifact name
       id: generate-name
-      run: echo "artifact=:M2000-snapshot-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+      run: echo "artifact=M2000-snapshot-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
     - name: Upload launcher
       uses: actions/upload-artifact@v3
       with:
