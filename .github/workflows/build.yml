@@ -18,6 +18,7 @@ jobs:
     - name: Build
       run: cd build && make -j
     - name: Generate artifact name
+      id: generate-name
       run: |
           echo "::set-output name=artifact::M2000_${{ github.run_id }}"
     - name: Upload launcher
