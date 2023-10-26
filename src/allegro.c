@@ -109,8 +109,8 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LEFT,       ALLEGRO_KEY_6,         ALLEGRO_KEY_UP,          ALLEGRO_KEY_Q,          ALLEGRO_KEY_3,          ALLEGRO_KEY_5,         ALLEGRO_KEY_7,      ALLEGRO_KEY_4,
   ALLEGRO_KEY_TAB,        ALLEGRO_KEY_H,         ALLEGRO_KEY_Z,           ALLEGRO_KEY_S,          ALLEGRO_KEY_D,          ALLEGRO_KEY_G,         ALLEGRO_KEY_J,      ALLEGRO_KEY_F,
   ALLEGRO_KEY_PAD_ENTER,  ALLEGRO_KEY_SPACE,     ALLEGRO_KEY_PAD_DELETE,  ALLEGRO_KEY_PAD_0,      ALLEGRO_KEY_SLASH,      ALLEGRO_KEY_DOWN,      ALLEGRO_KEY_COMMA,  ALLEGRO_KEY_RIGHT,
-  ALLEGRO_KEY_CAPSLOCK,   ALLEGRO_KEY_N,         ALLEGRO_KEY_BACKSLASH2,  ALLEGRO_KEY_X,          ALLEGRO_KEY_C,          ALLEGRO_KEY_B,         ALLEGRO_KEY_M,      ALLEGRO_KEY_V,
-  ALLEGRO_KEY_LCTRL,      ALLEGRO_KEY_Y,         ALLEGRO_KEY_A,           ALLEGRO_KEY_W,          ALLEGRO_KEY_E,          ALLEGRO_KEY_T,         ALLEGRO_KEY_U,      ALLEGRO_KEY_R,
+  ALLEGRO_KEY_CAPSLOCK,   ALLEGRO_KEY_N,         ALLEGRO_KEY_DELETE,      ALLEGRO_KEY_X,          ALLEGRO_KEY_C,          ALLEGRO_KEY_B,         ALLEGRO_KEY_M,      ALLEGRO_KEY_V,
+  ALLEGRO_KEY_BACKQUOTE,  ALLEGRO_KEY_Y,         ALLEGRO_KEY_A,           ALLEGRO_KEY_W,          ALLEGRO_KEY_E,          ALLEGRO_KEY_T,         ALLEGRO_KEY_U,      ALLEGRO_KEY_R,
   ALLEGRO_KEY_BACKSLASH,  ALLEGRO_KEY_9,         ALLEGRO_KEY_PAD_PLUS,    ALLEGRO_KEY_OPENBRACE,  ALLEGRO_KEY_BACKSPACE,  ALLEGRO_KEY_0,         ALLEGRO_KEY_1,      ALLEGRO_KEY_PAD_MINUS,
   ALLEGRO_KEY_PAD_9,      ALLEGRO_KEY_O,         ALLEGRO_KEY_PAD_8,       ALLEGRO_KEY_PAD_7,      ALLEGRO_KEY_ENTER,      ALLEGRO_KEY_P,         ALLEGRO_KEY_8,      ALLEGRO_KEY_SEMICOLON,
   ALLEGRO_KEY_PAD_3,      ALLEGRO_KEY_FULLSTOP,  ALLEGRO_KEY_PAD_2,       ALLEGRO_KEY_PAD_1,      ALLEGRO_KEY_RCTRL,      ALLEGRO_KEY_MINUS,     ALLEGRO_KEY_K,      ALLEGRO_KEY_2,
@@ -118,7 +118,7 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-#define NUMBER_OF_KEYMAPPINGS 70
+#define NUMBER_OF_KEYMAPPINGS 69
 static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
@@ -178,11 +178,10 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
   { ALLEGRO_KEY_FULLSTOP,   57,      0,       26,      1 }, // .       >
   { ALLEGRO_KEY_SPACE,      17,      0,       17,      1 }, // SPACE   [free]
   { ALLEGRO_KEY_BACKSPACE,  44,      0,       40,      0 }, // BACKSP  CLRLN
-  { ALLEGRO_KEY_DELETE,     40,      1,       40,      1 }, // CLRSCR  [free]
   { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
   { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
   { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
-  { ALLEGRO_KEY_LCTRL,      32,      0,       32,      1 }, // CODE    [free]
+  { ALLEGRO_KEY_BACKQUOTE,  32,      0,       32,      1 }, // CODE    [free]
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
   { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
