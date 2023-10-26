@@ -5,9 +5,9 @@ Version 0.7-SNAPSHOT
 
 * MS-DOS
 * Unix/X
-* Windows (experimental, using the Allegro 5 libraries)
+* Windows
 
-## Download
+## Downloads
 
 Coming soon on the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
 Until then, get the M2000 emulator and games from here: https://github.com/p2000t/software/
@@ -32,18 +32,7 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 -  Sound
 -  SAA5050 character rounding emulated in high resolution mode
 
-## Key Mappings
-
-![keyboard mappings](/img/toetsenbord.png)
-
-```
-Cursor Keys, Alt/Ctrl -  Movement
-Delete                -  <
-Shift-Delete          -  >
-` ~                   -  CODE
-```
-
-### Special Keys
+## Function Keys
 ```
 F5           -  Reset P2000
 F6           -  Change options
@@ -73,7 +62,7 @@ F4           -  Insert cartridge (choose .bin file)
                        line options
 -verbose <level>       Select debugging messages [1]
                        0 - Silent           1 - Startup messages
-                       4 - Tape
+                       4 - Tape messages
 -ifreq <frequency>     Select interrupt frequency [50 Hz]
 -cpuspeed <speed>      Set Z80 CPU speed [100%]
 -sync <value>          Sync/Do not sync emulation [1]
@@ -118,10 +107,31 @@ F4           -  Insert cartridge (choose .bin file)
                        When joystick support is on, moving the joystick
                        emulates cursorkey presses, pressing a joystick
                        button emulates pressing the spacebar
--shm <mode>            Use/Do not use MIT SHM extensions for X [1] (Unix/X
-                       version only)
+-shm <mode>            Use/Do not use MIT SHM extensions for X [1] 
+                       (note: Unix/X version only)
                        0 - Don't use SHM   1 - Use SHM
 ```
+
+## Keyboard emulation
+
+There are two keyboard mappings available in M2000:
+- **Positional** key mapping, in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2. \
+***Positional key mapping is the default and only avialable option for the MS-DOS and Unix/X versions of M2000.***
+
+- **Symbolic** key mapping, in which typing a key on your keyboard will - as far as possible - show the actual character/symbol written on the keycap. So that means that typing Shift-2 will show the @ symbol in the emulator. \
+***Symbolic key mapping is the default option for the Windows version of M2000, but can be changed to positional key mapping by passing `-keymap 0` as command line argument.***
+
+### Positional key mapping overview
+
+```
+Delete                -  <
+Shift-Delete          -  >
+` ~                   -  CODE
+
+For the other key mappings, see picture below.
+```
+
+![keyboard mappings](/img/toetsenbord.png)
 
 ## Configuration files
 
@@ -129,9 +139,7 @@ The emulator loads two configuration files (if present) before it loads a cartri
 * M2000.cfg located in the emulator's directory and
 * CART.cfg (i.e. BASIC.cfg by default) located in the cartridge dump's directory.
   
-These are plain text files containing optional command line options. \
-Options can be separated with spaces, tabs or returns. \
-Please note that for the Unix versions, the configuration files should be present in the current working directory.
+These are plain text files containing optional command line options. Options can be separated with spaces, tabs or returns. Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
 ## How to compile M2000 from the sources
 
