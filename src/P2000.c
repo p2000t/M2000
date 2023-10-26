@@ -361,13 +361,13 @@ void InsertCassette(const char *filename)
   FILE *f;
   strcpy (_TapeName,filename);
 
-  if (Verbose) printf ("Opening tape image %s... ",_TapeName);
-  if ((f = fopen(_TapeName, "rb")) != NULL)
+  if ((f = fopen(_TapeName, "rb")) != NULL) {
     fclose(f);
+    if (Verbose) printf ("Reading tape image %s... ",_TapeName);
+  }
   else 
   {
-    if (Verbose) puts ("FAILED");
-    return;
+    if (Verbose) printf ("Creating tape image %s... ",_TapeName);
   }
   TapeName=_TapeName;
   fclose (TapeStream);  
@@ -440,7 +440,7 @@ void OptionsDialogue (void)
       if (Verbose) printf ("Opening video RAM file %s... ",buf+2);
       if ((f = fopen(buf+2, "rb")) != NULL)
       {
-        fread(VRAM, 1, 24 * 80, f);
+        fread(VRAM, 1, 0x1000, f); //read full 4K
         fclose(f);
         RefreshScreen();
       } 
@@ -480,9 +480,7 @@ int Z80_Interrupt(void)
  static int UCount=1;
  Keyboard ();
  FlushSound ();
- if (UCount)
-  --UCount;
- else
+ if (!--UCount)
  {
   UCount=UPeriod;
   RefreshScreen ();

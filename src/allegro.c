@@ -255,14 +255,13 @@ int InitAllegro()
 int InitMachine(void)
 {
   int i;
-  UPeriod = 0; //modern PCs are able to update the screen at 50Hz
 
   if (!InitAllegro()) return 0;
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
 
   al_init_native_dialog_addon();
   cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select a .cas file", "*.cas", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    "Select a .cas file", "*.cas", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
 
@@ -792,7 +791,7 @@ void Keyboard(void)
   }
 
   /* F8 = save video RAM to file */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8) && !P2000_Mode)
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8))
   {
     WriteVRAMFile();
     NextOutputFile(szVideoRamFile);

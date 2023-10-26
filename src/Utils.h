@@ -69,7 +69,7 @@ static int WriteVRAMFile()
   {
     if (Verbose) 
       printf("  Writing video memory to %s...", szVideoRamFile);
-    fwrite(VRAM, 1, 24 * 80, out);
+    fwrite(VRAM, 1, 0x1000, out); //write full 4K
     fclose(out);
     if (Verbose) 
       printf("OK\n");

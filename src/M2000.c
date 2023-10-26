@@ -462,7 +462,7 @@ int main(int argc,char *argv[])
  /* Check for valid variables */
  if (IFreq<10) IFreq=10;
  if (IFreq>200) IFreq=200;
- if (UPeriod<0) UPeriod=0;
+ if (UPeriod<1) UPeriod=1;
  if (UPeriod>10) UPeriod=10;
  if (CpuSpeed<10) CpuSpeed=10;
  if (CpuSpeed>1000) CpuSpeed=1000;

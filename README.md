@@ -48,7 +48,7 @@ Shift-Delete          -  >
 F5           -  Reset P2000
 F6           -  Change options
 F7           -  Make screen shot (Not in the Unix/X version)
-F8           -  Dump video RAM to file    (P2000T mode only)
+F8           -  Dump video RAM to file
 F9           -  Pause / unpause
 F10          -  Toggle sound on/off
 F11          -  Decrease sound volume

@@ -190,10 +190,8 @@ static void keyb_handler (int code,int newstatus)
      break;
 #endif
     case XK_F8:
-      if (!P2000_Mode) {
-        WriteVRAMFile();
-        NextOutputFile(szVideoRamFile);
-      }
+      WriteVRAMFile();
+      NextOutputFile(szVideoRamFile);
       break;
     case XK_F6:
      calloptions=1;
