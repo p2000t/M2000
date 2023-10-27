@@ -6,27 +6,21 @@
         {
             "label": "Make",
             "type": "shell",
-            "command": "",
+            "command": "make allegro",
             "options": {
                 "cwd": "src"
-            },
-            "windows": {
-                "command": "make allegro"
-            },
-            "linux": {
-                "command": "make x"
             },
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Build and Run",
-            "type": "process",
-            "command": "m2000win",
+            "type": "shell",
+            "command": "M2000",
             "args": [
                 "-t",
-                // "-video", "0",
-                // "-tape", "test/cas/SAA5050.cas",
+                "-video", "0",
+                // "-tape", "test/cas/sound.cas",
                 // "-boot", "1"
             ],
             "dependsOn": [

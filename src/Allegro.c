@@ -10,7 +10,9 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define ALLEGRO_STATICLINK
+#define DISPLAY_WIDTH 960
+#define DISPLAY_HEIGHT 720
+#define DISPLAY_BORDER 10
 #define CHAR_TILE_WIDTH 24
 #define CHAR_TILE_HEIGHT 30
 #define CHAR_PIXEL_WIDTH 4
@@ -24,7 +26,6 @@
 #include <sys/time.h>
 #ifdef WIN32
 #include <windows.h>
-int consoleHiddenOnInit = 0;
 #endif
 #include "P2000.h"
 #include "Unix.h"
@@ -66,9 +67,6 @@ ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
 ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
-
-static int width = 960;
-static int height = 720;          /* Width and height of the display buffer   */
 
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
@@ -118,7 +116,7 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-#define NUMBER_OF_KEYMAPPINGS 69
+#define NUMBER_OF_KEYMAPPINGS 70
 static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
@@ -178,6 +176,7 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
   { ALLEGRO_KEY_FULLSTOP,   57,      0,       26,      1 }, // .       >
   { ALLEGRO_KEY_SPACE,      17,      0,       17,      1 }, // SPACE   [free]
   { ALLEGRO_KEY_BACKSPACE,  44,      0,       40,      0 }, // BACKSP  CLRLN
+  { ALLEGRO_KEY_DELETE,     44,      0,       40,      1 }, // BACKSP  CLRSCR
   { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
   { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
   { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
@@ -274,7 +273,7 @@ int InitMachine(void)
   }
 
   printf("OK\nCreating the output window... ");
-  display = al_create_display(width, height);
+  display = al_create_display(DISPLAY_WIDTH + 2*DISPLAY_BORDER, DISPLAY_HEIGHT + 2*DISPLAY_BORDER);
   eventQueue = al_create_event_queue();
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
@@ -369,6 +368,12 @@ int InitMachine(void)
     sound_active = 0;
   }
   else if (Verbose) printf("OK\n");
+
+#ifdef WIN32
+  // hide console window on startup
+  while (IsWindowVisible(GetConsoleWindow()) != FALSE)
+    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
+#endif
 
   return 1;
 }
@@ -643,14 +648,6 @@ void Keyboard(void)
   if (!al_get_timer_started(timer))
     al_start_timer(timer);
 
-#ifdef WIN32
-  //hide console window
-  if (!consoleHiddenOnInit && IsWindowVisible(GetConsoleWindow()) != FALSE)
-    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
-  else 
-    consoleHiddenOnInit = 1;
-#endif
-
   int i,j,k;
   byte key;
   bool keyShiftDown;
@@ -873,12 +870,12 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_bitmap_region(
       (eor ? FontBuf_bk : FontBuf), 0.5 * c * CHAR_TILE_WIDTH, 
-      0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0.5 * x * CHAR_TILE_WIDTH,
-      y * CHAR_TILE_HEIGHT, 0);
+      0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+      DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
   if (ul)
     al_draw_filled_rectangle(
-        0.5 * x * CHAR_TILE_WIDTH, (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
-        0.5 * (x + 1) * CHAR_TILE_WIDTH, (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
+        DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
+        DISPLAY_BORDER + 0.5 * (x + 1) * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
         al_map_rgb(255, 255, 255));
 }
 
@@ -897,13 +894,13 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
+      DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
   if (bg)
     al_draw_tinted_bitmap_region(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        x * CHAR_TILE_WIDTH, y * CHAR_TILE_HEIGHT, 0);
+        DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
 }
 
 /****************************************************************************/
