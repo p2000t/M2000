@@ -124,9 +124,9 @@ There are two keyboard mappings available in M2000:
 ### Positional key mapping overview
 
 ```
-Delete                -  <
-Shift-Delete          -  >
-` ~                   -  CODE
+Delete        -  <
+Shift-Delete  -  >
+` ~           -  CODE
 
 For the other key mappings, see picture below.
 ```
