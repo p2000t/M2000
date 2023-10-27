@@ -57,6 +57,7 @@ static int soundoff=0;          /* If 1, sound is turned off                */
 #endif
 #ifdef JOYSTICK
 int joymode=1;                  /* If 0, do not use joystick                */
+int joymap=0;                   /* 0 = default joystick-key mapping         */
 #endif
 
 static byte Pal[8*3] =          /* SAA5050 palette                          */
