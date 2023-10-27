@@ -649,13 +649,13 @@ void Keyboard(void)
     al_start_timer(timer);
 
   int i,j,k;
-  byte key;
-  bool keyShiftDown;
-  bool isKeyPressed = 0;
+  byte keyPressed;
+  bool isShiftKey;
+  bool isCombiKeyPressed = 0;
   byte mCol, mRow, mColInactive, mRowInactive;
   bool isCombiKey, isNormalKey;
   bool al_shift_down;
-  bool p2000ShiftDown;
+  bool isP2000ShiftDown;
 
   static byte queuedKeys[NUMBER_OF_KEYMAPPINGS] = {0};
   static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
@@ -683,29 +683,31 @@ void Keyboard(void)
   else
   {
     /* Symbolic Key Mapping */
-    p2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+    isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
 
     for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++)
     {
-      key = keyMappings[i][0];
+      keyPressed = keyMappings[i][0];
       isCombiKey = keyMappings[i][1] != keyMappings[i][3];
-      isNormalKey = !isCombiKey && !keyMappings[2] && keyMappings[4];
-
+      isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
+      isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
+      //calulate P2000 keyboard matrix row and column
       mRow = keyMappings[i][al_shift_down ? 3 : 1] / 8;
       mCol = 1 << (keyMappings[i][al_shift_down ? 3 : 1] % 8);
-      keyShiftDown = keyMappings[i][al_shift_down ? 4 : 2];
 
       if (isCombiKey)
       {
         mRowInactive = keyMappings[i][al_shift_down ? 1 : 3] / 8;
         mColInactive = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
       }
-      if (queuedKeys[i] || al_key_down(&kbdstate, key))
+      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed))
       {
-        if (isCombiKey)
-          KeyMap[mRowInactive] |= mColInactive; //clean inactive combi key
-
-        if (isNormalKey || keyShiftDown == p2000ShiftDown) 
+        if (isCombiKey) 
+        {
+          KeyMap[mRowInactive] |= mColInactive; //unpress inactive combi key
+          isCombiKeyPressed = 1;
+        }
+        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) 
         {
           queuedKeys[i] = 0;
           KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
@@ -714,11 +716,10 @@ void Keyboard(void)
         {
           // first, the shift must be pressed/un-pressed in this interrupt
           // then in the next interrupt the target key itself will be pressed
-          KeyMap[9] = keyShiftDown ? 0xfe : 0xff; // 0xfe = LSHIFT
+          KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
           queuedKeys[i] = 1;
         }
         activeKeys[i] = 1;
-        isKeyPressed = 1;
       }
       else
       {
@@ -732,7 +733,7 @@ void Keyboard(void)
         }
       }
     }
-    if (!isKeyPressed) {
+    if (!isCombiKeyPressed) {
       if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
