@@ -62,7 +62,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${allegro5_SOURCE_DIR}/include)
 
 # Add sources
-set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c allegro.c)
+set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c Allegro.c)
 add_executable(M2000 ${SOURCES})
 
 # link libraries

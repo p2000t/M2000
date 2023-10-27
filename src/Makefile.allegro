@@ -13,7 +13,7 @@ LFLAGS  = -s
 #-mwindows
 #-Wl,-subsystem,windows 
 
-OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o allegro.o
+OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o
 
 all:    m2000
 
@@ -25,4 +25,4 @@ P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
 Z80.o:      Z80.c Z80.h Z80CDx86.h Z80DAA.h Z80IO.h
 Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
 Bitmap.o:   Bitmap.c
-allegro.o:  allegro.c Common.h P2000.h Z80.h Z80IO.h Utils.h
+Allegro.o:  Allegro.c Common.h P2000.h Z80.h Z80IO.h Utils.h
