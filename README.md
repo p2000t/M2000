@@ -104,9 +104,11 @@ F4           -  Insert cartridge (choose .bin file)
 -joystick <mode>       Select joystick mode [1]
                        0 - No joystick support
                        1 - Joystick support
-                       When joystick support is on, moving the joystick
-                       emulates cursorkey presses, pressing a joystick
-                       button emulates pressing the spacebar
+-joymap                Select joystick mapping [0]
+                       0 - Moving the joystick emulates cursorkey presses
+                           The main button emulates pressing the spacebar
+                       1 - Fraxxon mode: Left/right emulates cursorkeys left/up
+                           The main button emulates pressing the spacebar
 -shm <mode>            Use/Do not use MIT SHM extensions for X [1] 
                        (note: Unix/X version only)
                        0 - Don't use SHM   1 - Use SHM
@@ -163,6 +165,7 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   MIXER SB 20
   MIXER FM 20
   ```
+  Note: if you have a joystick attached, pleas make sure to set `timed=false` in the DOSBox options.
 * Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
 * Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
 * Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 

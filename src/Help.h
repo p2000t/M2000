@@ -78,6 +78,11 @@ char *HelpText[] =
 #ifdef JOYSTICK
   "  -joystick <mode>           - Select joystick mode [1]",
   "                               0 - No joystick support  1 - Joystick support",
+  "  -joymap <mode>             - Select joystick mapping [0]",
+  "                               0 - Moving the joystick emulates the cursorkeys",
+  "                                   The main button emulates the spacebar",
+  "                               1 - Fraxxon mode: Moving left/right does left/up",
+  "                                   The main button emulates the spacebar",
 #endif
 #ifdef MITSHM
   "  -shm <mode>                - Use/Don't use MITSHM extensions for X [1]",

@@ -58,6 +58,7 @@ static char *Options[]=
   /* 22 */ "video",
   /* 23 */ "cart",
   /* 24 */ "keymap",
+  /* 25 */ "joymap",
   NULL
 };
 #define AbvOptions      Options         /* No abrevations yet */
@@ -68,6 +69,7 @@ extern int mastervolume;
 #endif
 #ifdef JOYSTICK
 extern int joymode;
+extern int joymap;
 #endif
 #ifdef MITSHM
 extern int UseSHM;
@@ -113,7 +115,7 @@ static int ParseOptions (int argc,char *argv[])
              return 0;
    }
   else
-  {    
+  {
    for(J=0;Options[J];J++)
     if(!strcmp(argv[N]+1,Options[J])) break;
    if (!Options[J])
@@ -272,6 +274,14 @@ static int ParseOptions (int argc,char *argv[])
              if (N<argc)
               KeyboardMapping=atoi(argv[N]);
              else
+              misparm=1;
+             break;
+    case 24: N++;  /* joymap */
+             if (N<argc)
+#ifdef JOYSTICK
+              joymap=atoi(argv[N])
+#endif
+             ;else
               misparm=1;
              break;
     default: printf("Wrong option '%s'\n",argv[N]);

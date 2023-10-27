@@ -52,6 +52,7 @@ static int OldTimer=0;             /* Value of timer at previous interrupt  */
 static int NewTimer=0;             /* New value of the timer                */
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 int joymode=1;                     /* If 0, do not use joystick             */
+int joymap=0;                      /* 0 = default joystick-key mapping      */
 static int soundoff=0;             /* If 1, sound is turned off             */
 static int in_options_dialogue=0;  /* If 1, pass keyboard events to the old */
                                    /* keyboard interrupt routine            */

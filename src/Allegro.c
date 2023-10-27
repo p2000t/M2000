@@ -51,7 +51,7 @@ ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
-char Title[255]="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
+char *Title="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
 int KeyboardMapping = 1;
 
 int videomode;                    /* T emulation only: 
@@ -64,6 +64,19 @@ ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
 ALLEGRO_BITMAP *ScreenshotBuf = NULL;
+
+#ifdef JOYSTICK
+static byte joyKeyMapping[2][5] = 
+{
+  { 23,  21,  0,   2, 17 }, /* right, down, left, up, fire-button */
+  {  2, 255,  0, 255, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
+};
+int joymode=1;                     /* If 0, do not use joystick             */
+int joymap=0;                      /* 0 = default joystick-key mapping      */
+ALLEGRO_JOYSTICK *joystick = NULL;
+ALLEGRO_JOYSTICK_STATE joyState;
+bool lastJoyState[5];
+#endif
 
 ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
@@ -82,8 +95,6 @@ static byte Pal[8*3] =             /* SAA5050 palette                       */
   0x00,0xFF,0xFF, //cyan
   0xFF,0xFF,0xFF  //white
 };
-
-static int calloptions=0;                /* 1 -> call OptionsDialogue()     */
 
 /*
     P2000 Keyboard layout
@@ -204,6 +215,7 @@ void TrashMachine(void)
   if (Verbose) printf("\n\nShutting down...\n");
   al_destroy_display(display);
   al_destroy_event_queue(eventQueue);
+  al_uninstall_joystick();
   al_uninstall_keyboard();
   al_shutdown_primitives_addon();
   al_shutdown_image_addon();
@@ -235,7 +247,7 @@ int InitAllegro()
   if (!al_is_system_installed())
   {
     // init allegro
-    if (Verbose) printf("Initialising Allegro drivers...");
+    if (Verbose) printf("Initialising Allegro drivers and addons... ");
     if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
     {
       if (Verbose) puts("FAILED");
@@ -261,6 +273,14 @@ int InitMachine(void)
     "Select a .cas file", "*.cas", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+
+  if (joymode) 
+  {
+    if (Verbose) printf("Initialising and detecting joystick... ");
+    if (al_install_joystick() && (joystick = al_get_joystick(0)) != NULL && Verbose)
+      puts("OK");
+    else if (Verbose) puts("FAILED");
+  }
 
   if (Verbose)
     printf("Initialising keyboard...");
@@ -638,6 +658,20 @@ bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event)
   return true;
 }
 
+void PushKey(byte keyCode)
+{
+  byte mRow = keyCode / 8;
+  byte mCol = 1 << (keyCode % 8);
+  if (mRow < 10) KeyMap[mRow] &= ~mCol;
+}
+
+void ReleaseKey(byte keyCode)
+{
+  byte mRow = keyCode / 8;
+  byte mCol = 1 << (keyCode % 8);
+  if (mRow < 10) KeyMap[mRow] |= mCol;
+}
+
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
@@ -652,7 +686,7 @@ void Keyboard(void)
   byte keyPressed;
   bool isShiftKey;
   bool isCombiKeyPressed = 0;
-  byte mCol, mRow, mColInactive, mRowInactive;
+  byte keyCode, keyCodeCombi;
   bool isCombiKey, isNormalKey;
   bool al_shift_down;
   bool isP2000ShiftDown;
@@ -691,26 +725,20 @@ void Keyboard(void)
       isCombiKey = keyMappings[i][1] != keyMappings[i][3];
       isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
       isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
-      //calulate P2000 keyboard matrix row and column
-      mRow = keyMappings[i][al_shift_down ? 3 : 1] / 8;
-      mCol = 1 << (keyMappings[i][al_shift_down ? 3 : 1] % 8);
+      keyCode = keyMappings[i][al_shift_down ? 3 : 1];
+      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : 0;
 
-      if (isCombiKey)
-      {
-        mRowInactive = keyMappings[i][al_shift_down ? 1 : 3] / 8;
-        mColInactive = 1 << (keyMappings[i][al_shift_down ? 1 : 3] % 8);
-      }
       if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed))
       {
         if (isCombiKey) 
         {
-          KeyMap[mRowInactive] |= mColInactive; //unpress inactive combi key
+          ReleaseKey(keyCodeCombi);
           isCombiKeyPressed = 1;
         }
         if (isNormalKey || (isShiftKey == isP2000ShiftDown)) 
         {
           queuedKeys[i] = 0;
-          KeyMap[mRow] &= ~mCol; // press key in P2000's keyboard matrix
+          PushKey(keyCode);
         }
         else 
         {
@@ -726,9 +754,8 @@ void Keyboard(void)
         if (activeKeys[i]) 
         {
           // unpress key and second key in P2000's keyboard matrix
-          if (isCombiKey)
-            KeyMap[mRowInactive] |= mColInactive;
-          KeyMap[mRow] |= mCol;
+          if (isCombiKey) ReleaseKey(keyCodeCombi);
+          ReleaseKey(keyCode);
           activeKeys[i] = 0;
         }
       }
@@ -771,7 +798,15 @@ void Keyboard(void)
 #endif
 
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6))
-    calloptions = 1;
+  {
+    #ifdef WIN32
+    ShowWindow(GetConsoleWindow(), SW_RESTORE);
+    #endif
+    OptionsDialogue();
+    #ifdef WIN32
+    ShowWindow(GetConsoleWindow(), SW_HIDE);
+    #endif
+  }
 
   /* F7 = screenshot */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F7))
@@ -822,22 +857,32 @@ void Keyboard(void)
       ++mastervolume;
   }
 
+#ifdef JOYSTICK
+  // handle joystick
+  if (joystick != NULL) 
+  {
+    al_get_joystick_state(joystick, &joyState);
+    for (i = 0; i < 5; i++) // 4 directions and 1 button
+    {
+      if ((i < 4 && joyState.stick[0].axis[i%2] == -2*(i/2)+1) ||
+        (i == 4 && joyState.button[0]))
+      {
+        PushKey(joyKeyMapping[joymap][i]);
+        lastJoyState[i] = 1;
+      }
+      else
+      {
+        if (lastJoyState[i]) ReleaseKey(joyKeyMapping[joymap][i]);
+        lastJoyState[i] = 0;
+      }
+    }
+  }
+#endif
+
   //check if Window was closed
   while (al_get_next_event(eventQueue, &event))
   { 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
-  }
-
-  if (calloptions)
-  {
-    calloptions = 0;
-#ifdef WIN32
-    ShowWindow(GetConsoleWindow(), SW_RESTORE);
-#endif
-    OptionsDialogue();
-#ifdef WIN32
-    ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
   }
 }
 
