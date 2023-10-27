@@ -22,7 +22,7 @@
                 "-video", "0",
                 // "-tape", "test/cas/sound.cas",
                 // "-boot", "1"
-                "-joymap", "1"
+                //"-joymap", "1"
             ],
             "dependsOn": [
                 "Make"
