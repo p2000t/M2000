@@ -68,8 +68,8 @@ ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 #ifdef JOYSTICK
 static byte joyKeyMapping[2][5] = 
 {
-  { 23,  21,  0,   2, 17 }, /* right, down, left, up, fire-button */
-  {  2, 255,  0, 255, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
+  { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
+  {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
 };
 int joymode=1;                     /* If 0, do not use joystick             */
 int joymap=0;                      /* 0 = default joystick-key mapping      */
@@ -726,7 +726,7 @@ void Keyboard(void)
       isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
       isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
       keyCode = keyMappings[i][al_shift_down ? 3 : 1];
-      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : 0;
+      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
 
       if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed))
       {
