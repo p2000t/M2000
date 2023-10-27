@@ -170,11 +170,8 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
 ### Unix/X:
 * Make sure you have installed: make, gcc and the X11 libs:
   ```
-  sudo apt-get update
-  sudo apt install make
-  sudo apt install gcc
-  sudo apt install libx11-dev
-  sudo apt-get install libxext-dev
+  sudo apt update
+  sudo apt install make gcc libx11-dev libxext-dev
   ``` 
 * Now go into the src folder of the cloned M2000 repo and type: `make x`. \
 The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
