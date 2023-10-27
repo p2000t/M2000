@@ -234,8 +234,8 @@ int ReadJoystick (void)
   if (js.buttons&1) i|=1;
   if (js.buttons&2) i|=2;
   if (js.x<(jscentre.x/2)) i|=0x40;
-  if (js.x>(jscentre.x*3/2)) i|=0x80;
-  if (js.y<(jscentre.y/2)) i|=0x10;
+  if (js.x>(jscentre.x*3/2)) i|=(joymap?0x10:0x80); //joymap==1 switches right and up
+  if (js.y<(jscentre.y/2)) i|=(joymap?0x80:0x10);   //joymap==1 switches right and up
   if (js.y>(jscentre.y*3/2)) i|=0x20;
  }
  return i;

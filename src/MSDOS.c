@@ -403,9 +403,9 @@ static int Joy_Check (void)
   J|=0x40;
  else
   if (jp.x>(joycentre.x*3/2))
-   J|=0x80;
+   J|=(joymap?0x10:0x80); //joymap==1 switches right and up
  if (jp.y<(joycentre.y/2))
-  J|=0x10;
+  J|=(joymap?0x80:0x10); //joymap==1 switches right and up
  else
   if (jp.y>((joycentre.y*3)/2))
    J|=0x20;
