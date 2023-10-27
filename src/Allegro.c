@@ -684,10 +684,9 @@ void Keyboard(void)
 
   int i,j,k;
   byte keyPressed;
-  bool isShiftKey;
-  bool isCombiKeyPressed = 0;
+  bool isCombiKey, isNormalKey, isShiftKey;
+  bool isSpecialKeyPressed = 0;
   byte keyCode, keyCodeCombi;
-  bool isCombiKey, isNormalKey;
   bool al_shift_down;
   bool isP2000ShiftDown;
 
@@ -731,10 +730,7 @@ void Keyboard(void)
       if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed))
       {
         if (isCombiKey) 
-        {
           ReleaseKey(keyCodeCombi);
-          isCombiKeyPressed = 1;
-        }
         if (isNormalKey || (isShiftKey == isP2000ShiftDown)) 
         {
           queuedKeys[i] = 0;
@@ -748,6 +744,8 @@ void Keyboard(void)
           queuedKeys[i] = 1;
         }
         activeKeys[i] = 1;
+        if (!isNormalKey) 
+          isSpecialKeyPressed = true;
       }
       else
       {
@@ -760,7 +758,7 @@ void Keyboard(void)
         }
       }
     }
-    if (!isCombiKeyPressed) {
+    if (!isSpecialKeyPressed) {
       if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
       if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
