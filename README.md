@@ -175,7 +175,7 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   ``` 
 * Now go into the src folder of the cloned M2000 repo and type: `make x`. \
 The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
-* If you're missing sound on Ubuntu, please try installing also-oss (`sudo apt-get install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
+* If sound isn't working, please try installing also-oss (`sudo apt install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
   `aoss ./m2000`
 
 ### Windows:
