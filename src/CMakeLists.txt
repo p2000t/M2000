@@ -35,7 +35,7 @@ project(M2000)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
-set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO")
+set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

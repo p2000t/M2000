@@ -8,7 +8,7 @@ CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
-	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK
 LFLAGS  = -s
 #-mwindows
 #-Wl,-subsystem,windows 
