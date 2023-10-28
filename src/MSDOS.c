@@ -36,7 +36,7 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
 char *Title="M2000 v0.7-SNAPSHOT";    /* Title for -help output                */
-int KeyboardMapping = 0;
+
 
 int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
@@ -53,6 +53,7 @@ static int NewTimer=0;             /* New value of the timer                */
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 int joymode=1;                     /* If 0, do not use joystick             */
 int joymap=0;                      /* 0 = default joystick-key mapping      */
+int keyboardmap = 0;               /* 0 = default positional key mapping    */
 static int soundoff=0;             /* If 1, sound is turned off             */
 static int in_options_dialogue=0;  /* If 1, pass keyboard events to the old */
                                    /* keyboard interrupt routine            */

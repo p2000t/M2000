@@ -25,7 +25,6 @@
 #include <X11/keysym.h>
 
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output                   */
-int KeyboardMapping = 0;
 
 static int bpp;                 /* Bits per pixel of the display device     */
 static Display *Dsp;            /* Our display                              */
@@ -51,6 +50,7 @@ unsigned ReadTimerMin;          /* Minimum time between interrupts (in us)  */
 static int OldTimer;            /* Timer value at previous interrupt        */
 static int NewTimer;            /* New value of the timer                   */
 int SaveCPU=1;                  /* If 1, pause emulation when focus is out  */
+int keyboardmap = 0;            /* 0 = default positional key mapping       */
 #ifdef SOUND
 int soundmode=255;              /* Soundmode, 255=auto detect               */
 static int soundoff=0;          /* If 1, sound is turned off                */

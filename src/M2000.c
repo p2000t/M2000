@@ -20,7 +20,6 @@
 #include "Help.h"
 
 extern char *Title;
-extern int KeyboardMapping;
 
 /* Maximum configuration file size in bytes */
 #define MAX_CONFIG_FILE_SIZE    1024
@@ -63,6 +62,7 @@ static char *Options[]=
 };
 #define AbvOptions      Options         /* No abrevations yet */
 
+extern int keyboardmap;
 #ifdef SOUND
 extern int soundmode;
 extern int mastervolume;
@@ -272,7 +272,7 @@ static int ParseOptions (int argc,char *argv[])
              break;
     case 23: N++;  /* keymap */
              if (N<argc)
-              KeyboardMapping=atoi(argv[N]);
+              keyboardmap=atoi(argv[N]);
              else
               misparm=1;
              break;

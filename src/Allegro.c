@@ -52,11 +52,11 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
-int KeyboardMapping = 1;
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
                                         1=960x720 (pixelated font)         */ 
+int keyboardmap = 1;              /* 1 = symbolic keyboard mapping         */
 static int *OldCharacter;         /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
@@ -697,7 +697,7 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
-  if (KeyboardMapping == 0)
+  if (keyboardmap == 0)
   {
     /* Positional Key Mapping */
     //fill P2000 KeyMap
