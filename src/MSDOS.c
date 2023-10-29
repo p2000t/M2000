@@ -12,6 +12,7 @@
 
 #include "P2000.h"
 #include "MSDOS.h"
+#include "Common.h"
 #include "Utils.h"
 
 #include <stdio.h>
@@ -35,7 +36,7 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define NUM_STACKS      16         /* Number of IRQ stacks                  */
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
-char *Title="M2000 v0.7-SNAPSHOT";    /* Title for -help output                */
+char *Title="M2000 - Philips P2000 emulatorT";    /* Title for -help output                */
 
 
 int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
@@ -440,6 +441,7 @@ void TrashMachine(void)
 int InitMachine(void)
 {
  int c,i,j;
+ if (Verbose) printf("M2000 v"M2000_VERSION"\n");
  if (Verbose)
   printf ("Initialising MS-DOS drivers:\n");
  cs_alias=_my_ds();
@@ -1168,9 +1170,3 @@ static inline void PutChar_T (int x,int y,int c,int fg,int bg,int si)
   vga_copymem (p+38,q+1520);
  }
 }
-
-/****************************************************************************/
-/*** Common.h contains the system-independent part of the screen refresh  ***/
-/*** drivers                                                              ***/
-/****************************************************************************/
-#include "Common.h"

@@ -28,7 +28,7 @@
 #include <windows.h>
 #endif
 #include "P2000.h"
-#include "Unix.h"
+#include "Common.h"
 #include "Utils.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
@@ -51,7 +51,7 @@ ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
-char *Title="M2000 v0.7-SNAPSHOT"; /* Title for Window  */
+char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 
 int videomode;                    /* T emulation only: 
                                         0=960x720
@@ -265,6 +265,8 @@ int InitMachine(void)
 {
   int i;
 
+  if (Verbose) printf("M2000 v"M2000_VERSION"\n");
+  
   if (!InitAllegro()) return 0;
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
 
@@ -1029,9 +1031,3 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
 }
-
-/****************************************************************************/
-/*** Common.h contains the system-independent part of the screen refresh  ***/
-/*** drivers                                                              ***/
-/****************************************************************************/
-#include "Common.h"

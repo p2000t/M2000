@@ -12,6 +12,12 @@
 
 #define SPACE 32 // space character
 
+#define M2000_VERSION "0.7-SNAPSHOT"
+
+static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);
+static inline void PutChar_M(int x, int y, int c, int eor, int ul);
+static void PutImage(void);
+
 // when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 

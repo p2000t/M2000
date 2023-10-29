@@ -13,6 +13,7 @@
 
 #include "P2000.h"
 #include "Unix.h"
+#include "Common.h"
 #include "Utils.h"
 
 #include <stdio.h>
@@ -24,7 +25,7 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-char *Title="M2000 v0.7-SNAPSHOT"; /* Title for -help output                   */
+char *Title="M2000 - Philips P2000 emulator"; /* Title for -help output                   */
 
 static int bpp;                 /* Bits per pixel of the display device     */
 static Display *Dsp;            /* Our display                              */
@@ -277,6 +278,7 @@ int InitMachine(void)
  XSizeHints Hints;
  XWMHints WMHints;
  XColor Colour;
+ if (Verbose) printf("M2000 v"M2000_VERSION"\n");
  if (Verbose)
   printf ("Initialising Unix/X drivers:\n  Opening display... ");
  Dsp=XOpenDisplay (NULL);
@@ -918,9 +920,3 @@ static inline void PutChar_T (int x,int y,int c,int fg,int bg,int si)
   }
  }
 }
-
-/****************************************************************************/
-/*** Common.h contains the system-independent part of the screen refresh  ***/
-/*** drivers                                                              ***/
-/****************************************************************************/
-#include "Common.h"
