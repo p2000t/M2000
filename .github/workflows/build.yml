@@ -31,6 +31,7 @@ jobs:
           build/allegro_image-5.2.dll
           build/allegro_audio-5.2.dll
           build/allegro_dialog-5.2.dll
+          build/allegro_memfile-5.2.dll
           build/Default.fnt
           build/P2000ROM.bin
           build/BASIC.bin
