@@ -55,11 +55,12 @@ ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and window
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 
-int videomode;                    /* T emulation only: 
-                                        0=960x720
-                                        1=960x720 (pixelated font)         */ 
-int keyboardmap = 1;              /* 1 = symbolic keyboard mapping         */
-static int *OldCharacter;         /* Holds characters on the screen        */
+int videomode;                     /* only in T emulation mode: 
+                                      0=960x720 - with scanlines
+                                      1=960x720 - no scanlines
+                                      1=960x720 - pixelated font            */ 
+int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
+static int *OldCharacter;          /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
@@ -604,7 +605,7 @@ int LoadFont(char *filename)
         }
         else 
         {
-          if (i < 96 * 10 && videomode == 0) // check if within alpanum character range
+          if (i < 96 * 10 && videomode < 2) // check if within alpanum character range
           {
             // for character rounding, look at 18 pixel around current pixel
             // using 16-wind compass notation + NN and SS
@@ -998,6 +999,20 @@ static void PutImage (void)
   al_flip_display();
 }
 
+void DrawScanlines(int x, int y) 
+{
+  int i; 
+  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
+  for (i=1; i<CHAR_TILE_HEIGHT; i+=2)
+  {
+    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
+      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
+      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
+      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
+      scanlineColor, 1);
+  }
+}
+
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
@@ -1018,6 +1033,8 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
         DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
         DISPLAY_BORDER + 0.5 * (x + 1) * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
         al_map_rgb(255, 255, 255));
+  if (videomode == 0)
+    DrawScanlines(x, y);
 }
 
 /****************************************************************************/
@@ -1042,4 +1059,6 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+  if (videomode == 0)
+    DrawScanlines(x, y);
 }
