@@ -489,7 +489,7 @@ int LoadFont(char *filename)
   int linePixels, linePixelsPrev, linePixelsNext;
   int linePixelsPrevPrev, linePixelsNextNext;
   int pixelN, pixelE, pixelS, pixelW;
-  int pixelSW, pixelSE, pixelNW, pixelNE;
+  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN, pixelSS;
   int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW, pixelNNW, pixelNNE;
   char *TempBuf;
   FILE *F;
@@ -598,8 +598,8 @@ int LoadFont(char *filename)
         {
           if (i < 96 * 10 && videomode == 0) // check if within alpanum character range
           {
-            // for character rounding, look at 16 pixel around current pixel
-            // using 16-wind compass notation
+            // for character rounding, look at 18 pixel around current pixel
+            // using 16-wind compass notation + NN and SS
             pixelN = linePixelsPrev & 0x20;
             pixelE = linePixels & 0x10;
             pixelS = linePixelsNext & 0x20;
@@ -616,21 +616,21 @@ int LoadFont(char *filename)
             pixelWSW = linePixelsNext & 0x80;
             pixelNNW = linePixelsPrevPrev & 0x40;
             pixelNNE = linePixelsPrevPrev & 0x10;
-
+            pixelNN = linePixelsPrevPrev & 0x20;
+            pixelSS = linePixelsNextNext & 0x20;
+            
             // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
             if (pixelN && pixelW && (!pixelNW || (!pixelNE && pixelNNE) || (!pixelSW && pixelWSW)))
             {
               // alternative rounding for a steep vertical lines (e.g. "V")
-              if (!pixelE && !pixelNE && !pixelNNE && !pixelS && pixelSW)
+              if (pixelSW && pixelNN)
               {
-                // ⬜⬜⬜⬛
                 // ⬜⬜⬛⬛
-                // ⬜⬜⬛⬛
-                // ⬜⬛⬛⬛ (next line)
-                drawFontRegion(x,   y,   x+1, y+4);
-                drawFontRegion(x+1, y,   x+2, y+3);
-                drawFontRegion(x+2, y,   x+3, y+1);
+                // ⬜⬛⬛⬛
+                // ⬜⬛⬛⬛
+                drawFontRegion(x,   y,   x+1, y+3);
+                drawFontRegion(x+1, y,   x+2, y+1);
               }
               else
               {
@@ -645,15 +645,14 @@ int LoadFont(char *filename)
             if (pixelN && pixelE && (!pixelNE || (!pixelNW && pixelNNW) || (!pixelSE && pixelESE)))
             {
               // alternative rounding for a steep vertical lines (e.g. "V")
-              if (!pixelW &&!pixelNW && !pixelNNW && !pixelS && pixelSE)
+              if (pixelSE && pixelNN)
               {
-                // ⬛⬜⬜⬜
                 // ⬛⬛⬜⬜
-                // ⬛⬛⬜⬜
-                // ⬛⬛⬛⬜ (next line)
-                drawFontRegion(x+3, y,   x+4, y+4);
-                drawFontRegion(x+2, y  , x+3, y+3);
-                drawFontRegion(x+1, y  , x+2, y+1);
+                // ⬛⬛⬛⬜
+                // ⬛⬛⬛⬜
+                drawFontRegion(x+3, y,   x+4, y+3);
+                drawFontRegion(x+2, y  , x+3, y+1);
+       
               }
               else
               {
@@ -667,20 +666,42 @@ int LoadFont(char *filename)
             // rounding in SE direction
             if (pixelS && pixelE && (!pixelSE || (!pixelSW && pixelSSW) || (!pixelNE && pixelENE)))
             {
-              // ⬛⬛⬛⬛
-              // ⬛⬛⬛⬜
-              // ⬛⬜⬜⬜
-              drawFontRegion(x+3, y+1, x+4, y+2);
-              drawFontRegion(x+1, y+2, x+4, y+3);
+              if (pixelNE && pixelSS)
+              {
+                // ⬛⬛⬛⬜
+                // ⬛⬛⬛⬜
+                // ⬛⬛⬜⬜
+                drawFontRegion(x+3, y,   x+4, y+3);
+                drawFontRegion(x+2, y+2, x+3, y+3);
+              }
+              else
+              {
+                // ⬛⬛⬛⬛
+                // ⬛⬛⬛⬜
+                // ⬛⬜⬜⬜
+                drawFontRegion(x+3, y+1, x+4, y+2);
+                drawFontRegion(x+1, y+2, x+4, y+3);
+              }
             }
             // rounding in SW direction
             if (pixelS && pixelW && (!pixelSW || (!pixelSE && pixelSSE) || (!pixelNW && pixelWNW)))
             {
-              // ⬛⬛⬛⬛
-              // ⬜⬛⬛⬛
-              // ⬜⬜⬜⬛
-              drawFontRegion(x  , y+1, x+1, y+2);
-              drawFontRegion(x  , y+2, x+3, y+3);
+              if (pixelNW && pixelSS)
+              {
+                // ⬜⬛⬛⬛
+                // ⬜⬛⬛⬛
+                // ⬜⬜⬛⬛
+                drawFontRegion(x,   y,   x+1, y+3);
+                drawFontRegion(x+1, y+2, x+2, y+3);
+              }
+              else
+              {
+                // ⬛⬛⬛⬛
+                // ⬜⬛⬛⬛
+                // ⬜⬜⬜⬛
+                drawFontRegion(x  , y+1, x+1, y+2);
+                drawFontRegion(x  , y+2, x+3, y+3);
+              }
             }
           }
         }

@@ -20,8 +20,8 @@
             "args": [
                 "-t",
                 "-video", "0",
-                // "-tape", "test/cas/sound.cas",
-                // "-boot", "1"
+                "-tape", "test/cas/SAA5050.cas",
+                "-boot", "1"
                 //"-joymap", "1"
             ],
             "dependsOn": [
