@@ -77,12 +77,12 @@ F4           -  Insert cartridge (choose .bin file)
                        0 - Positional mapping
                        1 - Symbolic mapping (only for Windows version)
 -video <mode>          Select video mode/window size [0]
-                       0 - 960x720 (Windows) [scanlines]
+                       0 - 960x720 (Windows)
                            500x300 (Unix/X)
-                           256x240 (MS-DOS) [scanlines]
-                       1 - 960x720 (Windows) [no scanlines]
+                           256x240 (MS-DOS) [CRT scanlines]
+                       1 - 960x720 (Windows) [CRT scanlines]
                            520x490 (Unix/X)
-                           640x480 (MS-DOS) [no scanlines]
+                           640x480 (MS-DOS)
                        2 - 960x720 (Windows) [pixelated font]
 -printer <filename>    Select file for printer output
                        Default is PRN for the MS-DOS version, stdout for

@@ -39,9 +39,9 @@ char *HelpText[] =
 #if defined(MSDOS) || defined(ALLEGRO)
   "  -video <mode>              - Select video mode (T-model emulation only) [0]",
 #ifdef ALLEGRO
-  "                               0 - 960x720 [CRT scanlines   ]",
-  "                               1 - 960x720 [no CRT scanlines]",
-  "                               2 - 960x720 [pixelated font  ]",
+  "                               0 - 960x720",
+  "                               1 - 960x720 [CRT scanlines]",
+  "                               2 - 960x720 [pixelated font]",
 #else
   "                               0 - 256x240   1 - 640x480",
 #endif

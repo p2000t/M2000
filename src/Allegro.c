@@ -1033,7 +1033,7 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
         DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
         DISPLAY_BORDER + 0.5 * (x + 1) * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
         al_map_rgb(255, 255, 255));
-  if (videomode == 0)
+  if (videomode == 1)
     DrawScanlines(x, y);
 }
 
@@ -1059,6 +1059,6 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
-  if (videomode == 0)
+  if (videomode == 1)
     DrawScanlines(x, y);
 }
