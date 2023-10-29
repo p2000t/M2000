@@ -30,11 +30,13 @@
 #include "P2000.h"
 #include "Unix.h"
 #include "Utils.h"
+#include "Icon.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_native_dialog.h> 
+#include <allegro5/allegro_memfile.h>
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -309,6 +311,16 @@ int InitMachine(void)
   }
   al_set_window_title(display, Title);
   al_clear_to_color(al_map_rgb(0, 0, 0));
+  //set app icon
+  ALLEGRO_FILE *iconFile;
+  if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) 
+  {
+    ALLEGRO_BITMAP *bm = al_load_bitmap_f(iconFile, ".png");
+    al_set_display_icon(display, bm);
+    al_fclose(iconFile);
+    al_destroy_bitmap(bm);
+  }
+
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
