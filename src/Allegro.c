@@ -389,12 +389,6 @@ int InitMachine(void)
   }
   else if (Verbose) printf("OK\n");
 
-#ifdef WIN32
-  // hide console window on startup
-  while (IsWindowVisible(GetConsoleWindow()) != FALSE)
-    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
-#endif
-
   return 1;
 }
 
@@ -761,6 +755,15 @@ void Keyboard(void)
   /* first, make sure the 50Hz timer is started */
   if (!al_get_timer_started(timer))
     al_start_timer(timer);
+
+#ifdef WIN32
+  // hide console window after init (but don't block thread for it)
+  static int consoleHiddenOnInit = 0;
+  if (!consoleHiddenOnInit && IsWindowVisible(GetConsoleWindow()) != FALSE)
+    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
+  else 
+    consoleHiddenOnInit = 1;
+#endif
 
   int i,j,k;
   byte keyPressed;
