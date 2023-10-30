@@ -14,7 +14,6 @@
 #include "P2000.h"
 #include "Unix.h"
 #include "Common.h"
-#include "Utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -171,15 +170,11 @@ static void keyb_handler (int code,int newstatus)
     case XK_Escape:
      Z80_Running=0;
      break;
-
-    case XK_F5:
 #ifdef DEBUG
+    case XK_F5:
      Z80_Trace=!Z80_Trace;
-#else
-     Z80_Reset ();
-#endif
      break;
-
+#endif
 #ifdef SOUND
     case XK_F10:
      soundoff=(!soundoff);
@@ -192,8 +187,7 @@ static void keyb_handler (int code,int newstatus)
      break;
 #endif
     case XK_F8:
-      WriteVRAMFile();
-      NextOutputFile(szVideoRamFile);
+      Z80_Reset ();
       break;
     case XK_F6:
      calloptions=1;
@@ -427,8 +421,6 @@ int InitMachine(void)
   XPal[1]=White;
  }
  if (Verbose) printf ("OK\n");
-
- InitVRAMFile();
 
 #ifdef JOYSTICK
  InitJoystick (joymode);

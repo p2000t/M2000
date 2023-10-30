@@ -34,24 +34,18 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 
 ## Function Keys
 ```
-F5           -  Reset P2000
+F1           -  ZOEK key (show cassette index)
+F2           -  START key (start loaded program)
+F3           -  STOP key (pause/halt program)
+F5           -  Toggle tracing on/off (debug-version only)
 F6           -  Change options
-F7           -  Make screen shot (Not in the Unix/X version)
-F8           -  Dump video RAM to file
+F7           -  Make screenshot (not in the Unix/X version)
+F8           -  Reset P2000
 F9           -  Pause / unpause
 F10          -  Toggle sound on/off
 F11          -  Decrease sound volume
 F12          -  Increase sound volume
 ESC          -  Quit emulator
-
-Windows version only:
-F1           -  ZOEK key      (show cassette index)
-F2           -  START key    (start loaded program)
-   + Shift   -  STOP key       (pause/halt program)
-F3           -  Insert cassette  (choose .cas file)
-   + Shift   -  Remove cassette
-F4           -  Insert cartridge (choose .bin file)
-   + Shift   -  Remove cartridge
 ```
 
 ## Command line options
@@ -79,11 +73,10 @@ F4           -  Insert cartridge (choose .bin file)
 -video <mode>          Select video mode/window size [0]
                        0 - 960x720 (Windows)
                            500x300 (Unix/X)
-                           256x240 (MS-DOS) [CRT scanlines]
+                           256x240 (MS-DOS)
                        1 - 960x720 (Windows) [CRT scanlines]
                            520x490 (Unix/X)
                            640x480 (MS-DOS)
-                       2 - 960x720 (Windows) [pixelated font]
 -printer <filename>    Select file for printer output
                        Default is PRN for the MS-DOS version, stdout for
                        the Unix versions

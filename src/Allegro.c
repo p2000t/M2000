@@ -29,8 +29,8 @@
 #endif
 #include "P2000.h"
 #include "Common.h"
-#include "Utils.h"
 #include "Icon.h"
+#include "Menu.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
@@ -42,23 +42,25 @@ ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
 ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
 ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
+ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
+ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
+ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
 
 int buf_size;
 int sample_rate;
 signed char *soundbuf;      /* Pointer to sound buffer               */
 int mastervolume=4;               /* Master volume setting                 */
-static int sound_active=1;
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
+ALLEGRO_MENU *menu = NULL;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 
 int videomode;                     /* only in T emulation mode: 
                                       0=960x720 - with scanlines
-                                      1=960x720 - no scanlines
-                                      1=960x720 - pixelated font            */ 
+                                      1=960x720 - no scanlines              */ 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
 static int *OldCharacter;          /* Holds characters on the screen        */
 
@@ -66,9 +68,7 @@ ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
-ALLEGRO_BITMAP *ScreenshotBuf = NULL;
 
-#ifdef JOYSTICK
 static byte joyKeyMapping[2][5] = 
 {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
@@ -79,10 +79,10 @@ int joymap=0;                      /* 0 = default joystick-key mapping      */
 ALLEGRO_JOYSTICK *joystick = NULL;
 ALLEGRO_JOYSTICK_STATE joyState;
 bool lastJoyState[5];
-#endif
 
 ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
+static int CpuSpeed;
 
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
@@ -130,12 +130,13 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-#define NUMBER_OF_KEYMAPPINGS 70
+#define NUMBER_OF_KEYMAPPINGS 71
 static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
-  { ALLEGRO_KEY_F2,         56,      1,       16,      1 }, // START   STOP
+  { ALLEGRO_KEY_F2,         56,      1,       56,      1 }, // START   [free]
+  { ALLEGRO_KEY_F3,         16,      1,       16,      1 }, // STOP    [free]
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
   { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b
@@ -216,6 +217,10 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
+
+  al_destroy_timer(timer);
+  al_destroy_event_queue(timerQueue);
+  al_destroy_menu(menu);
   al_destroy_display(display);
   al_destroy_event_queue(eventQueue);
   al_uninstall_joystick();
@@ -224,41 +229,43 @@ void TrashMachine(void)
   al_shutdown_image_addon();
   al_destroy_native_file_dialog(cassetteChooser);
   al_destroy_native_file_dialog(cartridgeChooser);
+  al_destroy_native_file_dialog(screenshotChooser);
+  al_destroy_native_file_dialog(vRamLoadChooser);
+  al_destroy_native_file_dialog(vRamSaveChooser);
   al_shutdown_native_dialog_addon();
 
-  al_destroy_timer(timer);
-  al_destroy_event_queue(timerQueue);
-
-  //al_drain_audio_stream(stream);
-  al_destroy_audio_stream(stream);
-  al_destroy_mixer(mixer);
-  al_uninstall_audio();
-  free (soundbuf);
+  if (soundmode) {
+    //al_drain_audio_stream(stream);
+    al_destroy_audio_stream(stream);
+    al_destroy_mixer(mixer);
+    al_uninstall_audio();
+    free (soundbuf);
+  }
 
   if (FontBuf) al_destroy_bitmap(FontBuf);
   if (FontBuf_bk) al_destroy_bitmap(FontBuf_bk);
   if (FontBuf_scaled) al_destroy_bitmap(FontBuf_scaled);
   if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
-  if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf);
   if (OldCharacter) free (OldCharacter);
   
   al_uninstall_system();
 }
 
-int InitAllegro()
-{
-  if (!al_is_system_installed())
-  {
+int InitAllegro() {
+  if (!al_is_system_installed()) {
     // init allegro
     if (Verbose) printf("Initialising Allegro drivers and addons... ");
-    if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon())
-    {
+    if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon()) {
       if (Verbose) puts("FAILED");
       return 0;
     }
     if (Verbose) puts("OK");
   }
   return 1;
+}
+
+void ResetView() {
+  memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
 /****************************************************************************/
@@ -269,22 +276,45 @@ int InitMachine(void)
   int i;
 
   if (Verbose) printf("M2000 v"M2000_VERSION"\n");
-  
-  if (!InitAllegro()) return 0;
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE);
 
+  CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
+  if (CpuSpeed > 350) CpuSpeed = 500;
+  else if (CpuSpeed > 150) CpuSpeed = 200;
+  else if (CpuSpeed > 75) CpuSpeed = 100;
+  else if (CpuSpeed > 35) CpuSpeed = 50;
+  else if (CpuSpeed > 15) CpuSpeed = 20;
+  else CpuSpeed = 10;
+
+  if (!InitAllegro()) return 0;
+  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+#ifndef WIN32
+    | ALLEGRO_GTK_TOPLEVEL // required for menu
+#endif
+  ); 
+  
   al_init_native_dialog_addon();
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select a .cas file", "*.cas", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+  screenshotChooser = al_create_native_file_dialog(NULL,
+    "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
+  vRamLoadChooser = al_create_native_file_dialog(NULL,
+    "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+  vRamSaveChooser = al_create_native_file_dialog(NULL,
+    "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
 
   if (joymode) 
   {
     if (Verbose) printf("Initialising and detecting joystick... ");
-    if (al_install_joystick() && (joystick = al_get_joystick(0)) != NULL && Verbose)
-      puts("OK");
-    else if (Verbose) puts("FAILED");
+    joymode=0; //assume not found
+    if (al_install_joystick()) {
+      if ((joystick = al_get_joystick(0)) != NULL) {
+        joymode = 1;
+        if (Verbose) puts("OK");
+      }
+    }
+    if (!joymode && Verbose) puts("FAILED");
   }
 
   if (Verbose)
@@ -314,6 +344,7 @@ int InitMachine(void)
   }
   al_set_window_title(display, Title);
   al_clear_to_color(al_map_rgb(0, 0, 0));
+
   //set app icon
   ALLEGRO_FILE *iconFile;
   if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) 
@@ -326,6 +357,7 @@ int InitMachine(void)
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
+  al_register_event_source(eventQueue, al_get_default_menu_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
   if (P2000_Mode) /* black and white palette */
@@ -335,74 +367,76 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("  Allocating cache buffers... ");
-  i = P2000_Mode ? 80 * 24 : 40 * 24;
-  OldCharacter = malloc(i * sizeof(int));
+  OldCharacter = malloc(80 * 24 * sizeof(int));
   if (!OldCharacter)
   {
     if (Verbose) puts("FAILED");
     return (0);
   }
-  memset(OldCharacter, -1, i * sizeof(int));
+  ResetView();
   if (Verbose) puts("OK");
-  
-  InitScreenshotFile();
-  InitVRAMFile();
 
-  /* sound init */
-  if (Verbose) printf("Initializing sound...");
-
-  if (!al_install_audio())
+  if (soundmode)
   {
-    if (Verbose) printf("FAILED\n");
-    sound_active = 0;
-  }
+    /* sound init */
+    if (Verbose) printf("Initializing sound...");
 
-  if (!al_reserve_samples(0))
-  {
-    if (Verbose)
-      printf("FAILED\n");
-    sound_active = 0;
-  }
-
-  if (Verbose)
-    printf("OK\n");
-
-  if (Verbose)
-    printf("  Creating the audio stream: ");
-
-  for (i = 4096; i >= 128; i /= 2) if (i * IFreq <= 44100) break;
-  sample_rate = i * IFreq;
-  if (Verbose)
-    printf("%d Hz...", sample_rate);
-  /* The actual sampling rate might be different from the optimal one.
-     Here we calculate the optimal buffer size */
-  buf_size = sample_rate / IFreq;
-  for (i = 1; (1 << i) <= buf_size; ++i);
-  if (((1 << i) - buf_size) > (buf_size - (1 << (i - 1)))) --i;
-  buf_size = 1 << i;
-  soundbuf = malloc(buf_size);
-
-  stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
-
-  if (Verbose)
-  {
-    if (!stream || !soundbuf)
+    if (!al_install_audio())
     {
-      printf("FAILED\n");
-      sound_active = 0;
+      if (Verbose) printf("FAILED\n");
+      soundmode = 0;
     }
-    else
+
+    if (!al_reserve_samples(0))
+    {
+      if (Verbose)
+        printf("FAILED\n");
+      soundmode = 0;
+    }
+
+    if (Verbose)
       printf("OK\n");
+
+    if (Verbose)
+      printf("  Creating the audio stream: ");
+
+    for (i = 4096; i >= 128; i /= 2) if (i * IFreq <= 44100) break;
+    sample_rate = i * IFreq;
+    if (Verbose)
+      printf("%d Hz...", sample_rate);
+    /* The actual sampling rate might be different from the optimal one.
+      Here we calculate the optimal buffer size */
+    buf_size = sample_rate / IFreq;
+    for (i = 1; (1 << i) <= buf_size; ++i);
+    if (((1 << i) - buf_size) > (buf_size - (1 << (i - 1)))) --i;
+    buf_size = 1 << i;
+    soundbuf = malloc(buf_size);
+
+    stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+
+    if (Verbose)
+    {
+      if (!stream || !soundbuf)
+      {
+        printf("FAILED\n");
+        soundmode = 0;
+      }
+      else
+        printf("OK\n");
+    }
+
+    if (Verbose) printf("  Connecting to the default mixer...");
+    mixer = al_get_default_mixer();
+    if (!al_attach_audio_stream_to_mixer(stream, mixer))
+    {
+      if (Verbose) printf("FAILED\n");
+      soundmode = 0;
+    }
+    else if (Verbose) printf("OK\n");
   }
 
-  if (Verbose) printf("  Connecting to the default mixer...");
-  mixer = al_get_default_mixer();
-  if (!al_attach_audio_stream_to_mixer(stream, mixer))
-  {
-    if (Verbose) printf("FAILED\n");
-    sound_active = 0;
-  }
-  else if (Verbose) printf("OK\n");
+  //create menu
+  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, joymode, joymap, CpuSpeed, Sync);
 
   return 1;
 }
@@ -417,7 +451,7 @@ void FlushSound(void)
   static int soundstate = 0;
   static int sample_count = 1;
 
-  if (!soundoff && sound_active)
+  if (!soundoff && soundmode)
   {
     int8_t *playbuf = al_get_audio_stream_fragment(stream);
     if (playbuf)
@@ -466,7 +500,7 @@ void Sound(int toggle)
   static int last=-1;
   int pos,val;
 
-  if (soundoff || !sound_active) 
+  if (soundoff || !soundmode) 
     return;
 
   if (toggle!=last)
@@ -605,7 +639,8 @@ int LoadFont(char *filename)
         }
         else 
         {
-          if (i < 96 * 10 && videomode < 2) // check if within alpanum character range
+          /* character rounding */
+          if (i < 96 * 10) // check if within alpanum character range
           {
             // for character rounding, look at 18 pixel around current pixel
             // using 16-wind compass notation + NN and SS
@@ -771,6 +806,21 @@ void Keyboard(void)
   if (!al_get_timer_started(timer))
     al_start_timer(timer);
 
+  static byte delayedShiftedKeyPress = 0;
+  if (delayedShiftedKeyPress) {
+    if (delayedShiftedKeyPress > 100)
+    {
+      ReleaseKey(delayedShiftedKeyPress-100);
+      ReleaseKey(72); //release LSHIFT
+      delayedShiftedKeyPress = 0;
+    }
+    else {
+      PushKey(delayedShiftedKeyPress);
+      delayedShiftedKeyPress += 100;
+    }
+    return; //stop handling rest of keys
+  }
+
 #ifdef WIN32
   // hide console window after init (but don't block thread for it)
   static int consoleHiddenOnInit = 0;
@@ -787,6 +837,7 @@ void Keyboard(void)
   byte keyCode, keyCodeCombi;
   bool al_shift_down;
   bool isP2000ShiftDown;
+  FILE *f;
 
   static byte queuedKeys[NUMBER_OF_KEYMAPPINGS] = {0};
   static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
@@ -825,17 +876,14 @@ void Keyboard(void)
       keyCode = keyMappings[i][al_shift_down ? 3 : 1];
       keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
 
-      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed))
-      {
+      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
         if (isCombiKey) 
           ReleaseKey(keyCodeCombi);
-        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) 
-        {
+        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
           queuedKeys[i] = 0;
           PushKey(keyCode);
         }
-        else 
-        {
+        else {
           // first, the shift must be pressed/un-pressed in this interrupt
           // then in the next interrupt the target key itself will be pressed
           KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
@@ -845,10 +893,8 @@ void Keyboard(void)
         if (!isNormalKey) 
           isSpecialKeyPressed = true;
       }
-      else
-      {
-        if (activeKeys[i]) 
-        {
+      else {
+        if (activeKeys[i]) {
           // unpress key and second key in P2000's keyboard matrix
           if (isCombiKey) ReleaseKey(keyCodeCombi);
           ReleaseKey(keyCode);
@@ -863,85 +909,155 @@ void Keyboard(void)
     }
   }
 
+  // handle window and menu events
+  while (al_get_next_event(eventQueue, &event)) { 
+    if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon clicked
+      Z80_Running = 0;
+
+    if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
+      switch (event.user.data1) {
+        case FILE_INSERT_CASSETTE_ID:
+        case FILE_INSERTRUN_CASSETTE_ID:
+          if (al_show_native_file_dialog(display, cassetteChooser)) {
+            InsertCassette(al_get_native_file_dialog_path(cassetteChooser, 0));
+            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID)
+              Z80_Reset();
+          }
+          break;
+        case FILE_REMOVE_CASSETTE_ID:
+          RemoveCassette();
+          break;
+        case FILE_INSERT_CARTRIDGE_ID:
+          if (al_show_native_file_dialog(display, cartridgeChooser))
+            InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
+          break;
+        case FILE_REMOVE_CARTRIDGE_ID:
+          RemoveCartridge();
+          break;
+        case FILE_RESET_ID:
+          Z80_Reset();
+          break;
+        case FILE_SAVE_SCREENSHOT_ID:
+          if (al_show_native_file_dialog(display, screenshotChooser)) {
+            al_save_bitmap(al_get_native_file_dialog_path(screenshotChooser, 0),  al_get_target_bitmap());
+          }
+          break;
+        case FILE_LOAD_VIDEORAM_ID:
+          if (al_show_native_file_dialog(display, vRamLoadChooser)) {
+            if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL)
+            {
+              fread(VRAM, 1, 0x1000, f); //read full 4K
+              fclose(f);
+              RefreshScreen();
+            } 
+          }
+          break;
+        case FILE_SAVE_VIDEORAM_ID:
+          if (al_show_native_file_dialog(display, vRamSaveChooser)) {
+            if ((f = fopen(al_get_native_file_dialog_path(vRamSaveChooser, 0), "wb")) != NULL)
+            {
+              fwrite(VRAM, 1, 0x1000, f); //write full 4K
+              fclose(f);
+            }
+          }
+          break;
+        case FILE_EXIT_ID:
+          Z80_Running = 0;
+          break;
+
+        case VIEW_SHOW_SCANLINES_ID:
+          videomode = !videomode;
+          ResetView();
+          break;
+        case VIEW_WINDOW_SIZE_960_720:
+          al_resize_display(display, DISPLAY_WIDTH+2*DISPLAY_BORDER, DISPLAY_HEIGHT+2*DISPLAY_BORDER);
+          ResetView();
+          break;
+
+        case SPEED_SYNC:
+          Sync = !Sync;
+          break;
+        case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_200_ID: case SPEED_500_ID:
+          CpuSpeed = event.user.data1 - 1000;
+          al_set_menu_item_flags(menu, SPEED_500_ID, CpuSpeed == 500 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, SPEED_200_ID, CpuSpeed == 200 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, SPEED_100_ID, CpuSpeed == 100 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, SPEED_50_ID, CpuSpeed == 50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, SPEED_20_ID, CpuSpeed == 20 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, SPEED_10_ID, CpuSpeed == 10 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          break;
+
+        case KEYBOARD_POSITIONAL_ID:
+        case KEYBOARD_SYMBOLIC_ID:
+          keyboardmap = !keyboardmap;
+          al_set_menu_item_flags(menu, KEYBOARD_SYMBOLIC_ID, keyboardmap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, KEYBOARD_POSITIONAL_ID, keyboardmap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          break;
+        case KEYBOARD_ZOEK_ID:
+          PushKey(72); //LSHIFT
+          delayedShiftedKeyPress = 59;
+          break;
+        case KEYBOARD_START_ID:
+          PushKey(72); //LSHIFT
+          delayedShiftedKeyPress = 56;
+          break;
+        case KEYBOARD_STOP_ID:
+          PushKey(72); //LSHIFT
+          delayedShiftedKeyPress = 16;
+          break;
+
+        case OPTIONS_SOUND_ID:
+          soundoff = (!soundoff);
+          break;
+        case OPTIONS_JOYSTICK_ID:
+          joymode = !joymode;
+          break;
+        case OPTIONS_JOYSTICK_MAP_0_ID:
+        case OPTIONS_JOYSTICK_MAP_1_ID:
+          joymap = !joymap;
+          al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_0_ID, joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_1_ID, joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          break;
+
+        case HELP_ABOUT_ID:
+          al_show_native_message_box(display,
+            "About M2000", "M2000 - Philips P2000 emulator",
+            "Version "M2000_VERSION,
+            NULL, 0
+          );
+          break;
+      }
+    }
+  }
+
   /* press Escape to quit M2000 */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
     Z80_Running = 0;
 
-  /* F3 to load a .cas cassette file */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F3))
-  {
-    if (al_shift_down) 
-      RemoveCassette();
-    else if (al_show_native_file_dialog(display, cassetteChooser)) {
-      InsertCassette(al_get_native_file_dialog_path(cassetteChooser, 0));
-    }
-  }
-
-  /* F4 to load a .bin cartridge file */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F4))
-  {
-    if (al_shift_down) 
-      RemoveCartridge();
-    else if (al_show_native_file_dialog(display, cartridgeChooser))
-      InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
-  }
-
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
-#ifdef DEBUG
-    Z80_Trace = !Z80_Trace;
-#else
-    Z80_Reset ();
-#endif
-
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6))
-  {
-    #ifdef WIN32
-    ShowWindow(GetConsoleWindow(), SW_RESTORE);
-    #endif
-    OptionsDialogue();
-    #ifdef WIN32
-    ShowWindow(GetConsoleWindow(), SW_HIDE);
-    #endif
-  }
-
-  /* F7 = screenshot */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7))
-  {
-    if (Verbose) 
-      printf("  Writing screen shot to %s...", szBitmapFile);
-    if (ScreenshotBuf)
-      al_destroy_bitmap(ScreenshotBuf); // clean up previous screenshot
-    ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
-    al_save_bitmap(szBitmapFile, ScreenshotBuf);
-    if (Verbose)
-      printf("OK\n");
-    NextOutputFile(szBitmapFile);
-  }
-
-  /* F8 = save video RAM to file */
+  /* press F8 to Reset */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F8))
-  {
-    WriteVRAMFile();
-    NextOutputFile(szVideoRamFile);
-  }
+    Z80_Reset ();
 
-  /* F9 = pause / unpause */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F9))
-  {
-    if (Verbose)
-      printf("  Paused...\n");
-    //wait for unpause
-    while (!al_key_up(&kbdstate, ALLEGRO_KEY_F9))
-      al_get_keyboard_state(&kbdstate);
-    if (Verbose)
-      printf("  ...Unpaused\n");
-  }
+#ifdef DEBUG
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
+    Z80_Trace = !Z80_Trace;
+#endif
+  
+
+  // /* F9 = pause / unpause */
+  // if (al_key_up(&kbdstate, ALLEGRO_KEY_F9))
+  // {
+  //   if (Verbose)
+  //     printf("  Paused...\n");
+  //   //wait for unpause
+  //   while (!al_key_up(&kbdstate, ALLEGRO_KEY_F9))
+  //     al_get_keyboard_state(&kbdstate);
+  //   if (Verbose)
+  //     printf("  ...Unpaused\n");
+  // }
 
   /* F10, F11 and F12 for sound optioons */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F10))
-  {
-    soundoff = (!soundoff);
-  }
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
   {
     if (mastervolume)
@@ -953,9 +1069,8 @@ void Keyboard(void)
       ++mastervolume;
   }
 
-#ifdef JOYSTICK
   // handle joystick
-  if (joystick != NULL) 
+  if (joymode) 
   {
     al_get_joystick_state(joystick, &joyState);
     for (i = 0; i < 5; i++) // 4 directions and 1 button
@@ -972,14 +1087,7 @@ void Keyboard(void)
         lastJoyState[i] = 0;
       }
     }
-  }
-#endif
-
-  //check if Window was closed
-  while (al_get_next_event(eventQueue, &event))
-  { 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) Z80_Running = 0;
-  }
+  } 
 }
 
 /****************************************************************************/
