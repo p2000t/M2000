@@ -8,9 +8,8 @@ CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
-	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK
-LFLAGS  = -s
-#-mwindows
+	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND
+LFLAGS  = -s -mwindows
 #-Wl,-subsystem,windows 
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o
@@ -25,4 +24,4 @@ P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
 Z80.o:      Z80.c Z80.h Z80CDx86.h Z80DAA.h Z80IO.h
 Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
 Bitmap.o:   Bitmap.c
-Allegro.o:  Allegro.c Common.h P2000.h Z80.h Z80IO.h Utils.h Icon.h
+Allegro.o:  Allegro.c Common.h P2000.h Z80.h Z80IO.h Icon.h Menu.h AllegroKeyboard.h

@@ -426,7 +426,6 @@ void OptionsDialogue (void)
  char buf[256];
  char *p;
  int tmp;
- FILE *f;
  do
  {
   printf ("\nOptions currently in use are:\n"
@@ -442,7 +441,6 @@ void OptionsDialogue (void)
           "t <filename>     - Change tape image\n"
           "p <filename>     - Change printer log file\n"
           "f <filename>     - Change font file name\n"
-          "v <filename>     - Load video RAM file\n"
           "c <percentage>   - Change Z80 CPU speed\n"
           "b                - Back\n"
           "q                - Quit emulator\n> ");
@@ -456,16 +454,6 @@ void OptionsDialogue (void)
   {
    case 't': case 'T':
     InsertCassette(buf+2);
-    break;
-   case 'v': case 'V':
-      if (Verbose) printf ("Opening video RAM file %s... ",buf+2);
-      if ((f = fopen(buf+2, "rb")) != NULL)
-      {
-        fread(VRAM, 1, 0x1000, f); //read full 4K
-        fclose(f);
-        RefreshScreen();
-      } 
-      if (Verbose) puts ((f)? "OK":"FAILED");
     break;
    case 'p': case 'P':
     strcpy (_PrnName,buf+2);

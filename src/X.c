@@ -14,7 +14,6 @@
 #include "P2000.h"
 #include "Unix.h"
 #include "Common.h"
-#include "Utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,6 +123,14 @@ static int keymask[256]=
  0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x3FB
 };
 
+int ShowErrorMessage(const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  printf(format, args);
+  va_end(args);
+  return 0; //awlays return error code
+}
 /****************************************************************************/
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/
@@ -171,7 +178,6 @@ static void keyb_handler (int code,int newstatus)
     case XK_Escape:
      Z80_Running=0;
      break;
-
     case XK_F5:
 #ifdef DEBUG
      Z80_Trace=!Z80_Trace;
@@ -179,7 +185,6 @@ static void keyb_handler (int code,int newstatus)
      Z80_Reset ();
 #endif
      break;
-
 #ifdef SOUND
     case XK_F10:
      soundoff=(!soundoff);
@@ -191,10 +196,6 @@ static void keyb_handler (int code,int newstatus)
      IncreaseSoundVolume ();
      break;
 #endif
-    case XK_F8:
-      WriteVRAMFile();
-      NextOutputFile(szVideoRamFile);
-      break;
     case XK_F6:
      calloptions=1;
      break;
@@ -427,8 +428,6 @@ int InitMachine(void)
   XPal[1]=White;
  }
  if (Verbose) printf ("OK\n");
-
- InitVRAMFile();
 
 #ifdef JOYSTICK
  InitJoystick (joymode);
