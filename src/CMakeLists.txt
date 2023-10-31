@@ -36,7 +36,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
 set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DJOYSTICK -DSOUND")
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-subsystem,windows")
+set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
