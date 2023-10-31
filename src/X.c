@@ -123,6 +123,14 @@ static int keymask[256]=
  0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x3FB
 };
 
+int ShowErrorMessage(const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  printf(format, args);
+  va_end(args);
+  return 0; //awlays return error code
+}
 /****************************************************************************/
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/

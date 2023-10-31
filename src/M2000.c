@@ -111,7 +111,7 @@ static int ParseOptions (int argc,char *argv[])
    {
     case 0:  /* CartName=argv[N]; */    /* Already filled in GetCartName() */
              break;
-    default: printf("Excessive filename '%s'\n",argv[N]);
+    default: ShowErrorMessage("Excessive filename '%s'\n",argv[N]);
              return 0;
    }
   else
@@ -284,12 +284,12 @@ static int ParseOptions (int argc,char *argv[])
              ;else
               misparm=1;
              break;
-    default: printf("Wrong option '%s'\n",argv[N]);
+    default: ShowErrorMessage("Wrong option '%s'\n",argv[N]);
              return 0;
    }
    if (misparm)
    {
-    printf("%s: Missing parameter\n",argv[N-1]);
+    ShowErrorMessage("%s: Missing parameter\n",argv[N-1]);
     return 0;
    }
   }

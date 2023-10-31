@@ -136,6 +136,15 @@ static int keymask[256]=
  0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000
 };
 
+int ShowErrorMessage(const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  printf(format, args);
+  va_end(args);
+  return 0; //awlays return error code
+}
+
 /****************************************************************************/
 /*** This function is called to set a number of palette RGB values        ***/
 /****************************************************************************/

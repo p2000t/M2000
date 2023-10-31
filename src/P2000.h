@@ -111,3 +111,7 @@ void Pause (int ms);
 /************************************************** TO BE WRITTEN BY USER ***/
 int LoadFont (char *filename);
 
+/****************************************************************************/
+/*** Show breaking error message (on graphical OS, shows a messagebox)    ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+int ShowErrorMessage(const char *format, ...);
