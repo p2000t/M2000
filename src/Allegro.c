@@ -48,7 +48,7 @@ ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
 
 int buf_size;
 int sample_rate;
-signed char *soundbuf;      /* Pointer to sound buffer               */
+signed char *soundbuf = NULL;      /* Pointer to sound buffer               */
 int mastervolume=5;               /* Master volume setting                 */
 
 ALLEGRO_EVENT event;
@@ -218,44 +218,42 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
 
-  al_destroy_timer(timer);
-  al_destroy_event_queue(timerQueue);
-  al_destroy_menu(menu);
-  al_destroy_display(display);
-  al_destroy_event_queue(eventQueue);
-  al_uninstall_joystick();
-  al_uninstall_keyboard();
-  al_shutdown_primitives_addon();
-  al_shutdown_image_addon();
-  al_destroy_native_file_dialog(cassetteChooser);
-  al_destroy_native_file_dialog(cartridgeChooser);
-  al_destroy_native_file_dialog(screenshotChooser);
-  al_destroy_native_file_dialog(vRamLoadChooser);
-  al_destroy_native_file_dialog(vRamSaveChooser);
-  al_shutdown_native_dialog_addon();
+  // al_destroy_timer(timer);
+  // al_destroy_event_queue(timerQueue);
+  // al_destroy_menu(menu);
+  // al_destroy_display(display);
+  // al_destroy_event_queue(eventQueue);
+  // al_uninstall_joystick();
+  // al_uninstall_keyboard();
+  // al_shutdown_primitives_addon();
+  // al_shutdown_image_addon();
+  // al_destroy_native_file_dialog(cassetteChooser);
+  // al_destroy_native_file_dialog(cartridgeChooser);
+  // al_destroy_native_file_dialog(screenshotChooser);
+  // al_destroy_native_file_dialog(vRamLoadChooser);
+  // al_destroy_native_file_dialog(vRamSaveChooser);
+  // al_shutdown_native_dialog_addon();
 
-  if (soundmode) {
-    //al_drain_audio_stream(stream);
-    al_destroy_audio_stream(stream);
-    al_destroy_mixer(mixer);
-    al_uninstall_audio();
-    free (soundbuf);
-  }
+  //al_drain_audio_stream(stream);
+  // al_destroy_audio_stream(stream);
+  // al_destroy_mixer(mixer);
+  // al_uninstall_audio();
+  free (soundbuf);
 
-  if (FontBuf) al_destroy_bitmap(FontBuf);
-  if (FontBuf_bk) al_destroy_bitmap(FontBuf_bk);
-  if (FontBuf_scaled) al_destroy_bitmap(FontBuf_scaled);
-  if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
+  // if (FontBuf) al_destroy_bitmap(FontBuf);
+  // if (FontBuf_bk) al_destroy_bitmap(FontBuf_bk);
+  // if (FontBuf_scaled) al_destroy_bitmap(FontBuf_scaled);
+  // if (FontBuf_bk_scaled) al_destroy_bitmap(FontBuf_bk_scaled);
   if (OldCharacter) free (OldCharacter);
   
-  al_uninstall_system();
+  //al_uninstall_system();
 }
 
 int InitAllegro() {
   if (!al_is_system_installed()) {
     // init allegro
     if (Verbose) printf("Initialising Allegro drivers and addons... ");
-    if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon()) {
+    if (!al_init() || !al_init_primitives_addon() || !al_init_image_addon() || !al_init_native_dialog_addon()) {
       if (Verbose) puts("FAILED");
       return 0;
     }
@@ -292,7 +290,6 @@ int InitMachine(void)
 #endif
   ); 
   
-  al_init_native_dialog_addon();
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select a .cas file", "*.cas", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
