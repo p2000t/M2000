@@ -49,7 +49,7 @@ ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
 int buf_size;
 int sample_rate;
 signed char *soundbuf;      /* Pointer to sound buffer               */
-int mastervolume=4;               /* Master volume setting                 */
+int mastervolume=5;               /* Master volume setting                 */
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
@@ -436,7 +436,7 @@ int InitMachine(void)
   }
 
   //create menu
-  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, joymode, joymap, CpuSpeed, Sync);
+  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, mastervolume, joymode, joymap, CpuSpeed, Sync);
 
   return 1;
 }
@@ -839,6 +839,9 @@ void Keyboard(void)
   bool isP2000ShiftDown;
   FILE *f;
 
+  static int pausePressed = 0;
+  static bool isNextEvent = false;
+
   static byte queuedKeys[NUMBER_OF_KEYMAPPINGS] = {0};
   static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
 
@@ -910,7 +913,17 @@ void Keyboard(void)
   }
 
   // handle window and menu events
-  while (al_get_next_event(eventQueue, &event)) { 
+  while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
+
+    if (pausePressed){
+      al_get_keyboard_state(&kbdstate);
+      if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
+        pausePressed = 0;
+        al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
+      }
+    }
+    if (!isNextEvent) event.type = 0;
+
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon clicked
       Z80_Running = 0;
 
@@ -938,9 +951,8 @@ void Keyboard(void)
           Z80_Reset();
           break;
         case FILE_SAVE_SCREENSHOT_ID:
-          if (al_show_native_file_dialog(display, screenshotChooser)) {
+          if (al_show_native_file_dialog(display, screenshotChooser))
             al_save_bitmap(al_get_native_file_dialog_path(screenshotChooser, 0),  al_get_target_bitmap());
-          }
           break;
         case FILE_LOAD_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamLoadChooser)) {
@@ -977,15 +989,14 @@ void Keyboard(void)
         case SPEED_SYNC:
           Sync = !Sync;
           break;
+        case SPEED_PAUSE:
+          pausePressed = !pausePressed;
+          break;
+
         case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_200_ID: case SPEED_500_ID:
-          CpuSpeed = event.user.data1 - 1000;
-          al_set_menu_item_flags(menu, SPEED_500_ID, CpuSpeed == 500 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_set_menu_item_flags(menu, SPEED_200_ID, CpuSpeed == 200 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_set_menu_item_flags(menu, SPEED_100_ID, CpuSpeed == 100 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_set_menu_item_flags(menu, SPEED_50_ID, CpuSpeed == 50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_set_menu_item_flags(menu, SPEED_20_ID, CpuSpeed == 20 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_set_menu_item_flags(menu, SPEED_10_ID, CpuSpeed == 10 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          CpuSpeed = event.user.data1 - SPEED_OFFSET;
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          UpdateCpuSpeedMenu(menu, CpuSpeed);
           break;
 
         case KEYBOARD_POSITIONAL_ID:
@@ -1006,9 +1017,17 @@ void Keyboard(void)
           PushKey(72); //LSHIFT
           delayedShiftedKeyPress = 16;
           break;
+        case KEYBOARD_CLEARCAS_ID:
+          PushKey(72); //LSHIFT
+          delayedShiftedKeyPress = 51;
+          break;
 
         case OPTIONS_SOUND_ID:
           soundoff = (!soundoff);
+          break;
+        case OPTIONS_VOLUME_MAX_ID: case OPTIONS_VOLUME_HIGH_ID: case OPTIONS_VOLUME_MEDIUM_ID: case OPTIONS_VOLUME_LOW_ID:
+          mastervolume = event.user.data1 - OPTIONS_VOLUME_OFFSET;
+          UpdateVolumeMenu(menu,mastervolume);
           break;
         case OPTIONS_JOYSTICK_ID:
           joymode = !joymode;
@@ -1022,8 +1041,8 @@ void Keyboard(void)
 
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
-            "About M2000", "M2000 - Philips P2000 emulator",
-            "Version "M2000_VERSION,
+            "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
+            "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0
           );
           break;
@@ -1031,43 +1050,45 @@ void Keyboard(void)
     }
   }
 
+  /* press F5 to Reset (or trace in DEBUG mode) */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
+#ifdef DEBUG
+    Z80_Trace = !Z80_Trace;
+#else
+    Z80_Reset ();
+#endif
+
+  /* press F7 for screenshot */
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
+    if (al_show_native_file_dialog(display, screenshotChooser))
+      al_save_bitmap(al_get_native_file_dialog_path(screenshotChooser, 0),  al_get_target_bitmap());
+  
+  /* F9 = pause / unpause */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
+    pausePressed = !pausePressed;
+    al_set_menu_item_flags(menu, SPEED_PAUSE, pausePressed ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  }
+
+  /* F10 = toggle sound on/off */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F10)) {
+    soundoff = (!soundoff);
+    al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
+  }
+  /* F11 and F12 for volume up/down */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11)) {
+    if (mastervolume > 5) mastervolume -= 5;
+    else if (mastervolume == 5) mastervolume = 1;
+    UpdateVolumeMenu(menu, mastervolume);
+  }
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F12)) {
+    if (mastervolume == 1) mastervolume = 5;
+    else if (mastervolume < 15) mastervolume += 5;
+    UpdateVolumeMenu(menu, mastervolume);
+  }
+
   /* press Escape to quit M2000 */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
     Z80_Running = 0;
-
-  /* press F8 to Reset */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8))
-    Z80_Reset ();
-
-#ifdef DEBUG
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
-    Z80_Trace = !Z80_Trace;
-#endif
-  
-
-  // /* F9 = pause / unpause */
-  // if (al_key_up(&kbdstate, ALLEGRO_KEY_F9))
-  // {
-  //   if (Verbose)
-  //     printf("  Paused...\n");
-  //   //wait for unpause
-  //   while (!al_key_up(&kbdstate, ALLEGRO_KEY_F9))
-  //     al_get_keyboard_state(&kbdstate);
-  //   if (Verbose)
-  //     printf("  ...Unpaused\n");
-  // }
-
-  /* F10, F11 and F12 for sound optioons */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
-  {
-    if (mastervolume)
-      --mastervolume;
-  }
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F12))
-  {
-    if (mastervolume < 15)
-      ++mastervolume;
-  }
 
   // handle joystick
   if (joymode) 

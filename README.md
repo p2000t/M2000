@@ -37,10 +37,9 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 F1           -  ZOEK key (show cassette index)
 F2           -  START key (start loaded program)
 F3           -  STOP key (pause/halt program)
-F5           -  Toggle tracing on/off (debug-version only)
-F6           -  Change options
-F7           -  Make screenshot (not in the Unix/X version)
-F8           -  Reset P2000
+F5           -  Reset P2000
+F6           -  Change options (MS-DOS version only)
+F7           -  Make screenshot
 F9           -  Pause / unpause
 F10          -  Toggle sound on/off
 F11          -  Decrease sound volume

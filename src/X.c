@@ -170,11 +170,13 @@ static void keyb_handler (int code,int newstatus)
     case XK_Escape:
      Z80_Running=0;
      break;
-#ifdef DEBUG
     case XK_F5:
+#ifdef DEBUG
      Z80_Trace=!Z80_Trace;
-     break;
+#else
+     Z80_Reset ();
 #endif
+     break;
 #ifdef SOUND
     case XK_F10:
      soundoff=(!soundoff);
@@ -186,9 +188,6 @@ static void keyb_handler (int code,int newstatus)
      IncreaseSoundVolume ();
      break;
 #endif
-    case XK_F8:
-      Z80_Reset ();
-      break;
     case XK_F6:
      calloptions=1;
      break;
