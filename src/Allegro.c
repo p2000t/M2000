@@ -100,8 +100,6 @@ static byte Pal[8*3] =             /* SAA5050 palette                       */
   0xFF,0xFF,0xFF  //white
 };
 
-
-
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
 /****************************************************************************/
@@ -168,9 +166,9 @@ int InitMachine(void)
   screenshotChooser = al_create_native_file_dialog(NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
   vRamLoadChooser = al_create_native_file_dialog(NULL,
-    "Select a .ram file",  "*.ram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   vRamSaveChooser = al_create_native_file_dialog(NULL,
-    "Save as .ram file",  "*.ram", ALLEGRO_FILECHOOSER_SAVE);
+    "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
 
   if (joymode) 
   {
