@@ -24,9 +24,6 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/time.h>
-#ifdef WIN32
-#include <windows.h>
-#endif
 #include "P2000.h"
 #include "Common.h"
 #include "Icon.h"
@@ -160,7 +157,7 @@ int InitMachine(void)
   );
   
   cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select a .cas file", "*.cas", 0); //file doesn't have to exist
+    "Select an existing or new .cas file", "*.cas", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(NULL,
@@ -595,8 +592,7 @@ void ReleaseKey(byte keyCode)
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
 /****************************************************************************/
-void Keyboard(void)
-{
+void Keyboard(void) {
   /* first, make sure the 50Hz timer is started */
   if (!al_get_timer_started(timer))
     al_start_timer(timer);
@@ -607,22 +603,12 @@ void Keyboard(void)
       ReleaseKey(delayedShiftedKeyPress-100);
       ReleaseKey(72); //release LSHIFT
       delayedShiftedKeyPress = 0;
-    }
-    else {
+    } else {
       PushKey(delayedShiftedKeyPress);
       delayedShiftedKeyPress += 100;
     }
     return; //stop handling rest of keys
   }
-
-#ifdef WIN32
-  // hide console window after init (but don't block thread for it)
-  static int consoleHiddenOnInit = 0;
-  if (!consoleHiddenOnInit && IsWindowVisible(GetConsoleWindow()) != FALSE)
-    ShowWindow(GetConsoleWindow(), SW_HIDE); //SW_RESTORE to bring back
-  else 
-    consoleHiddenOnInit = 1;
-#endif
 
   int i,j,k;
   byte keyPressed;
@@ -721,7 +707,7 @@ void Keyboard(void)
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
           if (al_show_native_file_dialog(display, cassetteChooser)) {
-            InsertCassette(al_get_native_file_dialog_path(cassetteChooser, 0));
+            InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
             if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID)
               Z80_Reset();
           }
@@ -741,7 +727,7 @@ void Keyboard(void)
           break;
         case FILE_SAVE_SCREENSHOT_ID:
           if (al_show_native_file_dialog(display, screenshotChooser))
-            al_save_bitmap(al_get_native_file_dialog_path(screenshotChooser, 0),  al_get_target_bitmap());
+            al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"),  al_get_target_bitmap());
           break;
         case FILE_LOAD_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamLoadChooser)) {
@@ -754,7 +740,7 @@ void Keyboard(void)
           break;
         case FILE_SAVE_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamSaveChooser)) {
-            if ((f = fopen(al_get_native_file_dialog_path(vRamSaveChooser, 0), "wb")) != NULL) {
+            if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
               fwrite(VRAM, 1, 0x1000, f); //write full 4K
               fclose(f);
             }
@@ -841,7 +827,7 @@ void Keyboard(void)
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
     if (al_show_native_file_dialog(display, screenshotChooser))
-      al_save_bitmap(al_get_native_file_dialog_path(screenshotChooser, 0),  al_get_target_bitmap());
+      al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0),".png"),  al_get_target_bitmap());
   
   /* F9 = pause / unpause */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {

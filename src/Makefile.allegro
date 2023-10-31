@@ -9,7 +9,8 @@ LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
 	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND
-LFLAGS  = -s -mwindows
+LFLAGS  = -s
+# -mwindows
 #-Wl,-subsystem,windows 
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o

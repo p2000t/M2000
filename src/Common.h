@@ -21,6 +21,22 @@ static void PutImage(void);
 // when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 
+char* AppendExtensionIfMissing(const char* filename, const char* extension) {
+    // Find the position of the last '.' in the filename
+    const char* lastDot = strrchr(filename, '.');
+    static char newFilename[FILENAME_MAX];  // Use a static buffer for the result
+
+    if (lastDot == NULL) {
+        // No extension found in the filename
+        snprintf(newFilename, sizeof(newFilename), "%s%s", filename, extension);
+    } else {
+        // The filename already has an extension
+        strcpy(newFilename, filename);
+    }
+
+    return newFilename;
+}
+
 /****************************************************************************/
 /*** Refresh screen for T-model emulation                                 ***/
 /****************************************************************************/
