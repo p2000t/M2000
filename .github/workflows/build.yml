@@ -5,7 +5,7 @@ on:
     branches: [ "*" ]
 
 jobs:
-  build-m2000-windows:
+  build-m2000-windows-64bit:
 
     runs-on: ubuntu-latest
 
@@ -19,7 +19,38 @@ jobs:
       run: cd build && make -j
     - name: Generate artifact name
       id: generate-name
-      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win64" >> $GITHUB_OUTPUT
+    - name: Upload launcher
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ steps.generate-name.outputs.artifact_name }}
+        path: |
+          build/M2000.exe
+          build/allegro-5.2.dll
+          build/allegro_primitives-5.2.dll
+          build/allegro_image-5.2.dll
+          build/allegro_audio-5.2.dll
+          build/allegro_dialog-5.2.dll
+          build/allegro_memfile-5.2.dll
+          build/Default.fnt
+          build/P2000ROM.bin
+          build/BASIC.bin
+
+  build-m2000-windows-32bit:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar binutils-x86-64-linux-gnux32
+    - uses: actions/checkout@v3
+    - name: Configure CMake
+      run: mkdir build && cd build && cmake ../src -DUSE_WIN32=1
+    - name: Build
+      run: cd build && make -j
+    - name: Generate artifact name
+      id: generate-name
+      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win32" >> $GITHUB_OUTPUT
     - name: Upload launcher
       uses: actions/upload-artifact@v3
       with:

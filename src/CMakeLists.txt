@@ -27,8 +27,13 @@ if(${CMAKE_VERSION} VERSION_GREATER "3.24.0")
     cmake_policy(SET CMP0135 NEW) # update timestamps of Allegro5 to moment of extraction
 endif()
 
-set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
-set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
+if(USE_WIN32)
+    set(CMAKE_C_COMPILER "i686-w64-mingw32-gcc")
+    set(CMAKE_CXX_COMPILER "i686-w64-mingw32-g++")
+else()
+    set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
+    set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
+endif()
 project(M2000)
 
 # add custom directory to look for .cmake files
@@ -48,11 +53,21 @@ endif()
 
 # ensure Allegro 5 binaries for Windows are downloaded
 include(FetchContent)
+
+if(USE_WIN32)
+FetchContent_Declare(
+  allegro5
+  URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
+  URL_HASH MD5=119474cd3b3484e0a9d0ce446e7a64d2
+)
+else()
 FetchContent_Declare(
   allegro5
   URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip
   URL_HASH MD5=d671903c6d3af3dfccd63f79f7508f80
 )
+endif()
+
 FetchContent_MakeAvailable(allegro5)
 FetchContent_GetProperties(allegro5)
 
@@ -65,6 +80,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
 # Add sources
 set(SOURCES M2000.c P2000.c Z80.c Z80Debug.c Allegro.c)
 add_executable(M2000 ${SOURCES})
+
+if(USE_WIN32)
+    message(STATUS "Setting compilation for 32 bit")
+    set_target_properties(M2000 PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+endif()
 
 # link libraries
 target_link_libraries(
