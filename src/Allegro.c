@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
-#include <sys/time.h>
+
 #include "P2000.h"
 #include "Common.h"
 #include "Icon.h"
@@ -853,8 +852,9 @@ void Keyboard(void) {
     UpdateVolumeMenu(menu, mastervolume);
   }
 
-  /* press Escape to quit M2000 */
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_ESCAPE))
+  /* ALT-F4 or CTRL-Q to quit M2000 */
+  if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
+      (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
 
   // handle joystick
