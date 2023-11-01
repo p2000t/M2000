@@ -133,13 +133,41 @@ int ShowErrorMessage(const char *format, ...)
   return 0; //awlays return error code
 }
 
+void ResetAudioStream() {
+    if (Verbose) printf("  Creating the audio stream: ");
+    for (buf_size = 4096; buf_size >= 128; buf_size /= 2) if (buf_size * IFreq <= 44100) break;
+    sample_rate = buf_size * IFreq;
+    if (Verbose) printf("%d Hz, buffer size %d...", sample_rate, buf_size);
+    if (soundbuf) free(soundbuf);
+    soundbuf = malloc(buf_size);
+    if (stream) {
+      al_detach_audio_stream(stream);
+      al_destroy_audio_stream(stream);
+    }
+    stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+    if (!stream || !soundbuf)
+    {
+      if (Verbose) puts("FAILED");
+      soundmode = 0;
+    }
+    else if (Verbose) puts("OK");
+
+    if (Verbose) printf("  Connecting to the default mixer...");
+    if (!mixer) mixer = al_get_default_mixer();
+    if (!al_attach_audio_stream_to_mixer(stream, mixer))
+    {
+      if (Verbose) puts("FAILED");
+      soundmode = 0;
+    }
+    else if (Verbose) puts("OK");
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
 int InitMachine(void)
 {
-  int i;
-
+  //only support CPU speeds 10, 20, 50, 100, 200 and 500
   CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
   if (CpuSpeed > 350) CpuSpeed = 500;
   else if (CpuSpeed > 150) CpuSpeed = 200;
@@ -147,6 +175,9 @@ int InitMachine(void)
   else if (CpuSpeed > 35) CpuSpeed = 50;
   else if (CpuSpeed > 15) CpuSpeed = 20;
   else CpuSpeed = 10;
+
+  //only support 50Hz and 60Hz
+  IFreq = IFreq >= 55 ? 60 : 50; 
 
   if (!InitAllegro()) return 0;
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
@@ -189,7 +220,7 @@ int InitMachine(void)
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
   if (!eventQueue || !timerQueue || !timer)
-    return ShowErrorMessage("Could not initialize display.");
+    return ShowErrorMessage("Could not initialize timer and event queues.");
   if (Verbose) puts("OK");
 
   al_set_window_title(display, Title);
@@ -229,40 +260,13 @@ int InitMachine(void)
     if (!al_install_audio()) soundmode = 0;
     if (!al_reserve_samples(0)) soundmode = 0;
     if (Verbose) puts(soundmode ? "OK" :"FAILED");
-
-    if (Verbose) printf("  Creating the audio stream: ");
-    for (i = 4096; i >= 128; i /= 2) if (i * IFreq <= 44100) break;
-    sample_rate = i * IFreq;
-    if (Verbose) printf("%d Hz...", sample_rate);
-    /* The actual sampling rate might be different from the optimal one.
-      Here we calculate the optimal buffer size */
-    buf_size = sample_rate / IFreq;
-    for (i = 1; (1 << i) <= buf_size; ++i);
-    if (((1 << i) - buf_size) > (buf_size - (1 << (i - 1)))) --i;
-    buf_size = 1 << i;
-    soundbuf = malloc(buf_size);
-    if (!soundbuf) return ShowErrorMessage("Could not allocate sound buffer.");
-    stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
-    if (!stream || !soundbuf)
-    {
-      if (Verbose) puts("FAILED");
-      soundmode = 0;
-    }
-    else if (Verbose) puts("OK");
-
-    if (Verbose) printf("  Connecting to the default mixer...");
-    mixer = al_get_default_mixer();
-    if (!al_attach_audio_stream_to_mixer(stream, mixer))
-    {
-      if (Verbose) puts("FAILED");
-      soundmode = 0;
-    }
-    else if (Verbose) puts("OK");
+    ResetAudioStream();
   }
 
   //create menu
   if (Verbose) printf("Creating menu...");
-  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, mastervolume, joymode, joymap, CpuSpeed, Sync);
+  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, 
+    mastervolume, joymode, joymap, CpuSpeed, Sync, IFreq);
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   return 1;
@@ -766,6 +770,14 @@ void Keyboard(void) {
           CpuSpeed = event.user.data1 - SPEED_OFFSET;
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
           UpdateCpuSpeedMenu(menu, CpuSpeed);
+          break;
+        case FPS_50_ID: case FPS_60_ID:
+          IFreq = (event.user.data1 == FPS_50_ID ? 50 : 60);
+          Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          al_set_timer_speed(timer, 1.0 / IFreq);
+          ResetAudioStream();
+          al_set_menu_item_flags(menu, FPS_50_ID, IFreq==50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, FPS_60_ID, IFreq==60 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           break;
         case KEYBOARD_POSITIONAL_ID:
         case KEYBOARD_SYMBOLIC_ID:
