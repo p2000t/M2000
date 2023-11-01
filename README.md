@@ -34,19 +34,20 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 
 ## Function Keys
 ```
-F5           -  Reset P2000
-F6           -  Change options (MS-DOS version only)
-F7           -  Make screenshot
-F9           -  Pause / unpause
-F10          -  Toggle sound on/off
-F11          -  Decrease sound volume
-F12          -  Increase sound volume
-ESC          -  Quit emulator
+F5               -  Reset P2000
+F6               -  Change options (MS-DOS version only)
+F7               -  Make screenshot
+F9               -  Pause / unpause
+F10              -  Toggle sound on/off
+F11              -  Decrease sound volume
+F12              -  Increase sound volume
+Esc              -  Quit emulator (MS-DOS version only)
 
 Windows version only:
-F1           -  ZOEK key (show cassette index in BASIC)
-F2           -  START key (start loaded program in BASIC)
-Shift + F2   -  STOP key (pause/halt program in BASIC)
+F1               -  ZOEK key (show cassette index in BASIC)
+F2               -  START key (start loaded program in BASIC)
+Shift-F2         -  STOP key (pause/halt program in BASIC)
+Alt-F4 / Ctrl-Q  -  Quit emulator
 ```
 
 ## Command line options
