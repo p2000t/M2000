@@ -36,6 +36,8 @@
 
 #define SPEED_SYNC 50
 #define SPEED_PAUSE 51
+#define FPS_50_ID 52
+#define FPS_60_ID 53
 #define SPEED_OFFSET 1000
 #define SPEED_500_ID (500 + SPEED_OFFSET)
 #define SPEED_200_ID (200 + SPEED_OFFSET)
@@ -69,7 +71,8 @@ ALLEGRO_MENU * CreateEmulatorMenu(ALLEGRO_DISPLAY *display,
   int joymode,
   int joymap,
   int cpuSpeed,
-  int Sync
+  int Sync,
+  int IFreq
 ) {
   ALLEGRO_MENU_INFO menu_info[] = {
     ALLEGRO_START_OF_MENU("File", 0),
@@ -92,12 +95,17 @@ ALLEGRO_MENU * CreateEmulatorMenu(ALLEGRO_DISPLAY *display,
     ALLEGRO_START_OF_MENU("View", 0),
       { "Show Scanlines", VIEW_SHOW_SCANLINES_ID, videomode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
+      ALLEGRO_START_OF_MENU("Refresh Rate", 0),
+        { "50 Hz", FPS_50_ID, IFreq == 50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { "60 Hz", FPS_60_ID, IFreq == 60 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        ALLEGRO_END_OF_MENU,
+      ALLEGRO_MENU_SEPARATOR,
       ALLEGRO_START_OF_MENU("Window Sizes", 0),
         { "960x720", VIEW_WINDOW_SIZE_960_720, 0, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("CPU Speed", 0),
+    ALLEGRO_START_OF_MENU("Speed", 0),
       { "500%", SPEED_500_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "200%", SPEED_200_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "100%", SPEED_100_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
