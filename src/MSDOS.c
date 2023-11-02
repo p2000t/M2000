@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <sys/time.h>
 #include <sys/farptr.h>
 #include <go32.h>

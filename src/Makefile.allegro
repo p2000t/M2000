@@ -2,13 +2,12 @@
 # Following #defines can be used:
 # DEBUG			Compile with builtin debugger
 # LSB_FIRST		Compile for a low-endian machine
-# HAVE_FTRUNCATE	We have ftruncate()
 
 CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
-	  -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND
+	  -DLSB_FIRST -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND
 LFLAGS  = -s
 # -mwindows
 #-Wl,-subsystem,windows 

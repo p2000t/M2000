@@ -10,9 +10,12 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define SPACE 32 // space character
+#include <stdio.h>
+#include <string.h>
 
+#define SPACE 32 // space character
 #define M2000_VERSION "0.7-SNAPSHOT"
+#define MAX_FILENAME_LENGTH 255
 
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);
 static inline void PutChar_M(int x, int y, int c, int eor, int ul);
@@ -21,20 +24,16 @@ static void PutImage(void);
 // when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 
-char* AppendExtensionIfMissing(const char* filename, const char* extension) {
-    // Find the position of the last '.' in the filename
-    const char* lastDot = strrchr(filename, '.');
-    static char newFilename[FILENAME_MAX];  // Use a static buffer for the result
-
-    if (lastDot == NULL) {
-        // No extension found in the filename
-        snprintf(newFilename, sizeof(newFilename), "%s%s", filename, extension);
-    } else {
-        // The filename already has an extension
-        strcpy(newFilename, filename);
-    }
-
+const char* AppendExtensionIfMissing(const char* filename, const char* extension) {
+  static char newFilename[MAX_FILENAME_LENGTH + 1];  // Use a static buffer for the result
+  if (strrchr(filename, '.') == NULL && (strlen(filename)+strlen(extension) <= MAX_FILENAME_LENGTH)) {
+    // add extension to the filename
+    memcpy(newFilename, filename, strlen(filename));
+    memcpy(newFilename + strlen(filename), extension, strlen(extension) + 1);
     return newFilename;
+  } else {
+    return filename;
+  }
 }
 
 /****************************************************************************/

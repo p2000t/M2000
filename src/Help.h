@@ -58,7 +58,7 @@ char *HelpText[] =
   "  -printertype <value>       - Select printer type [0]",
   "                               0 - Daisy wheel   1 - Matrix",
   "",
-  "  -tape <filename>           - Select tape image to use [P2000.cas]",
+  "  -tape <filename>           - Select tape image to use [Default.tap]",
   "  -boot <value>              - Allow/Don't allow BASIC to boot from tape [0]",
   "                               0 - Don't allow booting",
   "                               1 - Allow booting",
