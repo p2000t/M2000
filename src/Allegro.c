@@ -449,6 +449,7 @@ int LoadFont(char *filename)
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
         x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
+        if (i < 96 * 10) x-=2; // center alpanum characters
         if (linePixels & 0x20) // bit 6 set = pixel set
           drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
         else {
@@ -909,13 +910,19 @@ static void PutImage (void) {
 
 void DrawScanlines(int x, int y) {
   int i; 
-  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
-  for (i=1; i<CHAR_TILE_HEIGHT; i+=2)
+  ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 80);
+  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
+  for (i=0; i<CHAR_TILE_HEIGHT; i+=3)
   {
     al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
       DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
       DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
       DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
+      evenLineColor, 1);
+    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
+      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
+      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
+      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
       scanlineColor, 1);
   }
 }

@@ -44,7 +44,7 @@ void RefreshScreen_T(void)
 {
   byte *S;
   int fg, bg, si, gr, fl, cg, FG, BG, conceal;
-  int hg, hg_active, hg_c, hg_fg, hg_cg;
+  int hg, hg_active, hg_c, hg_fg, hg_cg, hg_conceal;
   int x, y;
   int c;
   int lastcolor;
@@ -77,6 +77,7 @@ void RefreshScreen_T(void)
     hg_c = SPACE;
     hg_cg = cg;
     hg_fg = fg;
+    hg_conceal = conceal;
     lastcolor = fg;
     for (x = 0; x < 40; ++x)
     {
@@ -190,13 +191,14 @@ void RefreshScreen_T(void)
       {
         hg_c = c;
         hg_cg = cg; // hold display of seperated/contiguous mode
+        hg_conceal = conceal;
       }
 
       if (hg_active)
         c = hg_c;
 
       /* Check for flashing characters and concealed display */
-      if ((fl && doblank) || conceal)
+      if ((fl && doblank) || (hg_active ? hg_conceal : conceal))
         c = SPACE;
 
       /* Check if graphics are on */
@@ -227,6 +229,7 @@ void RefreshScreen_T(void)
       if (gr)
       {
         hg_fg = fg;
+        hg_conceal = conceal;
       }
     }
 
