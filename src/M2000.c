@@ -456,7 +456,7 @@ int main(int argc,char *argv[])
  Verbose=1;
  UPeriod=1;
  CpuSpeed=100;
- IFreq=60;
+ IFreq=50;
 #if defined(MSDOS) || defined(WIN32)
  PrnName="PRN";
 #endif

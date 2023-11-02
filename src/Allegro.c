@@ -167,10 +167,11 @@ void ResetAudioStream() {
 /****************************************************************************/
 int InitMachine(void)
 {
-  //only support CPU speeds 10, 20, 50, 100, 200 and 500
+  //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
   CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
   if (CpuSpeed > 350) CpuSpeed = 500;
-  else if (CpuSpeed > 150) CpuSpeed = 200;
+  else if (CpuSpeed > 160) CpuSpeed = 200;
+  else if (CpuSpeed > 110) CpuSpeed = 120;
   else if (CpuSpeed > 75) CpuSpeed = 100;
   else if (CpuSpeed > 35) CpuSpeed = 50;
   else if (CpuSpeed > 15) CpuSpeed = 20;
@@ -773,7 +774,12 @@ void Keyboard(void) {
           break;
         case FPS_50_ID: case FPS_60_ID:
           IFreq = (event.user.data1 == FPS_50_ID ? 50 : 60);
-          Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          if ((IFreq == 50 && CpuSpeed == 120) || (IFreq == 60 && CpuSpeed == 100)) {
+            CpuSpeed = 2*IFreq;
+            UpdateCpuSpeedMenu(menu, CpuSpeed);
+          } else {
+            Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          }
           al_set_timer_speed(timer, 1.0 / IFreq);
           ResetAudioStream();
           al_set_menu_item_flags(menu, FPS_50_ID, IFreq==50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);

@@ -59,7 +59,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -verbose <level>       Select debugging messages [1]
                        0 - Silent           1 - Startup messages
                        4 - Tape messages
--ifreq <frequency>     Select interrupt frequency [60 Hz]
+-ifreq <frequency>     Select interrupt frequency [50 Hz]
 -cpuspeed <speed>      Set Z80 CPU speed [100%]
 -sync <value>          Sync/Do not sync emulation [1]
                        0 - Do not sync   1 - Sync
