@@ -269,6 +269,9 @@ int InitMachine(void)
     mastervolume, joymode, joymap, CpuSpeed, Sync, IFreq);
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
+  /* start the 50Hz/60Hz timer */
+  al_start_timer(timer);
+
   return 1;
 }
 
@@ -307,13 +310,13 @@ void FlushSound(void)
     }
   }
 
-  // sync emulation by waiting for timer event (fired 50 times a second)
+  // sync emulation by waiting for timer event (fired 50/60 times a second)
   if (Sync) 
   {
     if (al_get_next_event(timerQueue, &event))
     {
 #ifdef DEBUG
-      printf("Sync too slow [%f]...\n", event.timer.timestamp);
+      printf("Sync lagged behind @ ts %f...\n", event.timer.timestamp);
 #endif
       while (al_get_next_event(timerQueue, &event)); //drain the timer queue
     }
@@ -596,9 +599,6 @@ void ReleaseKey(byte keyCode)
 /*** keyboard matrix and check for special events                         ***/
 /****************************************************************************/
 void Keyboard(void) {
-  /* first, make sure the 50Hz timer is started */
-  if (!al_get_timer_started(timer))
-    al_start_timer(timer);
 
   static byte delayedShiftedKeyPress = 0;
   if (delayedShiftedKeyPress) {
