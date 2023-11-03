@@ -30,21 +30,20 @@ endif()
 if(USE_WIN32)
     set(CMAKE_C_COMPILER "i686-w64-mingw32-gcc")
     set(CMAKE_CXX_COMPILER "i686-w64-mingw32-g++")
+    set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
     set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
 elseif(USE_WIN64)
     set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
     set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
+    set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
     set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
 else()
-    # assume Linux
+    set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
 endif()
 project(M2000)
 
 # add custom directory to look for .cmake files
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
-
-# set specific cflags
-set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
