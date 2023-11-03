@@ -30,9 +30,13 @@ endif()
 if(USE_WIN32)
     set(CMAKE_C_COMPILER "i686-w64-mingw32-gcc")
     set(CMAKE_CXX_COMPILER "i686-w64-mingw32-g++")
-else()
+    set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
+elseif(USE_WIN64)
     set(CMAKE_C_COMPILER "x86_64-w64-mingw32-gcc")
     set(CMAKE_CXX_COMPILER "x86_64-w64-mingw32-g++")
+    set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
+else()
+    # assume Linux
 endif()
 project(M2000)
 
@@ -41,7 +45,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
 set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
-set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
 
 # Enable release build
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -55,21 +58,24 @@ endif()
 include(FetchContent)
 
 if(USE_WIN32)
-FetchContent_Declare(
-  allegro5
-  URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
-  URL_HASH MD5=119474cd3b3484e0a9d0ce446e7a64d2
-)
+    FetchContent_Declare(
+      allegro5
+      URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
+      URL_HASH MD5=119474cd3b3484e0a9d0ce446e7a64d2
+    )
+    FetchContent_MakeAvailable(allegro5)
+    FetchContent_GetProperties(allegro5)
+elseif(USE_WIN64)
+    FetchContent_Declare(
+      allegro5
+      URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip
+      URL_HASH MD5=d671903c6d3af3dfccd63f79f7508f80
+    )
+    FetchContent_MakeAvailable(allegro5)
+    FetchContent_GetProperties(allegro5)
 else()
-FetchContent_Declare(
-  allegro5
-  URL https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip
-  URL_HASH MD5=d671903c6d3af3dfccd63f79f7508f80
-)
+    # assume Linux
 endif()
-
-FetchContent_MakeAvailable(allegro5)
-FetchContent_GetProperties(allegro5)
 
 # Set include folders
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
@@ -98,11 +104,13 @@ target_link_libraries(
     -lallegro_memfile
 )
 
-# copy all dependencies to build a self-contained zip file 
-set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll allegro_dialog-5.2.dll allegro_memfile-5.2.dll)
-FOREACH(FDLL ${DEPDLL})
-    file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL} DESTINATION ${CMAKE_BINARY_DIR})
-ENDFOREACH()
+if(USE_WIN32 OR USE_WIN64)
+    # copy all dependencies to build a self-contained zip file 
+    set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll allegro_dialog-5.2.dll allegro_memfile-5.2.dll)
+    FOREACH(FDLL ${DEPDLL})
+        file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL} DESTINATION ${CMAKE_BINARY_DIR})
+    ENDFOREACH()
+endif()
 
 set(SUPPORTFILES Default.fnt P2000ROM.bin BASIC.bin)
 FOREACH(SFILE ${SUPPORTFILES})
