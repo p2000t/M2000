@@ -10,18 +10,21 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define DISPLAY_WIDTH 960
-#define DISPLAY_HEIGHT 720
+#define DISPLAY_TILE_WIDTH 16
+#define DISPLAY_TILE_HEIGHT 20
+#define DISPLAY_WIDTH 640
+#define DISPLAY_HEIGHT 480
 #define DISPLAY_BORDER 10
-#define DISPLAY_TILE_WIDTH 24
-#define DISPLAY_TILE_HEIGHT 30
 
-#define CHAR_PIXEL_WIDTH 2 //must be even
+#define CHAR_PIXEL_WIDTH 4 //must be even
 #define CHAR_PIXEL_HEIGHT 2
 #define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
-#define CHAR_TILE_H_SPACE 2
-#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE)
+#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
+
+// static int Displays[3,5] = {
+//   {640, 480, 16, 20, 10}
+// }
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -378,7 +381,7 @@ int LoadFont(char *filename)
   char *TempBuf;
   FILE *F;
 
-  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR);
+  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR | ALLEGRO_MIN_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
   if (!FontBuf)
   {
@@ -455,7 +458,7 @@ int LoadFont(char *filename)
       linePixelsNextNext = line < 8 ? TempBuf[i + line + 2] : 0;
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
-        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH + (i/10 * CHAR_TILE_H_SPACE);
+        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
         if (i < 96 * 10) x-=CHAR_PIXEL_WIDTH/2; // center alpanum characters
         if (linePixels & 0x20) // bit 6 set = pixel set
           drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
@@ -865,6 +868,7 @@ void Pause(int ms) {
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
+  //al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
 }
 
@@ -896,11 +900,11 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
     return;
   OldCharacter[y * 80 + x] = K;
 
+  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
-  al_draw_bitmap_region(
-      (eor ? FontBuf_bk : FontBuf), 0.5 * c * CHAR_TILE_WIDTH, 
-      0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+  al_draw_scaled_bitmap(
+      (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+      DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
   if (ul)
     al_draw_filled_rectangle(
         DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
@@ -919,18 +923,20 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
+
+  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
-      c * (CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
+      c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
       DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
       DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * (CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
         DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
   if (videomode == 1)
