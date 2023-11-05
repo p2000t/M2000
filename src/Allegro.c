@@ -13,11 +13,15 @@
 #define DISPLAY_WIDTH 960
 #define DISPLAY_HEIGHT 720
 #define DISPLAY_BORDER 10
-#define CHAR_TILE_WIDTH 24
-#define CHAR_TILE_HEIGHT 30
-#define CHAR_PIXEL_WIDTH 4
-#define CHAR_PIXEL_HEIGHT 3
-#define FONT_BITMAP_WIDTH (96+64+64)*CHAR_TILE_WIDTH
+#define DISPLAY_TILE_WIDTH 24
+#define DISPLAY_TILE_HEIGHT 30
+
+#define CHAR_PIXEL_WIDTH 2 //must be even
+#define CHAR_PIXEL_HEIGHT 2
+#define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
+#define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
+#define CHAR_TILE_H_SPACE 2
+#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -181,11 +185,6 @@ int InitMachine(void)
   IFreq = IFreq >= 55 ? 60 : 50; 
 
   if (!InitAllegro()) return 0;
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
-#ifndef WIN32
-    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
-#endif
-  );
   
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select an existing or new .cas file", "*.cas", 0); //file doesn't have to exist
@@ -212,6 +211,14 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
+  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+#ifndef WIN32
+    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
+#endif
+  );
+  // al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 4, ALLEGRO_SUGGEST);
+  // al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+  //al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
   if ((display = al_create_display(DISPLAY_WIDTH + 2*DISPLAY_BORDER, DISPLAY_HEIGHT + 2*DISPLAY_BORDER)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
@@ -371,6 +378,7 @@ int LoadFont(char *filename)
   char *TempBuf;
   FILE *F;
 
+  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
   if (!FontBuf)
   {
@@ -407,11 +415,10 @@ int LoadFont(char *filename)
     }
   }
 
-  al_set_target_bitmap(FontBuf_bk);
-  al_clear_to_color(al_map_rgb(255, 255, 255));
-
   al_set_target_bitmap(FontBuf);
   al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_set_target_bitmap(FontBuf_bk);
+  al_clear_to_color(al_map_rgb(255, 255, 255));
 
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
   TempBuf = malloc(2240);
@@ -448,8 +455,8 @@ int LoadFont(char *filename)
       linePixelsNextNext = line < 8 ? TempBuf[i + line + 2] : 0;
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
-        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
-        if (i < 96 * 10) x-=2; // center alpanum characters
+        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH + (i/10 * CHAR_TILE_H_SPACE);
+        if (i < 96 * 10) x-=CHAR_PIXEL_WIDTH/2; // center alpanum characters
         if (linePixels & 0x20) // bit 6 set = pixel set
           drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
         else {
@@ -479,74 +486,25 @@ int LoadFont(char *filename)
             // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
             if (pixelN && pixelW && (!pixelNW || (!pixelNE && pixelNNE) || (!pixelSW && pixelWSW))) {
-              // alternative rounding for a steep vertical lines (e.g. "V")
-              if (pixelSW && pixelNN) {
-                // ⬜⬜⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬛⬛⬛
-                drawFontRegion(x,   y,   x+1, y+3);
-                drawFontRegion(x+1, y,   x+2, y+1);
-              }
-              else {
-                // ⬜⬜⬜⬛
-                // ⬜⬛⬛⬛
-                // ⬛⬛⬛⬛
-                drawFontRegion(x,   y,   x+3, y+1);
-                drawFontRegion(x,   y+1, x+1, y+2);
-              }
+              if (pixelSW && pixelNN) //alternative rounding for outer side of V
+                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT);
+              else
+                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in NE direction
             if (pixelN && pixelE && (!pixelNE || (!pixelNW && pixelNNW) || (!pixelSE && pixelESE))) {
-              // alternative rounding for a steep vertical lines (e.g. "V")
-              if (pixelSE && pixelNN) {
-                // ⬛⬛⬜⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬜
-                drawFontRegion(x+3, y,   x+4, y+3);
-                drawFontRegion(x+2, y  , x+3, y+1);
-       
-              }
-              else {
-                // ⬛⬜⬜⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬛
-                drawFontRegion(x+1, y,   x+4, y+1);
-                drawFontRegion(x+3, y+1, x+4, y+2);
-              }
+              if (pixelSE && pixelNN) //alternative rounding for outer side of V
+                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT);
+              else
+                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in SE direction
             if (pixelS && pixelE && (!pixelSE || (!pixelSW && pixelSSW) || (!pixelNE && pixelENE))) {
-              if (pixelNE && pixelSS) {
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬜⬜
-                drawFontRegion(x+3, y,   x+4, y+3);
-                drawFontRegion(x+2, y+2, x+3, y+3);
-              }
-              else {
-                // ⬛⬛⬛⬛
-                // ⬛⬛⬛⬜
-                // ⬛⬜⬜⬜
-                drawFontRegion(x+3, y+1, x+4, y+2);
-                drawFontRegion(x+1, y+2, x+4, y+3);
-              }
+              drawFontRegion(x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH, y+CHAR_PIXEL_HEIGHT);
             }
             // rounding in SW direction
             if (pixelS && pixelW && (!pixelSW || (!pixelSE && pixelSSE) || (!pixelNW && pixelWNW))) {
-              if (pixelNW && pixelSS) {
-                // ⬜⬛⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬜⬛⬛
-                drawFontRegion(x,   y,   x+1, y+3);
-                drawFontRegion(x+1, y+2, x+2, y+3);
-              }
-              else {
-                // ⬛⬛⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬜⬜⬛
-                drawFontRegion(x  , y+1, x+1, y+2);
-                drawFontRegion(x  , y+2, x+3, y+3);
-              }
+              drawFontRegion(x, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT);
             }
           }
         }
@@ -562,16 +520,18 @@ int LoadFont(char *filename)
   free(TempBuf);
 
   if (!P2000_Mode) {
-    al_set_target_bitmap(FontBuf_bk_scaled);
-    al_draw_scaled_bitmap(FontBuf_bk, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT), 0);
-
     al_set_target_bitmap(FontBuf_scaled);
-    al_draw_scaled_bitmap(FontBuf, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT), 0);
+    al_draw_scaled_bitmap(FontBuf, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
+      
+    al_set_target_bitmap(FontBuf_bk_scaled);
+    al_draw_scaled_bitmap(FontBuf_bk, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
   }
+  
+  //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
 }
 
@@ -912,17 +872,17 @@ void DrawScanlines(int x, int y) {
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 80);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
-  for (i=0; i<CHAR_TILE_HEIGHT; i+=3)
+  for (i=0; i<DISPLAY_TILE_HEIGHT; i+=3)
   {
-    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
-      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
+    al_draw_line(DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH,
+      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i,
+      DISPLAY_BORDER + (x+1) * DISPLAY_TILE_WIDTH,
+      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i,
       evenLineColor, 1);
-    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
-      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
+    al_draw_line(DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH,
+      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i+2,
+      DISPLAY_BORDER + (x+1) * DISPLAY_TILE_WIDTH,
+      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i+2,
       scanlineColor, 1);
   }
 }
@@ -959,19 +919,20 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
-
   al_set_target_bitmap(al_get_backbuffer(display));
-  al_draw_tinted_bitmap_region(
+  al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
-      c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+      c * (CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
+      DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
+      DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
   if (bg)
-    al_draw_tinted_bitmap_region(
+    al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+        c * (CHAR_TILE_WIDTH+CHAR_TILE_H_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
+        DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
   if (videomode == 1)
     DrawScanlines(x, y);
 }

@@ -2,6 +2,9 @@
 /src/*.map
 # P2000.cas is auto-generated when starting M2000 without specifying a tape file
 /*.cas
+/*.vram
+/*.png
+/*.bmp
 /*.bat
 /*.bmp
 /*.bin
