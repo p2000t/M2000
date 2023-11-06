@@ -465,11 +465,8 @@ int LoadFont(char *filename)
 }
 
 void SaveScreenshot() {
-  if (al_show_native_file_dialog(display, screenshotChooser)) {
-    if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf); //clean up previous screenshot
-    ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
-    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), ScreenshotBuf);
-  }
+  if (al_show_native_file_dialog(display, screenshotChooser))
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -805,7 +802,6 @@ void Pause(int ms) {
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
-  al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
 }
 
@@ -837,7 +833,7 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
     return;
   OldCharacter[y * 80 + x] = K;
 
-  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
+  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
       (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
@@ -847,8 +843,6 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
         DisplayBorder + 0.5 * x * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 2.0, 
         DisplayBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
-  // if (showScanlines == 1)
-  //   DrawScanlines(x, y);
 }
 
 /****************************************************************************/
@@ -861,7 +855,6 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
     return;
   OldCharacter[y * 40 + x] = K;
 
-  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
@@ -876,6 +869,4 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DisplayBorder + x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
-  // if (showScanlines == 1)
-  //   DrawScanlines(x, y);
 }
