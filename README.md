@@ -72,13 +72,15 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -keymap <mode>         Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping (only for Windows version)
--video <mode>          Select video mode/window size [0]
-                       0 - 960x720 (Windows)
+-video <mode>          Select video mode/window size [1]
+                       0 - 640x480 (Windows)
                            500x300 (Unix/X)
                            256x240 (MS-DOS)
-                       1 - 960x720 (Windows) [CRT scanlines]
+                       1 - 800x600 (Windows)
                            520x490 (Unix/X)
                            640x480 (MS-DOS)
+                       2 - 960x720 (Windows)
+                       3 - 1280x960 (Windows)
 -printer <filename>    Select file for printer output
                        Default is PRN for the MS-DOS version, stdout for
                        the Unix versions

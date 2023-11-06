@@ -35,10 +35,10 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define NUM_STACKS      16         /* Number of IRQ stacks                  */
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
-char *Title="M2000 - Philips P2000 emulatorT";    /* Title for -help output                */
+char *Title="M2000 - Philips P2000 emulator";    /* Title for -help output                */
 
 
-int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
+int videomode=1;                   /* T emulation only: 0=256x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
 static int *CharacterCache;        /* Current cache contents                */
 static byte *FontBuf;              /* Pointer to font used                  */

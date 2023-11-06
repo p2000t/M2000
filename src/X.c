@@ -42,7 +42,7 @@ XShmSegmentInfo SHMInfo;        /* Shared memory is used when possible      */
 int UseSHM=1;                   /* If 0, do not use SHM extensions          */
 #endif
 
-int videomode=0;                /* 0=500x300, 1=520x490                     */
+int videomode=1;                /* 0=500x300, 1=520x490                     */
 byte *DisplayBuf;               /* Screen buffer                            */
 static int *OldCharacter;       /* Holds the characters put in DisplayBuf   */
 static byte *FontBuf;           /* Teletext font buffer                     */

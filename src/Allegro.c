@@ -10,98 +10,27 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define DISPLAY_TILE_WIDTH 16
-#define DISPLAY_TILE_HEIGHT 20
-#define DISPLAY_WIDTH 640
-#define DISPLAY_HEIGHT 480
-#define DISPLAY_BORDER 10
-
-#define CHAR_PIXEL_WIDTH 4 //must be even
+#define CHAR_PIXEL_WIDTH 6 //must be even
 #define CHAR_PIXEL_HEIGHT 2
 #define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
-// static int Displays[3,5] = {
-//   {640, 480, 16, 20, 10}
-// }
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "P2000.h"
-#include "Common.h"
-#include "Icon.h"
-#include "AllegroKeyboard.h"
-#include "Menu.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_native_dialog.h> 
 #include <allegro5/allegro_memfile.h>
-
-ALLEGRO_AUDIO_STREAM *stream = NULL;
-ALLEGRO_MIXER *mixer = NULL;
-ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
-ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
-ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
-
-int buf_size;
-int sample_rate;
-signed char *soundbuf = NULL;      /* Pointer to sound buffer               */
-int mastervolume=4;               /* Master volume setting                 */
-
-ALLEGRO_EVENT event;
-ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_MENU *menu = NULL;
-ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
-ALLEGRO_KEYBOARD_STATE kbdstate;
-char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
-
-int videomode;                     /* only in T emulation mode: 
-                                      0=960x720 - with scanlines
-                                      1=960x720 - no scanlines              */ 
-int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
-static int *OldCharacter;          /* Holds characters on the screen        */
-
-ALLEGRO_BITMAP *FontBuf = NULL;
-ALLEGRO_BITMAP *FontBuf_bk = NULL;
-ALLEGRO_BITMAP *FontBuf_scaled = NULL;
-ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
-
-static byte joyKeyMapping[2][5] = 
-{
-  { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
-  {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
-};
-int joymode=1;                     /* If 0, do not use joystick             */
-int joymap=0;                      /* 0 = default joystick-key mapping      */
-ALLEGRO_JOYSTICK *joystick = NULL;
-ALLEGRO_JOYSTICK_STATE joyState;
-bool lastJoyState[5];
-
-ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
-ALLEGRO_TIMER *timer;
-static int CpuSpeed;
-
-int soundmode=255;                 /* Sound mode, 255=auto-detect           */
-static int soundoff=0;             /* If 1, sound is turned off             */
-
-static byte Pal[8*3] =             /* SAA5050 palette                       */
-{
-  0x00,0x00,0x00, //black
-  0xFF,0x00,0x00, //red
-  0x00,0xFF,0x00, //green
-  0xFF,0xFF,0x00, //yellow
-  0x00,0x00,0xFF, //blue
-  0xFF,0x00,0xFF, //magenta
-  0x00,0xFF,0xFF, //cyan
-  0xFF,0xFF,0xFF  //white
-};
+#include "Allegro.h"
+#include "P2000.h"
+#include "Common.h"
+#include "Icon.h"
+#include "AllegroKeyboard.h"
+#include "Menu.h"
 
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
@@ -219,10 +148,9 @@ int InitMachine(void)
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
   );
-  // al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 4, ALLEGRO_SUGGEST);
-  // al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
-  //al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
-  if ((display = al_create_display(DISPLAY_WIDTH + 2*DISPLAY_BORDER, DISPLAY_HEIGHT + 2*DISPLAY_BORDER)) == NULL)
+
+  UpdateDisplaySettings();
+  if ((display = al_create_display(DisplayWidth + 2*DisplayBorder, DisplayHeight + 2*DisplayBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
 
@@ -276,8 +204,7 @@ int InitMachine(void)
 
   //create menu
   if (Verbose) printf("Creating menu...");
-  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, 
-    mastervolume, joymode, joymap, CpuSpeed, Sync, IFreq);
+  CreateEmulatorMenu();
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   /* start the 50Hz/60Hz timer */
@@ -376,7 +303,7 @@ int LoadFont(char *filename)
   int linePixels, linePixelsPrev, linePixelsNext;
   int linePixelsPrevPrev, linePixelsNextNext;
   int pixelN, pixelE, pixelS, pixelW;
-  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN, pixelSS;
+  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN;
   int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW, pixelNNW, pixelNNE;
   char *TempBuf;
   FILE *F;
@@ -484,7 +411,6 @@ int LoadFont(char *filename)
             pixelNNW = linePixelsPrevPrev & 0x40;
             pixelNNE = linePixelsPrevPrev & 0x10;
             pixelNN = linePixelsPrevPrev & 0x20;
-            pixelSS = linePixelsNextNext & 0x20;
             
             // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
@@ -536,6 +462,14 @@ int LoadFont(char *filename)
   
   //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
+}
+
+void SaveScreenshot() {
+  if (al_show_native_file_dialog(display, screenshotChooser)) {
+    if (ScreenshotBuf) al_destroy_bitmap(ScreenshotBuf); //clean up previous screenshot
+    ScreenshotBuf = al_clone_bitmap(al_get_target_bitmap());
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), ScreenshotBuf);
+  }
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -657,6 +591,7 @@ void Keyboard(void) {
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
+    //printf("event.type=%i\n", event.type);
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -669,6 +604,9 @@ void Keyboard(void) {
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon was clicked
       Z80_Running = 0;
+
+    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
+      ResetView();
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
@@ -694,8 +632,7 @@ void Keyboard(void) {
           Z80_Reset();
           break;
         case FILE_SAVE_SCREENSHOT_ID:
-          if (al_show_native_file_dialog(display, screenshotChooser))
-            al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"),  al_get_target_bitmap());
+          SaveScreenshot();
           break;
         case FILE_LOAD_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamLoadChooser)) {
@@ -716,14 +653,6 @@ void Keyboard(void) {
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
-          break;
-        case VIEW_SHOW_SCANLINES_ID:
-          videomode = !videomode;
-          ResetView();
-          break;
-        case VIEW_WINDOW_SIZE_960_720:
-          al_resize_display(display, DISPLAY_WIDTH+2*DISPLAY_BORDER, DISPLAY_HEIGHT+2*DISPLAY_BORDER);
-          ResetView();
           break;
         case SPEED_SYNC:
           Sync = !Sync;
@@ -793,6 +722,15 @@ void Keyboard(void) {
             "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0);
           break;
+        default:
+          if (event.user.data1 > VIEW_WINDOW_MENU && event.user.data1 < VIEW_WINDOW_MENU+10) {
+            videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
+            UpdateDisplaySettings(videomode);
+            UpdateViewMenu(menu);
+            al_resize_display(display, DisplayWidth + 2* DisplayBorder, DisplayHeight + 2*DisplayBorder);
+            ResetView();
+          }
+          break;
       }
     }
   }
@@ -807,8 +745,7 @@ void Keyboard(void) {
 
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
-    if (al_show_native_file_dialog(display, screenshotChooser))
-      al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0),".png"),  al_get_target_bitmap());
+    SaveScreenshot();
   
   /* F9 = pause / unpause */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
@@ -868,7 +805,7 @@ void Pause(int ms) {
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
-  //al_unlock_bitmap(al_get_backbuffer(display));
+  al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
 }
 
@@ -876,17 +813,17 @@ void DrawScanlines(int x, int y) {
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 80);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
-  for (i=0; i<DISPLAY_TILE_HEIGHT; i+=3)
+  for (i=0; i<DisplayTileHeight; i+=3)
   {
-    al_draw_line(DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH,
-      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i,
-      DISPLAY_BORDER + (x+1) * DISPLAY_TILE_WIDTH,
-      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i,
+    al_draw_line(DisplayBorder + x * DisplayTileWidth,
+      DisplayBorder + y * DisplayTileHeight + i,
+      DisplayBorder + (x+1) * DisplayTileWidth,
+      DisplayBorder + y * DisplayTileHeight + i,
       evenLineColor, 1);
-    al_draw_line(DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH,
-      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i+2,
-      DISPLAY_BORDER + (x+1) * DISPLAY_TILE_WIDTH,
-      DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT + i+2,
+    al_draw_line(DisplayBorder + x * DisplayTileWidth,
+      DisplayBorder + y * DisplayTileHeight + i+2,
+      DisplayBorder + (x+1) * DisplayTileWidth,
+      DisplayBorder + y * DisplayTileHeight + i+2,
       scanlineColor, 1);
   }
 }
@@ -900,18 +837,18 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
     return;
   OldCharacter[y * 80 + x] = K;
 
-  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
+  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
       (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 0);
+      DisplayBorder + 0.5 * x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight, 0.5 * DisplayTileWidth, DisplayTileHeight, 0);
   if (ul)
     al_draw_filled_rectangle(
-        DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
-        DISPLAY_BORDER + 0.5 * (x + 1) * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
+        DisplayBorder + 0.5 * x * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 2.0, 
+        DisplayBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
-  if (videomode == 1)
-    DrawScanlines(x, y);
+  // if (showScanlines == 1)
+  //   DrawScanlines(x, y);
 }
 
 /****************************************************************************/
@@ -924,21 +861,21 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
     return;
   OldCharacter[y * 40 + x] = K;
 
-  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
+  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
-      DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
+      DisplayBorder + x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight,
+      DisplayTileWidth, DisplayTileHeight, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        DISPLAY_BORDER + x * DISPLAY_TILE_WIDTH, DISPLAY_BORDER + y * DISPLAY_TILE_HEIGHT,
-        DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT, 0);
-  if (videomode == 1)
-    DrawScanlines(x, y);
+        DisplayBorder + x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight,
+        DisplayTileWidth, DisplayTileHeight, 0);
+  // if (showScanlines == 1)
+  //   DrawScanlines(x, y);
 }
