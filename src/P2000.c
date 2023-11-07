@@ -377,6 +377,7 @@ void RemoveCassette()
 {
   if (Verbose) printf ("Removing tape... ");
   if (TapeStream) fclose (TapeStream);
+  TapeStream = NULL;
   TapeName = NULL;
   if (Verbose) puts ("OK");
 }
