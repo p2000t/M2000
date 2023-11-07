@@ -4,14 +4,14 @@
 /*.vram
 /*.png
 /*.bmp
+/*.png
 /*.bat
 /*.bmp
 /*.bin
-/m2000
+/*.cfg
+/M2000
 /M2000.EXE
-/m2000win.exe
 /CWSDPMI.SWP
 /djgpp/*
 build/*
 .vscode/settings.json
-

@@ -13,7 +13,7 @@
 char *HelpText[] =
 {
   "Usage: m2000 [-option1 [-option2...]] [filename]",
-  "[filename] = name of the file to load as a cartridge [BASIC.bin]",
+  "[filename] = optional cassette (.cas) or cartridge (.bin) to preload",
   "[-option]  =",
 #ifdef DEBUG
   "  -trap [-tr] <address>      - Trap execution when PC reaches address [-1]",
@@ -49,7 +49,7 @@ char *HelpText[] =
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
   "  -printer <filename>        - Select file for printer output "
-#if defined(MSDOS) || defined(WIN32)
+#if defined(MSDOS) || defined(_WIN32)
                                  "[PRN]",
 #else
                                  "[stdout]",
