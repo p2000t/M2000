@@ -40,7 +40,7 @@ project(M2000)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules )
 
 # set specific cflags
-set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DHAVE_FTRUNCATE -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
+set(CMAKE_C_FLAGS "-Wall -fomit-frame-pointer -O2 -DLSB_FIRST -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND")
 set(CMAKE_EXE_LINKER_FLAGS  "-s -mwindows")
 
 # Enable release build

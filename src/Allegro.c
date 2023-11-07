@@ -119,9 +119,9 @@ int InitMachine(void)
   if (!InitAllegro()) return 0;
   
   cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select an existing or new .cas file", "*.cas", 0); //file doesn't have to exist
+    "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
-    "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
   vRamLoadChooser = al_create_native_file_dialog(NULL,
