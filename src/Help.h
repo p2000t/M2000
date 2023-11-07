@@ -36,16 +36,15 @@ char *HelpText[] =
   "                                0 - Positional mapping",
   "                                1 - Symbolic mapping",
 #endif
-#if defined(MSDOS) || defined(ALLEGRO)
-  "  -video <mode>              - Select video mode (T-model emulation only) [0]",
+  "  -video <mode>              - Select window size [1]",
 #ifdef ALLEGRO
-  "                               0 - 960x720",
-  "                               1 - 960x720 [CRT scanlines]",
-#else
+  "                               0 - 640x480   1 - 800x600",
+  "                               2 - 960x720   3 - 1280x960",
+#endif
+#ifdef MSDOS
   "                               0 - 256x240   1 - 640x480",
 #endif
-#else // Linux/X
-  "  -video <mode>              - Select window size [0]",
+#ifdef UNIX_X
   "                               0 - 500x300   1 - 520x490",
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",

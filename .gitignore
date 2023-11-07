@@ -1,7 +1,9 @@
 /src/*.o
 /src/*.map
 /*.cas
-/*.tap
+/*.vram
+/*.png
+/*.bmp
 /*.bat
 /*.bmp
 /*.bin
