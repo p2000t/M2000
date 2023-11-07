@@ -13,11 +13,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <signal.h>
 #include <sys/stat.h>
 
 #include "P2000.h"
 #include "Help.h"
+
+#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
+#define PATH_SEPARATOR '\\'
+#else // Linux and others
+#define PATH_SEPARATOR '/'
+#endif
 
 extern char *Title;
 
@@ -28,39 +35,35 @@ extern char *Title;
    running in a Win95 DOS box */
 #define MAX_FILE_NAME           256
 
-/* Default extension for cartridge images */
-#define _DefExt         ".bin"
-
 static char *Options[]=
 { 
-  /*  1 */ "verbose",
-  /*  2 */ "help",
-  /*  3 */ "cpuspeed",
-  /*  4 */ "ifreq",
-  /*  5 */ "t",
-  /*  6 */ "m",
-  /*  7 */ "sound",
-  /*  8 */ "joystick",
-  /*  9 */ "romfile",
-  /* 10 */ "uperiod",
-  /* 11 */ "trap",
-  /* 12 */ "printertype",
-  /* 13 */ "printer",
-  /* 14 */ "font",
-  /* 15 */ "tape",
-  /* 16 */ "boot",
-  /* 17 */ "volume",
-  /* 18 */ "ram",
-  /* 19 */ "sync",
-  /* 20 */ "shm",
-  /* 21 */ "savecpu",
-  /* 22 */ "video",
-  /* 23 */ "cart",
-  /* 24 */ "keymap",
-  /* 25 */ "joymap",
+  /*  0 */ "verbose",
+  /*  1 */ "help",
+  /*  2 */ "cpuspeed",
+  /*  3 */ "ifreq",
+  /*  4 */ "t",
+  /*  5 */ "m",
+  /*  6 */ "sound",
+  /*  7 */ "joystick",
+  /*  8 */ "romfile",
+  /*  9 */ "uperiod",
+  /* 10 */ "trap",
+  /* 11 */ "printertype",
+  /* 12 */ "printer",
+  /* 13 */ "font",
+  /* 14 */ "tape",
+  /* 15 */ "boot",
+  /* 16 */ "volume",
+  /* 17 */ "ram",
+  /* 18 */ "sync",
+  /* 19 */ "shm",
+  /* 20 */ "savecpu",
+  /* 21 */ "video",
+  /* 22 */ "cart",
+  /* 23 */ "keymap",
+  /* 24 */ "joymap",
   NULL
 };
-#define AbvOptions      Options         /* No abrevations yet */
 
 extern int keyboardmap;
 #ifdef SOUND
@@ -82,21 +85,28 @@ extern int videomode;
 static int  CpuSpeed;
 static int  shadow_argc;
 static char *shadow_argv[256];
-static unsigned char MainConfigFile[MAX_CONFIG_FILE_SIZE];
-static unsigned char SubConfigFile[MAX_CONFIG_FILE_SIZE];
-static char szTempFileName[MAX_FILE_NAME];
-static char _CartName[MAX_FILE_NAME];
-static char CartNameNoExt[MAX_FILE_NAME];
-static char _ROMName[MAX_FILE_NAME];
+static unsigned char ConfigFile[MAX_CONFIG_FILE_SIZE];
+static char _ConfigFileName[MAX_FILE_NAME];
 static char ProgramPath[MAX_FILE_NAME];
+static char _CartName[MAX_FILE_NAME];
+static char _ROMName[MAX_FILE_NAME];
+static char _FontName[MAX_FILE_NAME];
+static char _TapeName[MAX_FILE_NAME];
 
-#ifndef MSDOS
-/* Get full path name, convert all backslashes to UNIX style slashes */
-static void _fixpath (char *old,char *new)
-{
- strcpy (new,old); //WHUT??
+int endsWith(const char* path, const char * suffix) {
+    int path_len = strlen(path);
+    int suffix_len = strlen(suffix);
+    int i, result;
+    char * path_lower = NULL;
+
+    if (path_len < suffix_len) return 0; // The path can't end with the suffix
+    path_lower = strdup(path);
+    for (i = 0; path_lower[i]; i++)
+      path_lower[i] = tolower(path_lower[i]);
+    result = strcmp(path_lower + path_len - suffix_len, suffix);
+    free(path_lower);
+    return result == 0;
 }
-#endif
 
 /* Parse the command line options */
 static int ParseOptions (int argc,char *argv[])
@@ -118,9 +128,6 @@ static int ParseOptions (int argc,char *argv[])
   {
    for(J=0;Options[J];J++)
     if(!strcmp(argv[N]+1,Options[J])) break;
-   if (!Options[J])
-    for(J=0;AbvOptions[J];J++)
-     if(!strcmp(argv[N]+1,AbvOptions[J])) break;
    switch(J)
    {
     case 0:  N++;
@@ -298,45 +305,24 @@ static int ParseOptions (int argc,char *argv[])
 }
 
 /* Parse the command line options looking for the cartridge image name */
-static int GetCartName (int argc,char *argv[])
-{
- int N,I,J;
- for(N=1,I=0;N<argc;N++)
- {
-  if(*argv[N]!='-')
-   switch(I++)
-   {
-    case 0:  CartName=argv[N];
-             break;
-    default: return 0;
-   }
-  else
-  {    
-   for(J=0;Options[J];J++)
-    if(!strcmp(argv[N]+1,Options[J])) break;
-   if (!Options[J])
-    for(J=0;AbvOptions[J];J++)
-     if(!strcmp(argv[N]+1,AbvOptions[J])) break;
-   switch(J)
-   {
-    case 1:  return 0;
-    case 0: case 2: case 3: case 6: case 7: case 8: case 9:
-    case 11: case 12: case 13: case 14: case 15: case 17: case 18:
-    case 16: case 19: case 20: case 21:
-#ifdef DEBUG
-    case 10:
-#endif
-             N++;
-             if (N>=argc)
-              return 0;
-             break;
-    case 4: case 5:
-             break;
-    default: return 0;
-   }
+static int GetCartOrTapeName (int argc,char *argv[]) {
+  int i,j;
+  for(i=1;i<argc;i++) {
+    if(*argv[i]!='-') {
+      if (endsWith(argv[i], ".bin"))
+        CartName=argv[i];
+      else {
+        TapeName=argv[i];
+        TapeBootEnabled = 1;
+      }
+      return 1;
+    }
+    for(j=0;Options[j];j++) {
+      if(!strcmp(argv[i]+1,Options[j])) break;
+    }
+    if (j != 4 && j != 5) i++; // "-t" and "-m"
   }
- }
- return 1;
+  return 0;
 }
 
 /* Load the specified configuration file at the specified address
@@ -364,148 +350,84 @@ static void LoadConfigFile (char *szFileName,unsigned char *ptr)
  }
 }
 
-/* Fix the cartridge image file name and initialise
-   CartNameNoExt, used for getting the cartridge
-   configuration file */
-static void FixFileNames (void)
-{
- char *p=NULL,*q=NULL;
- if (!strchr(CartName,'/') && !strchr(CartName,'\\'))
- {      /* If no path is given, assume emulator path */
-  strcpy (_CartName,ProgramPath);
-  strcat (_CartName,CartName);
- }
- else
-  _fixpath (CartName,_CartName);
-#ifdef MSDOS
- strlwr (_CartName);
-#endif
- CartName=_CartName;
- strcpy (CartNameNoExt,CartName);
- p=CartNameNoExt;
- q=strchr(CartNameNoExt,'/');
- while (q)                      /* get last '/' */
- {
-  p=++q;
-  q=strchr(q,'/');
- };
- q=NULL;
- while ((p=strchr(p,'.'))!=NULL) /* get last '.' */
- {
-  q=p;
-  ++p;
- }
- if (q)                         /* remove extension */
-  *q='\0';
- else
-  strcat (CartName,_DefExt);
-}
-
 /* Fix the main ROM file name */
-static void FixRomPath (void)
+static char * MakeFullPath (char *dest, char *src)
 {
- char *p=NULL,*q=NULL;
- if (!strchr(ROMName,'/') && !strchr(ROMName,'\\'))
- {      /* If no path is given, assume emulator path */
-  strcpy (_ROMName,ProgramPath);
-  strcat (_ROMName,ROMName);
- }
- else
- {
-  _fixpath (ROMName,_ROMName);
- }
- p=_ROMName;
- q=strchr(_ROMName,'/');
- while (q)                      /* get last '/' */
- {
-  p=++q;
-  q=strchr(q,'/');
- };
- q=NULL;
- while ((p=strchr(p,'.'))!=NULL) /* get last '.' */
- {
-  q=p;
-  ++p;
- }
- if (!q)                       /* Default extension='.bin' */
-  strcat (_ROMName,_DefExt);
-#ifdef MSDOS
- strlwr (_ROMName);
-#endif
- ROMName=_ROMName;
+  if (!strchr(src,'/') && !strchr(src,'\\')) {
+    /* If no path is given, assume file is in program path */
+    strcpy (dest,ProgramPath);
+    strcat (dest,src);
+  } else {
+    strcpy (dest,src);
+  }
+  return dest;
 }
 
 /* Get the path of the specified filename */
-static void GetPath (char *szFile,char *szPath)
-{
- char *p,*q;
- strcpy (szPath,szFile);
- p=szPath;
- q=strchr(p,'/');
- while (q)                      /* get last '/' */
- {
-  p=++q;
-  q=strchr(q,'/');
- };
- *p='\0';                       /* remove filename */
+static void GetBasePath (char *szFile,char *szPath) {
+  char *p,*q;
+  strcpy (szPath,szFile);
+  p=szPath;
+  q=strchr(p,PATH_SEPARATOR);
+  while (q) {                     /* get last '/' */
+    p=++q;
+    q=strchr(q,PATH_SEPARATOR);
+  };
+  *p='\0';                       /* remove filename */
 }
 
 int main(int argc,char *argv[])
 {
- /* Initialise some variables */
- Verbose=1;
- UPeriod=1;
- CpuSpeed=100;
- IFreq=50;
-#if defined(MSDOS) || defined(WIN32)
- PrnName="PRN";
+  /* Initialise some variables */
+  Verbose=1;
+  UPeriod=1;
+  CpuSpeed=100;
+  IFreq=50;
+#if defined(MSDOS) || defined(_WIN32)
+  PrnName="PRN";
 #endif
- /* Load m2000.cfg */
- memset (MainConfigFile,0,sizeof(MainConfigFile));
- memset (SubConfigFile,0,sizeof(SubConfigFile));
-#ifdef MSDOS
- strlwr (argv[0]);
+  /* Get the cartridge name */
+  GetCartOrTapeName (argc,argv);
+  GetBasePath (argv[0],ProgramPath);
+
+  /* Load M2000.cfg */
+  memset (ConfigFile,0,sizeof(ConfigFile));
+  //printf("argv[0] = %s\n",argv[0]);
+  shadow_argc=1;
+  shadow_argv[0]=argv[0];
+  strcpy (_ConfigFileName,ProgramPath);
+  strcat (_ConfigFileName,"M2000.cfg");
+  LoadConfigFile (_ConfigFileName,ConfigFile);
+  /* Parse the config file options */
+  if (!ParseOptions(shadow_argc,shadow_argv))
+    return 1;
+  /* Parse the command line options */
+  if (!ParseOptions(argc,argv))
+    return 1;
+
+  TapeName = MakeFullPath(_TapeName, TapeName);
+  CartName = MakeFullPath(_CartName, CartName);
+  ROMName = MakeFullPath(_ROMName, ROMName);
+  FontName = MakeFullPath(_FontName, FontName);
+
+  /* Check for valid variables */
+  if (IFreq<10) IFreq=10;
+  if (IFreq>200) IFreq=200;
+  if (UPeriod<1) UPeriod=1;
+  if (UPeriod>10) UPeriod=10;
+  if (CpuSpeed<10) CpuSpeed=10;
+  if (CpuSpeed>1000) CpuSpeed=1000;
+  Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+
+  /* Start emulated P2000 */
+#ifndef MSDOS
+  if (!InitMachine()) return 0;
 #endif
- GetPath (argv[0],ProgramPath);
- //printf("argv[0] = %s\n",argv[0] );
- shadow_argc=1;
- shadow_argv[0]=argv[0];
- strcpy (szTempFileName,ProgramPath);
- strcat (szTempFileName,"m2000.cfg");
- LoadConfigFile (szTempFileName,MainConfigFile);
- if (!ParseOptions(shadow_argc,shadow_argv))
-  return 1;
- /* Get the cartridge name */
- GetCartName (argc,argv);
- FixFileNames ();
- /* Load cart.cfg */
- strcpy (szTempFileName,CartNameNoExt);
- strcat (szTempFileName,".cfg");
- shadow_argc=1;
- LoadConfigFile (szTempFileName,SubConfigFile);
- if (!ParseOptions(shadow_argc,shadow_argv))
-  return 1;
- /* Parse the command line options */
- if (!ParseOptions(argc,argv))
-  return 1;
- FixRomPath ();
- /* Check for valid variables */
- if (IFreq<10) IFreq=10;
- if (IFreq>200) IFreq=200;
- if (UPeriod<1) UPeriod=1;
- if (UPeriod>10) UPeriod=10;
- if (CpuSpeed<10) CpuSpeed=10;
- if (CpuSpeed>1000) CpuSpeed=1000;
- Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
- /* Start emulated P2000 */
-#if !defined(MSDOS)
- if (!InitMachine()) return 0;
+  StartP2000();
+  /* Trash emulated P2000 */
+  TrashP2000();
+#ifndef MSDOS
+  TrashMachine ();
 #endif
- StartP2000();
- /* Trash emulated P2000 */
- TrashP2000();
-#if !defined(MSDOS)
- TrashMachine ();
-#endif
- return 0;
+  return 0;
 }

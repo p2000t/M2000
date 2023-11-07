@@ -52,6 +52,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 
 ## Command line options
 ```
+[filename]             Optional cassette (.cas) or cartridge (.bin) to preload
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
 -help                  Print a help page describing all available command
@@ -102,7 +103,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -joystick <mode>       Select joystick mode [1]
                        0 - No joystick support
                        1 - Joystick support
--joymap                Select joystick mapping [0]
+-joymap <mode>         Select joystick mapping [0]
                        0 - Moving the joystick emulates cursorkey presses
                            The main button emulates pressing the spacebar
                        1 - Fraxxon mode: Left/right emulates cursorkeys left/up
@@ -133,13 +134,12 @@ For the other key mappings, see picture below.
 
 ![keyboard mappings](/img/toetsenbord.png)
 
-## Configuration files
+## Configuration file (optional)
 
-The emulator loads two configuration files (if present) before it loads a cartridge ROM: 
+The emulator loads a configuration file (if present) before it loads a cartridge ROM: 
 * M2000.cfg located in the emulator's directory and
-* CART.cfg (i.e. BASIC.cfg by default) located in the cartridge dump's directory.
   
-These are plain text files containing optional command line options. Options can be separated with spaces, tabs or returns. Please note that for the Unix versions, the configuration files should be present in the current working directory.
+This is a plain text file containing optional command line options. Options can be separated with spaces, tabs or returns. Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
 ## How to compile M2000 from the sources
 

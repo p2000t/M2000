@@ -151,7 +151,6 @@ void CreateEmulatorMenu() {
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  printf("videomode=%i\n", videomode);
   for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++) {
     sprintf(menuTitle, "%i x %i%s", Displays[i][0], Displays[i][1], Displays[i][3] ? " (scanlines)" : "");
     al_append_menu_item(al_find_menu(menu, VIEW_WINDOW_MENU), menuTitle,VIEW_WINDOW_MENU + i + 1,
