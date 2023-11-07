@@ -98,6 +98,22 @@ void ResetAudioStream() {
     else if (Verbose) puts("OK");
 }
 
+void UpdateWindowTitle() {
+  static char windowTitle[100];
+  static char tapeFileName[50];
+  if (TapeName) {
+    const char * lastSeparator = strrchr(TapeName, PATH_SEPARATOR);
+    if (lastSeparator)
+      strcpy(tapeFileName, lastSeparator + 1);
+    else
+      strcpy(tapeFileName, TapeName);
+  } else {
+    strcpy(tapeFileName, "empty");
+  }
+  sprintf(windowTitle, "%s [%s]", Title, tapeFileName);
+  al_set_window_title(display, windowTitle);
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
@@ -162,7 +178,7 @@ int InitMachine(void)
     return ShowErrorMessage("Could not initialize timer and event queues.");
   if (Verbose) puts("OK");
 
-  al_set_window_title(display, Title);
+  UpdateWindowTitle();
   al_clear_to_color(al_map_rgb(0, 0, 0));
 
   //set app icon
@@ -611,12 +627,15 @@ void Keyboard(void) {
         case FILE_INSERTRUN_CASSETTE_ID:
           if (al_show_native_file_dialog(display, cassetteChooser)) {
             InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
-            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID)
+            UpdateWindowTitle();
+            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
               Z80_Reset();
+            }
           }
           break;
         case FILE_REMOVE_CASSETTE_ID:
           RemoveCassette();
+          UpdateWindowTitle();
           break;
         case FILE_INSERT_CARTRIDGE_ID:
           if (al_show_native_file_dialog(display, cartridgeChooser))
