@@ -20,12 +20,6 @@
 #include "P2000.h"
 #include "Help.h"
 
-#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
-#define PATH_SEPARATOR '\\'
-#else // Linux and others
-#define PATH_SEPARATOR '/'
-#endif
-
 extern char *Title;
 
 /* Maximum configuration file size in bytes */
