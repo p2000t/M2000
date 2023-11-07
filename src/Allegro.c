@@ -188,7 +188,7 @@ int InitMachine(void)
   );
   
   cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select a .cas or .tap file", "*.cas;*.tap", 0); //file doesn't have to exist
+    "Select an existing or new file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(NULL,
@@ -711,7 +711,7 @@ void Keyboard(void) {
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
           if (al_show_native_file_dialog(display, cassetteChooser)) {
-            InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".tap"));
+            InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
             if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID)
               Z80_Reset();
           }

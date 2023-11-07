@@ -17,20 +17,18 @@
 #include <time.h>
 #include <unistd.h>
 
-/* .cas uses 256-byte headers of which 224 bytes are unused
-   .tap uses 32-byte headers */
-#define TAPE_CAS_HEADER_SIZE 256
-#define TAPE_CAS_HEADER_OFFSET 48
-#define TAPE_TAP_HEADER_SIZE 32
-#define TAPE_TAP_HEADER_OFFSET 0
+#define TAPE_256_BYTE_HEADER_SIZE 256
+#define TAPE_256_BYTE_HEADER_OFFSET 48
+#define TAPE_32_BYTE_HEADER_SIZE 32
+#define TAPE_32_BYTE_HEADER_OFFSET 0
 
 byte Verbose     = 1;
 char *ROMName    = "P2000ROM.bin";
 char *CartName   = "BASIC.bin";
 char *FontName   = "Default.fnt";
-char *TapeName   = "Default.tap";
-int TapeHeaderSize = TAPE_TAP_HEADER_SIZE; // use .tap by default
-int TapeHeaderOffset = TAPE_TAP_HEADER_OFFSET;
+char *TapeName   = "Default.cas";
+int TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
 char *PrnName    = NULL;
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
@@ -197,11 +195,18 @@ byte Z80_In (byte Port)
  return 0xFF;
 }
 
-// returns 0 for .cas files, 1 for .tap files
-int GetTapeType(const char *path) {
-  const char *extension = strrchr(path, '.');
-  if (extension == NULL) return 0; //assume old cas format?
-  return strcasecmp(extension, ".tap") == 0 ? 1 : 0;
+// returns 0 for 256-byte header and 1 for 32-byte header
+int GetCassetteHeaderType(const char *path) {
+  // if the 33rd byte is $00, then assume 256-byte header
+  unsigned char buffer[32+1] = {0};
+  FILE *f;
+  if ((f = fopen(path, "rb")) != NULL) {
+    fread(buffer,sizeof(buffer),1,f); // read (at most) 33 bytes to the buffer
+    fclose(f);
+    return buffer[32] == 0 ? 0 : 1;
+  } else {
+    return 0; //new file => use 256-byte header
+  }
 }
 
 /****************************************************************************/
@@ -394,12 +399,12 @@ void InsertCassette(const char *filename)
     if (Verbose) printf ("Creating tape image %s... ",_TapeName);
   }
   TapeName=_TapeName;
-  if (GetTapeType(TapeName)) {
-    TapeHeaderSize = TAPE_TAP_HEADER_SIZE;
-    TapeHeaderOffset = TAPE_TAP_HEADER_OFFSET;
+  if (GetCassetteHeaderType(TapeName)) {
+    TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
   } else {
-    TapeHeaderSize = TAPE_CAS_HEADER_SIZE;
-    TapeHeaderOffset = TAPE_CAS_HEADER_OFFSET;
+    TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
   }
   fclose (TapeStream);  
   TapeStream=fopen (_TapeName,"a+b");
