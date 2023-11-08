@@ -53,6 +53,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 ## Command line options
 ```
 [filename]             Optional cassette (.cas) or cartridge (.bin) to preload
+                       When a cassette (.cas) is given, by default BASIC will boot it
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
 -help                  Print a help page describing all available command
@@ -87,9 +88,9 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        0 - Daisy wheel   1 - Matrix
 -romfile <file>        Select P2000 ROM dump file [P2000ROM.bin]
 -tape <filename>       Select tape image to use [Default.cas]
--boot <value>          Allow/Don't allow BASIC to boot from tape [0]
-                       0 - Don't allow booting
-                       1 - Allow booting
+-boot <value>          Allow/Don't allow BASIC to boot from tape
+                       0 - Don't allow booting (default when no [filename] is given)
+                       1 - Allow booting (default when a .cas [filename] is given)
 -font <filename>       Select font to use [Default.fnt]
 -sound <mode>          Select sound mode [255]
                        0 - No sound
@@ -111,6 +112,11 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        0 - Don't use SHM   1 - Use SHM
 ```
 
+### Configuration file (optional)
+
+If present in the emulator's directory, the `M2000.cfg` configuration file will be loaded and parsed. \
+This is a plain text file containing optional command line options. Options can be separated with spaces, tabs or returns.
+
 ## Keyboard emulation
 
 There are two keyboard mappings available in M2000:
@@ -131,13 +137,6 @@ For the other key mappings, see picture below.
 ```
 
 ![keyboard mappings](/img/toetsenbord.png)
-
-## Configuration file (optional)
-
-The emulator loads a configuration file (if present) before it loads a cartridge ROM: 
-* M2000.cfg located in the emulator's directory and
-  
-This is a plain text file containing optional command line options. Options can be separated with spaces, tabs or returns. Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
 ## How to compile M2000 from the sources
 
