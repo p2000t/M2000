@@ -29,7 +29,7 @@ char *FontName   = "Default.fnt";
 char *TapeName   = "Default.cas";
 int TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
 int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
-char *PrnName    = NULL;
+char *PrnName    = "Printer.out";
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
@@ -328,10 +328,8 @@ int StartP2000 (void)
     InsertCassette(TapeName);
   }
 
-  if (Verbose) printf ("Opening printer stream %s... ",
-                       (PrnName)?PrnName:"stdout");
-  PrnStream=(PrnName)? fopen (PrnName,"wb") : stdout;
-  if (PrnStream && !PrnName) PrnName="stdout";
+  if (Verbose) printf ("Opening printer stream %s... ", PrnName);
+  PrnStream= fopen (PrnName,"wb");
   if (Verbose) puts ((PrnStream)? "OK":"FAILED");
 
   if (!LoadFont(FontName)) return 0;
