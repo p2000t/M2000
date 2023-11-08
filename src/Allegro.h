@@ -1,6 +1,6 @@
 #pragma once
 
-static int DisplayWidth, DisplayHeight, DisplayBorder, DisplayTileWidth, DisplayTileHeight;
+static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 int videomode = 1;
 int showScanlines = 0;
 
@@ -75,7 +75,7 @@ void UpdateDisplaySettings() {
   if (videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = 0;
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
-  DisplayBorder = Displays[videomode][2];
+  DisplayHBorder = DisplayVBorder = Displays[videomode][2];
   DisplayTileWidth = DisplayWidth / 40;
   DisplayTileHeight = DisplayHeight / 24;
   showScanlines = Displays[videomode][3];

@@ -12,6 +12,7 @@
 /M2000
 /M2000.EXE
 /CWSDPMI.SWP
+/Printer.out
 /djgpp/*
 build/*
 .vscode/settings.json

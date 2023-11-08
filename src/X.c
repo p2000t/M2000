@@ -175,8 +175,11 @@ static void keyb_handler (int code,int newstatus)
     PausePressed=0;
    switch (code)
    {
-    case XK_Escape:
-     Z80_Running=0;
+    case XK_Q:
+     if (keybstatus[XK_Control_L&255]) Z80_Running=0;
+     break;
+    case XK_F4:
+     if (keybstatus[XK_Alt_L&255]) Z80_Running=0;
      break;
     case XK_F5:
 #ifdef DEBUG
@@ -188,12 +191,6 @@ static void keyb_handler (int code,int newstatus)
 #ifdef SOUND
     case XK_F10:
      soundoff=(!soundoff);
-     break;
-    case XK_F11:
-     DecreaseSoundVolume ();
-     break;
-    case XK_F12:
-     IncreaseSoundVolume ();
      break;
 #endif
     case XK_F6:

@@ -16,6 +16,7 @@
 #define FILE_SAVE_VIDEORAM_ID 10
 
 #define VIEW_WINDOW_MENU 20
+#define VIEW_FULLSCREEN 29
 
 #define KEYBOARD_SYMBOLIC_ID 30
 #define KEYBOARD_POSITIONAL_ID 31
@@ -95,6 +96,8 @@ void CreateEmulatorMenu() {
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("View", VIEW_WINDOW_MENU),
+      ALLEGRO_MENU_SEPARATOR,
+      { "Fullscreen (F11)", VIEW_FULLSCREEN, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Speed", 0),
@@ -151,9 +154,10 @@ void CreateEmulatorMenu() {
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++) {
+  ALLEGRO_MENU *viewMenu = al_find_menu(menu, VIEW_WINDOW_MENU);
+  for (i=sizeof(Displays)/sizeof(*Displays)-1; i>=0; i--) {
     sprintf(menuTitle, "%i x %i%s", Displays[i][0], Displays[i][1], Displays[i][3] ? " (scanlines)" : "");
-    al_append_menu_item(al_find_menu(menu, VIEW_WINDOW_MENU), menuTitle,VIEW_WINDOW_MENU + i + 1,
+    al_insert_menu_item(viewMenu, 0, menuTitle, VIEW_WINDOW_MENU + i + 1,
       videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL, NULL);
   }
   al_set_display_menu(display, menu);

@@ -99,7 +99,7 @@ void ResetAudioStream() {
 }
 
 void UpdateWindowTitle() {
-  static char windowTitle[100];
+  static char windowTitle[ALLEGRO_NEW_WINDOW_TITLE_MAX_SIZE];
   static char tapeFileName[50];
   if (TapeName) {
     const char * lastSeparator = strrchr(TapeName, PATH_SEPARATOR);
@@ -166,7 +166,7 @@ int InitMachine(void)
   );
 
   UpdateDisplaySettings();
-  if ((display = al_create_display(DisplayWidth + 2*DisplayBorder, DisplayHeight + 2*DisplayBorder)) == NULL)
+  if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
 
@@ -506,6 +506,44 @@ void ReleaseKey(byte keyCode)
   if (mRow < 10) KeyMap[mRow] |= mCol;
 }
 
+void ToggleFullscreen() {
+  int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
+  fullScreen = !fullScreen; //toggle fullscreen
+  al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
+  
+  if (fullScreen) {
+    //fullscreen: hide menu and mouse
+    al_remove_display_menu(display);
+    al_hide_mouse_cursor(display);
+
+    ALLEGRO_MONITOR_INFO info;
+    for (int i=0; i<al_get_num_video_adapters(); i++) {
+      al_get_monitor_info(i, &info);
+      if (info.x1 == 0 && info.y1 == 0) {
+        //primary display found
+        if (Verbose) printf("Primary display has dimension %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
+
+        DisplayHeight = info.y2 - info.y1;
+        DisplayWidth = DisplayHeight * 4 / 3;
+        DisplayVBorder = 0;
+        DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
+        DisplayTileWidth = DisplayWidth / 40;
+        DisplayTileHeight = DisplayHeight / 24;
+        break;
+      }
+    }
+  }
+  else {
+    //back to window mode
+    al_show_mouse_cursor(display);
+    UpdateDisplaySettings(videomode);
+    al_set_display_menu(display,  menu);
+  }
+
+  al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+  ResetView();
+}
+
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
@@ -738,12 +776,15 @@ void Keyboard(void) {
             "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0);
           break;
+        case VIEW_FULLSCREEN:
+          ToggleFullscreen();
+          break;
         default:
           if (event.user.data1 > VIEW_WINDOW_MENU && event.user.data1 < VIEW_WINDOW_MENU+10) {
             videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
             UpdateDisplaySettings(videomode);
             UpdateViewMenu(menu);
-            al_resize_display(display, DisplayWidth + 2* DisplayBorder, DisplayHeight + 2*DisplayBorder);
+            al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
             ResetView();
           }
           break;
@@ -775,17 +816,9 @@ void Keyboard(void) {
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
   }
 
-  /* F11 and F12 for volume up/down */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11)) {
-    if (mastervolume == 10) mastervolume = 4;
-    else if (mastervolume == 4) mastervolume = 1;
-    UpdateVolumeMenu(menu, mastervolume);
-  }
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F12)) {
-    if (mastervolume == 1) mastervolume = 4;
-    else if (mastervolume == 4) mastervolume = 10;
-    UpdateVolumeMenu(menu, mastervolume);
-  }
+  /* F11 toggle fullscreen */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
+    ToggleFullscreen();
 
   /* ALT-F4 or CTRL-Q to quit M2000 */
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
@@ -830,15 +863,15 @@ void DrawScanlines(int x, int y) {
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
   for (i=0; i<DisplayTileHeight; i+=3)
   {
-    al_draw_line(DisplayBorder + x * DisplayTileWidth,
-      DisplayBorder + y * DisplayTileHeight + i,
-      DisplayBorder + (x+1) * DisplayTileWidth,
-      DisplayBorder + y * DisplayTileHeight + i,
+    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i,
+      DisplayHBorder + (x+1) * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i,
       evenLineColor, 1);
-    al_draw_line(DisplayBorder + x * DisplayTileWidth,
-      DisplayBorder + y * DisplayTileHeight + i+2,
-      DisplayBorder + (x+1) * DisplayTileWidth,
-      DisplayBorder + y * DisplayTileHeight + i+2,
+    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i+2,
+      DisplayHBorder + (x+1) * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i+2,
       scanlineColor, 1);
   }
 }
@@ -856,11 +889,11 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
       (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DisplayBorder + 0.5 * x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight, 0.5 * DisplayTileWidth, DisplayTileHeight, 0);
+      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 0.5 * DisplayTileWidth, DisplayTileHeight, 0);
   if (ul)
     al_draw_filled_rectangle(
-        DisplayBorder + 0.5 * x * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 2.0, 
-        DisplayBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayBorder + (y + 1) * DisplayTileHeight - 1.0, 
+        DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
+        DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
 }
 
@@ -879,13 +912,13 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      DisplayBorder + x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight,
+      DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
       DisplayTileWidth, DisplayTileHeight, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        DisplayBorder + x * DisplayTileWidth, DisplayBorder + y * DisplayTileHeight,
+        DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
 }
