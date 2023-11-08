@@ -86,6 +86,7 @@ static char _CartName[MAX_FILE_NAME];
 static char _ROMName[MAX_FILE_NAME];
 static char _FontName[MAX_FILE_NAME];
 static char _TapeName[MAX_FILE_NAME];
+static char _PrnName[MAX_FILE_NAME];
 
 int endsWith(const char* path, const char * suffix) {
     int path_len = strlen(path);
@@ -347,6 +348,7 @@ static void LoadConfigFile (char *szFileName,unsigned char *ptr)
 /* Fix the main ROM file name */
 static char * MakeFullPath (char *dest, char *src)
 {
+  if (!src) return NULL;
   if (!strchr(src,'/') && !strchr(src,'\\')) {
     /* If no path is given, assume file is in program path */
     strcpy (dest,ProgramPath);
@@ -377,9 +379,7 @@ int main(int argc,char *argv[])
   UPeriod=1;
   CpuSpeed=100;
   IFreq=50;
-#if defined(MSDOS) || defined(_WIN32)
-  PrnName="PRN";
-#endif
+
   /* Get the cartridge name */
   GetCartOrTapeName (argc,argv);
   GetBasePath (argv[0],ProgramPath);
@@ -403,6 +403,7 @@ int main(int argc,char *argv[])
   CartName = MakeFullPath(_CartName, CartName);
   ROMName = MakeFullPath(_ROMName, ROMName);
   FontName = MakeFullPath(_FontName, FontName);
+  PrnName = MakeFullPath(_PrnName, PrnName);
 
   /* Check for valid variables */
   if (IFreq<10) IFreq=10;

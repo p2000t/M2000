@@ -48,12 +48,7 @@ char *HelpText[] =
   "                               0 - 500x300   1 - 520x490",
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
-  "  -printer <filename>        - Select file for printer output "
-#if defined(MSDOS) || defined(_WIN32)
-                                 "[PRN]",
-#else
-                                 "[stdout]",
-#endif
+  "  -printer <filename>        - Select file for printer output [Printer.out]",
   "  -printertype <value>       - Select printer type [0]",
   "                               0 - Daisy wheel   1 - Matrix",
   "",

@@ -82,9 +82,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                            640x480 (MS-DOS)
                        2 - 960x720 (Windows)
                        3 - 1280x960 (Windows)
--printer <filename>    Select file for printer output
-                       Default is PRN for the MS-DOS version, stdout for
-                       the Unix versions
+-printer <filename>    Select file for printer output [Printer.out]
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix
 -romfile <file>        Select P2000 ROM dump file [P2000ROM.bin]
