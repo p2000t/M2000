@@ -53,7 +53,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 ## Command line options
 ```
 [filename]             Optional cassette (.cas) or cartridge (.bin) to preload
-                       When a cassette (.cas) is given, by default BASIC will boot it
+                       When a cassette (.cas) is given, by default BASIC will try to boot it
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
 -help                  Print a help page describing all available command
@@ -61,15 +61,14 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -verbose <level>       Select debugging messages [1]
                        0 - Silent           1 - Startup messages
                        4 - Tape messages
--ifreq <frequency>     Select interrupt frequency [50 Hz]
--cpuspeed <speed>      Set Z80 CPU speed [100%]
+-ifreq <frequency>     Select interrupt frequency [50] Hz
+-cpuspeed <speed>      Set Z80 CPU speed [100]%
 -sync <value>          Sync/Do not sync emulation [1]
                        0 - Do not sync   1 - Sync
                        Emulation is faster if sync is turned off
 -ram <value>           Select amount of RAM installed [32KB]
 -uperiod <period>      Number of interrupts per screen update [1]
-                       Try -uperiod 2 or -uperiod 3 if emulation is a bit
-                       slow
+                       Try -uperiod 2 or -uperiod 3 if emulation is a bit slow
 -t / -m                Select P2000 model [-t]
 -keymap <mode>         Select keyboard mapping [1]
                        0 - Positional mapping
@@ -216,9 +215,7 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
 ## Credits
 
 - Marcel de Kogel for creating the M2000 emulator, as found on his [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html)
-- Stafano Bodrato (@zx70) for creating the Allegro version for M2000
-- Hans Bus provided lots of technical information on the P2000
-- Marat Fayzullin provided invaluable help improving the Unix/X version
+- Stafano Bodrato (@zx70) for creating the initial Allegro version for M2000
 
 ## License
 
