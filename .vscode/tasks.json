@@ -15,7 +15,7 @@
         },
         {
             "label": "Build and Run",
-            "type": "shell",
+            "type": "process",
             "command": "M2000",
             "args": [
                 "-t",

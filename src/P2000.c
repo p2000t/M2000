@@ -407,7 +407,7 @@ void InsertCassette(const char *filename)
     TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
     TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
   }
-  fclose (TapeStream);  
+  if (TapeStream) fclose (TapeStream); //close previous stream
   TapeStream=fopen (_TapeName,"a+b");
   if (TapeStream) rewind (TapeStream);
   if (Verbose) puts ((TapeStream)? "OK":"FAILED");
