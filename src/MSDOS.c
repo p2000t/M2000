@@ -303,8 +303,11 @@ static int keyb_interrupt (void)
       PausePressed=0;
      switch (code)
      {
-      case VK_Escape:
-       Z80_Running=0;
+      case VK_Q:
+       if (keybstatus[VK_Ctrl]) Z80_Running=0;
+       break;
+      case VK_F4:
+       if (keybstatus[VK_Alt]) Z80_Running=0;
        break;
       case VK_F5:
 #ifdef DEBUG
@@ -318,12 +321,6 @@ static int keyb_interrupt (void)
        break;
       case VK_F10:
        soundoff=(!soundoff);
-       break;
-      case VK_F11:
-       SB_DecreaseVolume ();
-       break;
-      case VK_F12:
-       SB_IncreaseVolume ();
        break;
       case VK_F6:
        calloptions=1;
