@@ -54,7 +54,8 @@ int InitAllegro() {
   return 1;
 }
 
-void ResetView() {
+void ClearScreen() {
+  al_clear_to_color(al_map_rgb(0, 0, 0));
   memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
@@ -66,7 +67,7 @@ int ShowErrorMessage(const char *format, ...)
   vsprintf(string, format, args);
   va_end(args);
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
-  return 0; //awlays return error code
+  return 0; //always return error code
 }
 
 void ResetAudioStream() {
@@ -160,7 +161,7 @@ int InitMachine(void)
 
   if (Verbose) printf("Creating the display window... ");
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
-#ifndef _WIN32
+#ifdef __linux__
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
   );
@@ -179,7 +180,6 @@ int InitMachine(void)
   if (Verbose) puts("OK");
 
   UpdateWindowTitle();
-  al_clear_to_color(al_map_rgb(0, 0, 0));
 
   //set app icon
   ALLEGRO_FILE *iconFile;
@@ -205,7 +205,7 @@ int InitMachine(void)
   if (Verbose) printf("  Allocating cache buffers... ");
   OldCharacter = malloc(80 * 24 * sizeof(int));
   if (!OldCharacter) return ShowErrorMessage("Could not allocate character buffer.");
-  ResetView();
+  ClearScreen();
   if (Verbose) puts("OK");
 
   if (soundmode)
@@ -475,14 +475,14 @@ int LoadFont(char *filename)
       0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
       0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
   }
-  
+
   //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
 }
 
 void SaveScreenshot() {
-  if (al_show_native_file_dialog(display, screenshotChooser))
-    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
+  if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
+    makeScreenshot = 1;
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -541,7 +541,7 @@ void ToggleFullscreen() {
   }
 
   al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-  ResetView();
+  ClearScreen();
 }
 
 /****************************************************************************/
@@ -657,13 +657,17 @@ void Keyboard(void) {
       Z80_Running = 0;
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
-      ResetView();
+      ClearScreen();
+
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+      al_acknowledge_resize(display);
+    }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
-          if (al_show_native_file_dialog(display, cassetteChooser)) {
+          if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
             InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
             UpdateWindowTitle();
             if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
@@ -676,7 +680,7 @@ void Keyboard(void) {
           UpdateWindowTitle();
           break;
         case FILE_INSERT_CARTRIDGE_ID:
-          if (al_show_native_file_dialog(display, cartridgeChooser))
+          if (al_show_native_file_dialog(display, cartridgeChooser) && al_get_native_file_dialog_count(cartridgeChooser) > 0)
             InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
           break;
         case FILE_REMOVE_CARTRIDGE_ID:
@@ -689,7 +693,7 @@ void Keyboard(void) {
           SaveScreenshot();
           break;
         case FILE_LOAD_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamLoadChooser)) {
+          if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
             if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
               fread(VRAM, 1, 0x1000, f); //read full 4K
               fclose(f);
@@ -698,7 +702,7 @@ void Keyboard(void) {
           }
           break;
         case FILE_SAVE_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamSaveChooser)) {
+          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
             if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
               fwrite(VRAM, 1, 0x1000, f); //write full 4K
               fclose(f);
@@ -785,7 +789,7 @@ void Keyboard(void) {
             UpdateDisplaySettings(videomode);
             UpdateViewMenu(menu);
             al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-            ResetView();
+            ClearScreen();
           }
           break;
       }
@@ -855,6 +859,23 @@ void Pause(int ms) {
 /****************************************************************************/
 static void PutImage (void) {
   al_flip_display();
+
+  if (makeScreenshot) {
+    makeScreenshot = 0;
+    if (screenshotBitmap) al_destroy_bitmap(screenshotBitmap);
+    screenshotBitmap = al_clone_bitmap(al_get_target_bitmap());
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), screenshotBitmap);
+  }
+  
+#ifdef __linux__
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  static int first = 1;
+  if (first && al_get_display_height(display) != (DisplayHeight + 2*DisplayHBorder)) {
+    if (Verbose) puts("Initial display adjustment...");
+    al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+    first = 0;
+  }
+#endif
 }
 
 void DrawScanlines(int x, int y) {
@@ -880,10 +901,12 @@ void DrawScanlines(int x, int y) {
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
 static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
+#ifndef __linux__
   int K = c + (eor << 8) + (ul << 16);
   if (K == OldCharacter[y * 80 + x])
     return;
   OldCharacter[y * 80 + x] = K;
+#endif
 
   //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
@@ -900,12 +923,13 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
-{
+static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si) {
+#ifndef __linux__
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
+#endif
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
