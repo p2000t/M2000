@@ -154,7 +154,7 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
-  al_set_new_display_flags(ALLEGRO_WINDOWED // | ALLEGRO_RESIZABLE
+  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
 #ifdef __linux__
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
@@ -454,8 +454,7 @@ int LoadFont(char *filename)
 
 void SaveScreenshot() 
 {
-  if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
-    makeScreenshot = 1;
+  makeScreenshot = al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0;
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -836,15 +835,11 @@ void DrawScanlines() {
 /****************************************************************************/
 static void PutImage (void) {
   if (scanlines) DrawScanlines();
-  al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
-
   if (makeScreenshot) {
     makeScreenshot = 0;
     al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
   }
-
-  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_clear_to_color(al_map_rgb(0, 0, 0));
 
 #ifdef __linux__
