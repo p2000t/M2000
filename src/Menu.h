@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <allegro5/allegro_native_dialog.h>
+#include "Allegro.h"
 
 #define FILE_EXIT_ID 1
 #define FILE_INSERT_CASSETTE_ID 2
@@ -14,8 +15,8 @@
 #define FILE_LOAD_VIDEORAM_ID 9
 #define FILE_SAVE_VIDEORAM_ID 10
 
-#define VIEW_SHOW_SCANLINES_ID 20
-#define VIEW_WINDOW_SIZE_960_720 21
+#define VIEW_WINDOW_MENU 20
+#define VIEW_FULLSCREEN 29
 
 #define KEYBOARD_SYMBOLIC_ID 30
 #define KEYBOARD_POSITIONAL_ID 31
@@ -49,33 +50,33 @@
 
 #define HELP_ABOUT_ID 100
 
-void UpdateVolumeMenu (ALLEGRO_MENU *menu, int mastervolume) {
+ALLEGRO_MENU *menu = NULL;
+
+void UpdateViewMenu() {
+  int i;
+  for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++)
+    al_set_menu_item_flags(menu, i + VIEW_WINDOW_MENU + 1, videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+}
+
+void UpdateVolumeMenu () {
   al_set_menu_item_flags(menu, OPTIONS_VOLUME_HIGH_ID, (OPTIONS_VOLUME_HIGH_ID == mastervolume + OPTIONS_VOLUME_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, OPTIONS_VOLUME_MEDIUM_ID, (OPTIONS_VOLUME_MEDIUM_ID == mastervolume + OPTIONS_VOLUME_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, OPTIONS_VOLUME_LOW_ID, (OPTIONS_VOLUME_LOW_ID == mastervolume + OPTIONS_VOLUME_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
-void UpdateCpuSpeedMenu (ALLEGRO_MENU *menu, int cpuSpeed) {
-  al_set_menu_item_flags(menu, SPEED_500_ID, (SPEED_500_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_200_ID, (SPEED_200_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_120_ID, (SPEED_120_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_100_ID, (SPEED_100_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_50_ID, (SPEED_50_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_20_ID, (SPEED_20_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, SPEED_10_ID, (SPEED_10_ID == cpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+void UpdateCpuSpeedMenu () {
+  al_set_menu_item_flags(menu, SPEED_500_ID, (SPEED_500_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_200_ID, (SPEED_200_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_120_ID, (SPEED_120_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_100_ID, (SPEED_100_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_50_ID, (SPEED_50_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_20_ID, (SPEED_20_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, SPEED_10_ID, (SPEED_10_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
-ALLEGRO_MENU * CreateEmulatorMenu(ALLEGRO_DISPLAY *display, 
-  int videomode,
-  int keyboardmap,
-  int soundmode,
-  int mastervolume,
-  int joymode,
-  int joymap,
-  int cpuSpeed,
-  int Sync,
-  int IFreq
-) {
+void CreateEmulatorMenu() {
+  int i;
+  char menuTitle[50];
   ALLEGRO_MENU_INFO menu_info[] = {
     ALLEGRO_START_OF_MENU("File", 0),
       { "Insert Cassette...", FILE_INSERT_CASSETTE_ID, 0, NULL },
@@ -94,12 +95,9 @@ ALLEGRO_MENU * CreateEmulatorMenu(ALLEGRO_DISPLAY *display,
       { "Exit", FILE_EXIT_ID, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("View", 0),
-      { "Show Scanlines", VIEW_SHOW_SCANLINES_ID, videomode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+    ALLEGRO_START_OF_MENU("View", VIEW_WINDOW_MENU),
       ALLEGRO_MENU_SEPARATOR,
-      ALLEGRO_START_OF_MENU("Window Sizes", 0),
-        { "960x720", VIEW_WINDOW_SIZE_960_720, 0, NULL },
-        ALLEGRO_END_OF_MENU,
+      { "Fullscreen (F11)", VIEW_FULLSCREEN, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Speed", 0),
@@ -152,10 +150,15 @@ ALLEGRO_MENU * CreateEmulatorMenu(ALLEGRO_DISPLAY *display,
     ALLEGRO_END_OF_MENU
   };
 
-  ALLEGRO_MENU *menu = al_build_menu(menu_info);
+  menu = al_build_menu(menu_info);
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
-  UpdateVolumeMenu(menu, mastervolume);
-  UpdateCpuSpeedMenu(menu, cpuSpeed);
+  UpdateVolumeMenu();
+  UpdateCpuSpeedMenu();
+  ALLEGRO_MENU *viewMenu = al_find_menu(menu, VIEW_WINDOW_MENU);
+  for (i=sizeof(Displays)/sizeof(*Displays)-1; i>=0; i--) {
+    sprintf(menuTitle, "%i x %i%s", Displays[i][0], Displays[i][1], Displays[i][3] ? " (scanlines)" : "");
+    al_insert_menu_item(viewMenu, 0, menuTitle, VIEW_WINDOW_MENU + i + 1,
+      videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL, NULL);
+  }
   al_set_display_menu(display, menu);
-  return menu;
 }

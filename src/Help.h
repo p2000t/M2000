@@ -13,7 +13,7 @@
 char *HelpText[] =
 {
   "Usage: m2000 [-option1 [-option2...]] [filename]",
-  "[filename] = name of the file to load as a cartridge [BASIC.bin]",
+  "[filename] = optional cassette (.cas) or cartridge (.bin) to preload",
   "[-option]  =",
 #ifdef DEBUG
   "  -trap [-tr] <address>      - Trap execution when PC reaches address [-1]",
@@ -36,29 +36,23 @@ char *HelpText[] =
   "                                0 - Positional mapping",
   "                                1 - Symbolic mapping",
 #endif
-#if defined(MSDOS) || defined(ALLEGRO)
-  "  -video <mode>              - Select video mode (T-model emulation only) [0]",
+  "  -video <mode>              - Select window size [1]",
 #ifdef ALLEGRO
-  "                               0 - 960x720",
-  "                               1 - 960x720 [CRT scanlines]",
-#else
+  "                               0 - 640x480   1 - 800x600",
+  "                               2 - 960x720   3 - 1280x960",
+#endif
+#ifdef MSDOS
   "                               0 - 256x240   1 - 640x480",
 #endif
-#else // Linux/X
-  "  -video <mode>              - Select window size [0]",
+#ifdef UNIX_X
   "                               0 - 500x300   1 - 520x490",
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
-  "  -printer <filename>        - Select file for printer output "
-#if defined(MSDOS) || defined(WIN32)
-                                 "[PRN]",
-#else
-                                 "[stdout]",
-#endif
+  "  -printer <filename>        - Select file for printer output [Printer.out]",
   "  -printertype <value>       - Select printer type [0]",
   "                               0 - Daisy wheel   1 - Matrix",
   "",
-  "  -tape <filename>           - Select tape image to use [P2000.cas]",
+  "  -tape <filename>           - Select tape image to use [Default.cas]",
   "  -boot <value>              - Allow/Don't allow BASIC to boot from tape [0]",
   "                               0 - Don't allow booting",
   "                               1 - Allow booting",

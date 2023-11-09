@@ -17,12 +17,19 @@
 #include <time.h>
 #include <unistd.h>
 
+#define TAPE_256_BYTE_HEADER_SIZE 256
+#define TAPE_256_BYTE_HEADER_OFFSET 48
+#define TAPE_32_BYTE_HEADER_SIZE 32
+#define TAPE_32_BYTE_HEADER_OFFSET 0
+
 byte Verbose     = 1;
 char *ROMName    = "P2000ROM.bin";
 char *CartName   = "BASIC.bin";
 char *FontName   = "Default.fnt";
-char *TapeName   = "P2000.cas";
-char *PrnName    = NULL;
+char *TapeName   = "Default.cas";
+int TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
+char *PrnName    = "Printer.out";
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
@@ -188,6 +195,22 @@ byte Z80_In (byte Port)
  return 0xFF;
 }
 
+// returns:
+//  0 for 256-byte header
+//  1 for 32-byte header
+int GetCassetteHeaderType(const char *path) {
+  // if the first two bytes are $47 and $65, then assume 32-byte header
+  unsigned char buffer[2] = {0};
+  FILE *f;
+  if ((f = fopen(path, "rb")) != NULL) {
+    fread(buffer,sizeof(buffer),1,f); // read (at most) 2 bytes to the buffer
+    fclose(f);
+    return (buffer[0] == 0x47 && buffer[1] == 0x65) ? 1 : 0;
+  } else {
+    return 0; //file doesn't exist (yet) => use 256-byte header
+  }
+}
+
 /****************************************************************************/
 /*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and ***/
 /*** the emulation. This function returns 0 in case of a failure          ***/
@@ -304,16 +327,11 @@ int StartP2000 (void)
 
   if (TapeName)
   {
-   if (Verbose) printf ("Opening tape image %s... ",TapeName);
-   TapeStream=fopen (TapeName,"a+b");
-   if (Verbose) puts ((TapeStream)? "OK":"FAILED");
-   if (TapeStream) rewind (TapeStream);
+    InsertCassette(TapeName);
   }
 
-  if (Verbose) printf ("Opening printer stream %s... ",
-                       (PrnName)?PrnName:"stdout");
-  PrnStream=(PrnName)? fopen (PrnName,"wb") : stdout;
-  if (PrnStream && !PrnName) PrnName="stdout";
+  if (Verbose) printf ("Opening printer stream %s... ", PrnName);
+  PrnStream= fopen (PrnName,"wb");
   if (Verbose) puts ((PrnStream)? "OK":"FAILED");
 
   if (!LoadFont(FontName)) return 0;
@@ -359,6 +377,7 @@ void RemoveCassette()
 {
   if (Verbose) printf ("Removing tape... ");
   if (TapeStream) fclose (TapeStream);
+  TapeStream = NULL;
   TapeName = NULL;
   if (Verbose) puts ("OK");
 }
@@ -381,7 +400,14 @@ void InsertCassette(const char *filename)
     if (Verbose) printf ("Creating tape image %s... ",_TapeName);
   }
   TapeName=_TapeName;
-  fclose (TapeStream);  
+  if (GetCassetteHeaderType(TapeName)) {
+    TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
+  } else {
+    TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
+  }
+  if (TapeStream) fclose (TapeStream); //close previous stream
   TapeStream=fopen (_TapeName,"a+b");
   if (TapeStream) rewind (TapeStream);
   if (Verbose) puts ((TapeStream)? "OK":"FAILED");
@@ -518,7 +544,7 @@ void Z80_Patch (Z80_Regs *R)
  #define descrip        0x6030
  #define recnum         0x604F
  #define fileleng       0x6032
- static byte tapebuf[1024+256];
+ static byte tapebuf[1024+256] = {0};
  int i,j,k,l,m;
  switch (R->PC.W.l-2)
  {
@@ -570,7 +596,7 @@ void Z80_Patch (Z80_Regs *R)
      if (TapeStream)
      {
       j=ftell (TapeStream);
-      if (fseek (TapeStream,j+i*(1024+256)-1,SEEK_SET))
+      if (fseek (TapeStream,j+i*(1024+TapeHeaderSize)-1,SEEK_SET))
       {
        rewind (TapeStream);
        Z80_WRMEM (caserror,0x45);
@@ -599,7 +625,7 @@ void Z80_Patch (Z80_Regs *R)
      if (TapeStream)
      {
       j=ftell (TapeStream);
-      if (fseek (TapeStream,j-i*(1024+256),SEEK_SET))
+      if (fseek (TapeStream,j-i*(1024+TapeHeaderSize),SEEK_SET))
       {
        rewind (TapeStream);
        Z80_WRMEM (caserror,0x45);
@@ -630,7 +656,6 @@ void Z80_Patch (Z80_Regs *R)
      if (TapeStream && !TapeProtect)
      {
       /* Truncate the tape image */
-#ifdef HAVE_FTRUNCATE
       ftruncate (fileno(TapeStream),ftell(TapeStream));
       fclose (TapeStream);
       TapeStream=fopen (TapeName,"a+b");
@@ -638,9 +663,6 @@ void Z80_Patch (Z80_Regs *R)
        Z80_WRMEM (caserror,0);
       else
        Z80_WRMEM (caserror,0x41);         /* No tape */
-#else
-       Z80_WRMEM (caserror,0);
-#endif
      }
      else
       Z80_WRMEM (caserror,(TapeStream)? 0x47:0x41);
@@ -666,17 +688,17 @@ void Z80_Patch (Z80_Regs *R)
       for (;i;--i)
       {
        Z80_WRMEM (recnum,i);
-       for (j=0x00;j<0x100;++j)
-        tapebuf[j]=Z80_RDMEM (0x6000+j);
+       for (j=0x00;j<0x20;++j)
+        tapebuf[j+TapeHeaderOffset]=Z80_RDMEM (0x6030+j);
        l=m=Z80_RDWORD (lengte);
        if (l>1024) l=1024;
        Z80_WRWORD (lengte,m-l);
        for (j=0;j<l;++j)
-        tapebuf[j+256]=Z80_RDMEM ((k+j)&0xFFFF);
+        tapebuf[j+TapeHeaderSize]=Z80_RDMEM ((k+j)&0xFFFF);
        for (j=l;j<1024;++j)
-        tapebuf[j+256]=0;
+        tapebuf[j+TapeHeaderSize]=0;
        k=(k+1024)&0xFFFF;
-       if (!fwrite(tapebuf,1024+256,1,TapeStream))
+       if (!fwrite(tapebuf,1024+TapeHeaderSize,1,TapeStream))
        {
         rewind (TapeStream);
         Z80_WRMEM (caserror,0x45);
@@ -708,13 +730,13 @@ void Z80_Patch (Z80_Regs *R)
      {
       for (;i;--i)
       {
-       if (!fread(tapebuf,1024+256,1,TapeStream))
+       if (!fread(tapebuf,1024+TapeHeaderSize,1,TapeStream))
        {
         Z80_WRMEM (caserror,0x4D);
         break;
        }
-       for (j=0x30;j<0x50;++j)
-        Z80_WRMEM (0x6000+j,tapebuf[j]);
+       for (j=0;j<0x20;++j)
+        Z80_WRMEM (0x6030+j,tapebuf[j+TapeHeaderOffset]);
        l=m=Z80_RDWORD (lengte);
        if (l>1024) l=1024;
        Z80_WRWORD (lengte,m-l);
@@ -724,7 +746,7 @@ void Z80_Patch (Z80_Regs *R)
         for (j=0;j<l;j+=80)
         {
          for (m=j;m<l && m<(j+80);++m)
-          Z80_WRMEM((k+m)&0xFFFF,tapebuf[m+256]);
+          Z80_WRMEM((k+m)&0xFFFF,tapebuf[m+TapeHeaderSize]);
          RefreshScreen ();
          Keyboard ();
          if (!Z80_Running) return;
@@ -746,7 +768,7 @@ void Z80_Patch (Z80_Regs *R)
          }
         }
         for (j=0;j<l;++j)
-         Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+256]);
+         Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+TapeHeaderSize]);
        }
        k=(k+1024)&0xFFFF;
       }

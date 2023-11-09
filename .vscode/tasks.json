@@ -15,11 +15,11 @@
         },
         {
             "label": "Build and Run",
-            "type": "shell",
+            "type": "process",
             "command": "M2000",
             "args": [
                 "-t",
-                "-video", "0",
+                //"-video", "0",
                 //"-sound", "1",
                 //"-cpuspeed",  "100",
                 // "-tape", "test/cas/SAA5050.cas",

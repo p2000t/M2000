@@ -37,21 +37,21 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 F5               -  Reset P2000
 F6               -  Change options (MS-DOS version only)
 F7               -  Make screenshot
-F9               -  Pause / unpause
+F9               -  Toggle pause on/off
 F10              -  Toggle sound on/off
-F11              -  Decrease sound volume
-F12              -  Increase sound volume
-Esc              -  Quit emulator (MS-DOS version only)
+F11              -  Toggle fullscreen on/off
+Alt-F4 / Ctrl-Q  -  Quit emulator
 
 Windows version only:
 F1               -  ZOEK key (show cassette index in BASIC)
 F2               -  START key (start loaded program in BASIC)
 Shift-F2         -  STOP key (pause/halt program in BASIC)
-Alt-F4 / Ctrl-Q  -  Quit emulator
 ```
 
 ## Command line options
 ```
+[filename]             Optional cassette (.cas) or cartridge (.bin) to preload
+                       When a cassette (.cas) is given, by default BASIC will try to boot it
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
 -help                  Print a help page describing all available command
@@ -59,36 +59,35 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -verbose <level>       Select debugging messages [1]
                        0 - Silent           1 - Startup messages
                        4 - Tape messages
--ifreq <frequency>     Select interrupt frequency [50 Hz]
--cpuspeed <speed>      Set Z80 CPU speed [100%]
+-ifreq <frequency>     Select interrupt frequency [50] Hz
+-cpuspeed <speed>      Set Z80 CPU speed [100]%
 -sync <value>          Sync/Do not sync emulation [1]
                        0 - Do not sync   1 - Sync
                        Emulation is faster if sync is turned off
 -ram <value>           Select amount of RAM installed [32KB]
 -uperiod <period>      Number of interrupts per screen update [1]
-                       Try -uperiod 2 or -uperiod 3 if emulation is a bit
-                       slow
+                       Try -uperiod 2 or -uperiod 3 if emulation is a bit slow
 -t / -m                Select P2000 model [-t]
 -keymap <mode>         Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping (only for Windows version)
--video <mode>          Select video mode/window size [0]
-                       0 - 960x720 (Windows)
+-video <mode>          Select video mode/window size [1]
+                       0 - 640x480 (Windows)
                            500x300 (Unix/X)
                            256x240 (MS-DOS)
-                       1 - 960x720 (Windows) [CRT scanlines]
+                       1 - 800x600 (Windows)
                            520x490 (Unix/X)
                            640x480 (MS-DOS)
--printer <filename>    Select file for printer output
-                       Default is PRN for the MS-DOS version, stdout for
-                       the Unix versions
+                       2 - 960x720 (Windows)
+                       3 - 1280x960 (Windows)
+-printer <filename>    Select file for printer output [Printer.out]
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix
 -romfile <file>        Select P2000 ROM dump file [P2000ROM.bin]
--tape <filename>       Select tape image to use [P2000.cas]
--boot <value>          Allow/Don't allow BASIC to boot from tape [0]
-                       0 - Don't allow booting
-                       1 - Allow booting
+-tape <filename>       Select tape image to use [Default.cas]
+-boot <value>          Allow/Don't allow BASIC to boot from tape
+                       0 - Don't allow booting (default when no [filename] is given)
+                       1 - Allow booting (default when a .cas [filename] is given)
 -font <filename>       Select font to use [Default.fnt]
 -sound <mode>          Select sound mode [255]
                        0 - No sound
@@ -100,7 +99,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -joystick <mode>       Select joystick mode [1]
                        0 - No joystick support
                        1 - Joystick support
--joymap                Select joystick mapping [0]
+-joymap <mode>         Select joystick mapping [0]
                        0 - Moving the joystick emulates cursorkey presses
                            The main button emulates pressing the spacebar
                        1 - Fraxxon mode: Left/right emulates cursorkeys left/up
@@ -109,6 +108,11 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        (note: Unix/X version only)
                        0 - Don't use SHM   1 - Use SHM
 ```
+
+### Configuration file (optional)
+
+If present in the emulator's directory, the `M2000.cfg` configuration file will be loaded and parsed. \
+This is a plain text file containing optional command line options. Options can be separated with spaces, tabs or returns.
 
 ## Keyboard emulation
 
@@ -130,14 +134,6 @@ For the other key mappings, see picture below.
 ```
 
 ![keyboard mappings](/img/toetsenbord.png)
-
-## Configuration files
-
-The emulator loads two configuration files (if present) before it loads a cartridge ROM: 
-* M2000.cfg located in the emulator's directory and
-* CART.cfg (i.e. BASIC.cfg by default) located in the cartridge dump's directory.
-  
-These are plain text files containing optional command line options. Options can be separated with spaces, tabs or returns. Please note that for the Unix versions, the configuration files should be present in the current working directory.
 
 ## How to compile M2000 from the sources
 
@@ -229,9 +225,7 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
 ## Credits
 
 - Marcel de Kogel for creating the M2000 emulator, as found on his [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html)
-- Stafano Bodrato (@zx70) for creating the Allegro version for M2000
-- Hans Bus provided lots of technical information on the P2000
-- Marat Fayzullin provided invaluable help improving the Unix/X version
+- Stafano Bodrato (@zx70) for creating the initial Allegro version for M2000
 
 ## License
 

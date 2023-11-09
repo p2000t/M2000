@@ -1,15 +1,18 @@
 /src/*.o
 /src/*.map
-# P2000.cas is auto-generated when starting M2000 without specifying a tape file
 /*.cas
+/*.vram
+/*.png
+/*.bmp
+/*.png
 /*.bat
 /*.bmp
 /*.bin
-/m2000
+/*.cfg
+/M2000
 /M2000.EXE
-/m2000win.exe
 /CWSDPMI.SWP
+/Printer.out
 /djgpp/*
 build/*
 .vscode/settings.json
-

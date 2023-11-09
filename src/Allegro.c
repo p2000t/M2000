@@ -10,91 +10,27 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define DISPLAY_WIDTH 960
-#define DISPLAY_HEIGHT 720
-#define DISPLAY_BORDER 10
-#define CHAR_TILE_WIDTH 24
-#define CHAR_TILE_HEIGHT 30
-#define CHAR_PIXEL_WIDTH 4
-#define CHAR_PIXEL_HEIGHT 3
-#define FONT_BITMAP_WIDTH (96+64+64)*CHAR_TILE_WIDTH
+#define CHAR_PIXEL_WIDTH 6 //must be even
+#define CHAR_PIXEL_HEIGHT 2
+#define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
+#define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
+#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "P2000.h"
-#include "Common.h"
-#include "Icon.h"
-#include "AllegroKeyboard.h"
-#include "Menu.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_native_dialog.h> 
 #include <allegro5/allegro_memfile.h>
-
-ALLEGRO_AUDIO_STREAM *stream = NULL;
-ALLEGRO_MIXER *mixer = NULL;
-ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
-ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
-ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
-
-int buf_size;
-int sample_rate;
-signed char *soundbuf = NULL;      /* Pointer to sound buffer               */
-int mastervolume=4;               /* Master volume setting                 */
-
-ALLEGRO_EVENT event;
-ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_MENU *menu = NULL;
-ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
-ALLEGRO_KEYBOARD_STATE kbdstate;
-char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
-
-int videomode;                     /* only in T emulation mode: 
-                                      0=960x720 - with scanlines
-                                      1=960x720 - no scanlines              */ 
-int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
-static int *OldCharacter;          /* Holds characters on the screen        */
-
-ALLEGRO_BITMAP *FontBuf = NULL;
-ALLEGRO_BITMAP *FontBuf_bk = NULL;
-ALLEGRO_BITMAP *FontBuf_scaled = NULL;
-ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
-
-static byte joyKeyMapping[2][5] = 
-{
-  { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
-  {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
-};
-int joymode=1;                     /* If 0, do not use joystick             */
-int joymap=0;                      /* 0 = default joystick-key mapping      */
-ALLEGRO_JOYSTICK *joystick = NULL;
-ALLEGRO_JOYSTICK_STATE joyState;
-bool lastJoyState[5];
-
-ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
-ALLEGRO_TIMER *timer;
-static int CpuSpeed;
-
-int soundmode=255;                 /* Sound mode, 255=auto-detect           */
-static int soundoff=0;             /* If 1, sound is turned off             */
-
-static byte Pal[8*3] =             /* SAA5050 palette                       */
-{
-  0x00,0x00,0x00, //black
-  0xFF,0x00,0x00, //red
-  0x00,0xFF,0x00, //green
-  0xFF,0xFF,0x00, //yellow
-  0x00,0x00,0xFF, //blue
-  0xFF,0x00,0xFF, //magenta
-  0x00,0xFF,0xFF, //cyan
-  0xFF,0xFF,0xFF  //white
-};
+#include "Allegro.h"
+#include "P2000.h"
+#include "Common.h"
+#include "Icon.h"
+#include "AllegroKeyboard.h"
+#include "Menu.h"
 
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
@@ -118,7 +54,8 @@ int InitAllegro() {
   return 1;
 }
 
-void ResetView() {
+void ClearScreen() {
+  al_clear_to_color(al_map_rgb(0, 0, 0));
   memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
@@ -130,7 +67,7 @@ int ShowErrorMessage(const char *format, ...)
   vsprintf(string, format, args);
   va_end(args);
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
-  return 0; //awlays return error code
+  return 0; //always return error code
 }
 
 void ResetAudioStream() {
@@ -162,6 +99,22 @@ void ResetAudioStream() {
     else if (Verbose) puts("OK");
 }
 
+void UpdateWindowTitle() {
+  static char windowTitle[ALLEGRO_NEW_WINDOW_TITLE_MAX_SIZE];
+  static char tapeFileName[50];
+  if (TapeName) {
+    const char * lastSeparator = strrchr(TapeName, PATH_SEPARATOR);
+    if (lastSeparator)
+      strcpy(tapeFileName, lastSeparator + 1);
+    else
+      strcpy(tapeFileName, TapeName);
+  } else {
+    strcpy(tapeFileName, "empty");
+  }
+  sprintf(windowTitle, "%s [%s]", Title, tapeFileName);
+  al_set_window_title(display, windowTitle);
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
@@ -181,16 +134,11 @@ int InitMachine(void)
   IFreq = IFreq >= 55 ? 60 : 50; 
 
   if (!InitAllegro()) return 0;
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
-#ifndef WIN32
-    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
-#endif
-  );
   
   cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select an existing or new .cas file", "*.cas", 0); //file doesn't have to exist
+    "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
-    "Select a .bin file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
   vRamLoadChooser = al_create_native_file_dialog(NULL,
@@ -212,7 +160,14 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
-  if ((display = al_create_display(DISPLAY_WIDTH + 2*DISPLAY_BORDER, DISPLAY_HEIGHT + 2*DISPLAY_BORDER)) == NULL)
+  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+#ifdef __linux__
+    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
+#endif
+  );
+
+  UpdateDisplaySettings();
+  if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
 
@@ -224,8 +179,7 @@ int InitMachine(void)
     return ShowErrorMessage("Could not initialize timer and event queues.");
   if (Verbose) puts("OK");
 
-  al_set_window_title(display, Title);
-  al_clear_to_color(al_map_rgb(0, 0, 0));
+  UpdateWindowTitle();
 
   //set app icon
   ALLEGRO_FILE *iconFile;
@@ -251,7 +205,7 @@ int InitMachine(void)
   if (Verbose) printf("  Allocating cache buffers... ");
   OldCharacter = malloc(80 * 24 * sizeof(int));
   if (!OldCharacter) return ShowErrorMessage("Could not allocate character buffer.");
-  ResetView();
+  ClearScreen();
   if (Verbose) puts("OK");
 
   if (soundmode)
@@ -266,8 +220,7 @@ int InitMachine(void)
 
   //create menu
   if (Verbose) printf("Creating menu...");
-  menu = CreateEmulatorMenu(display, videomode, keyboardmap, soundmode, 
-    mastervolume, joymode, joymap, CpuSpeed, Sync, IFreq);
+  CreateEmulatorMenu();
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   /* start the 50Hz/60Hz timer */
@@ -366,11 +319,12 @@ int LoadFont(char *filename)
   int linePixels, linePixelsPrev, linePixelsNext;
   int linePixelsPrevPrev, linePixelsNextNext;
   int pixelN, pixelE, pixelS, pixelW;
-  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN, pixelSS;
+  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN;
   int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW, pixelNNW, pixelNNE;
   char *TempBuf;
   FILE *F;
 
+  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR | ALLEGRO_MIN_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
   if (!FontBuf)
   {
@@ -407,11 +361,10 @@ int LoadFont(char *filename)
     }
   }
 
-  al_set_target_bitmap(FontBuf_bk);
-  al_clear_to_color(al_map_rgb(255, 255, 255));
-
   al_set_target_bitmap(FontBuf);
   al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_set_target_bitmap(FontBuf_bk);
+  al_clear_to_color(al_map_rgb(255, 255, 255));
 
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
   TempBuf = malloc(2240);
@@ -449,7 +402,7 @@ int LoadFont(char *filename)
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
         x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
-        if (i < 96 * 10) x-=2; // center alpanum characters
+        if (i < 96 * 10) x-=CHAR_PIXEL_WIDTH/2; // center alpanum characters
         if (linePixels & 0x20) // bit 6 set = pixel set
           drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
         else {
@@ -474,79 +427,29 @@ int LoadFont(char *filename)
             pixelNNW = linePixelsPrevPrev & 0x40;
             pixelNNE = linePixelsPrevPrev & 0x10;
             pixelNN = linePixelsPrevPrev & 0x20;
-            pixelSS = linePixelsNextNext & 0x20;
             
             // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
             if (pixelN && pixelW && (!pixelNW || (!pixelNE && pixelNNE) || (!pixelSW && pixelWSW))) {
-              // alternative rounding for a steep vertical lines (e.g. "V")
-              if (pixelSW && pixelNN) {
-                // ⬜⬜⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬛⬛⬛
-                drawFontRegion(x,   y,   x+1, y+3);
-                drawFontRegion(x+1, y,   x+2, y+1);
-              }
-              else {
-                // ⬜⬜⬜⬛
-                // ⬜⬛⬛⬛
-                // ⬛⬛⬛⬛
-                drawFontRegion(x,   y,   x+3, y+1);
-                drawFontRegion(x,   y+1, x+1, y+2);
-              }
+              if (pixelSW && pixelNN) //alternative rounding for outer side of V
+                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT);
+              else
+                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in NE direction
             if (pixelN && pixelE && (!pixelNE || (!pixelNW && pixelNNW) || (!pixelSE && pixelESE))) {
-              // alternative rounding for a steep vertical lines (e.g. "V")
-              if (pixelSE && pixelNN) {
-                // ⬛⬛⬜⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬜
-                drawFontRegion(x+3, y,   x+4, y+3);
-                drawFontRegion(x+2, y  , x+3, y+1);
-       
-              }
-              else {
-                // ⬛⬜⬜⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬛
-                drawFontRegion(x+1, y,   x+4, y+1);
-                drawFontRegion(x+3, y+1, x+4, y+2);
-              }
+              if (pixelSE && pixelNN) //alternative rounding for outer side of V
+                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT);
+              else
+                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in SE direction
             if (pixelS && pixelE && (!pixelSE || (!pixelSW && pixelSSW) || (!pixelNE && pixelENE))) {
-              if (pixelNE && pixelSS) {
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬛⬜
-                // ⬛⬛⬜⬜
-                drawFontRegion(x+3, y,   x+4, y+3);
-                drawFontRegion(x+2, y+2, x+3, y+3);
-              }
-              else {
-                // ⬛⬛⬛⬛
-                // ⬛⬛⬛⬜
-                // ⬛⬜⬜⬜
-                drawFontRegion(x+3, y+1, x+4, y+2);
-                drawFontRegion(x+1, y+2, x+4, y+3);
-              }
+              drawFontRegion(x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH, y+CHAR_PIXEL_HEIGHT);
             }
             // rounding in SW direction
             if (pixelS && pixelW && (!pixelSW || (!pixelSE && pixelSSE) || (!pixelNW && pixelWNW))) {
-              if (pixelNW && pixelSS) {
-                // ⬜⬛⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬜⬛⬛
-                drawFontRegion(x,   y,   x+1, y+3);
-                drawFontRegion(x+1, y+2, x+2, y+3);
-              }
-              else {
-                // ⬛⬛⬛⬛
-                // ⬜⬛⬛⬛
-                // ⬜⬜⬜⬛
-                drawFontRegion(x  , y+1, x+1, y+2);
-                drawFontRegion(x  , y+2, x+3, y+3);
-              }
+              drawFontRegion(x, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT);
             }
           }
         }
@@ -562,17 +465,24 @@ int LoadFont(char *filename)
   free(TempBuf);
 
   if (!P2000_Mode) {
-    al_set_target_bitmap(FontBuf_bk_scaled);
-    al_draw_scaled_bitmap(FontBuf_bk, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT), 0);
-
     al_set_target_bitmap(FontBuf_scaled);
-    al_draw_scaled_bitmap(FontBuf, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      CHAR_TILE_HEIGHT, 0.0, 0.0, FONT_BITMAP_WIDTH, 
-      2*(CHAR_TILE_HEIGHT), 0);
+    al_draw_scaled_bitmap(FontBuf, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
+      
+    al_set_target_bitmap(FontBuf_bk_scaled);
+    al_draw_scaled_bitmap(FontBuf_bk, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
+      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
   }
+
+  //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
+}
+
+void SaveScreenshot() {
+  if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
+    makeScreenshot = 1;
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -594,6 +504,44 @@ void ReleaseKey(byte keyCode)
   byte mRow = keyCode / 8;
   byte mCol = 1 << (keyCode % 8);
   if (mRow < 10) KeyMap[mRow] |= mCol;
+}
+
+void ToggleFullscreen() {
+  int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
+  fullScreen = !fullScreen; //toggle fullscreen
+  al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
+  
+  if (fullScreen) {
+    //fullscreen: hide menu and mouse
+    al_remove_display_menu(display);
+    al_hide_mouse_cursor(display);
+
+    ALLEGRO_MONITOR_INFO info;
+    for (int i=0; i<al_get_num_video_adapters(); i++) {
+      al_get_monitor_info(i, &info);
+      if (info.x1 == 0 && info.y1 == 0) {
+        //primary display found
+        if (Verbose) printf("Primary display has dimension %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
+
+        DisplayHeight = info.y2 - info.y1;
+        DisplayWidth = DisplayHeight * 4 / 3;
+        DisplayVBorder = 0;
+        DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
+        DisplayTileWidth = DisplayWidth / 40;
+        DisplayTileHeight = DisplayHeight / 24;
+        break;
+      }
+    }
+  }
+  else {
+    //back to window mode
+    al_show_mouse_cursor(display);
+    UpdateDisplaySettings(videomode);
+    al_set_display_menu(display,  menu);
+  }
+
+  al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+  ClearScreen();
 }
 
 /****************************************************************************/
@@ -694,6 +642,7 @@ void Keyboard(void) {
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
+    //printf("event.type=%i\n", event.type);
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -707,21 +656,31 @@ void Keyboard(void) {
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon was clicked
       Z80_Running = 0;
 
+    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
+      ClearScreen();
+
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+      al_acknowledge_resize(display);
+    }
+
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
-          if (al_show_native_file_dialog(display, cassetteChooser)) {
+          if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
             InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
-            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID)
+            UpdateWindowTitle();
+            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
               Z80_Reset();
+            }
           }
           break;
         case FILE_REMOVE_CASSETTE_ID:
           RemoveCassette();
+          UpdateWindowTitle();
           break;
         case FILE_INSERT_CARTRIDGE_ID:
-          if (al_show_native_file_dialog(display, cartridgeChooser))
+          if (al_show_native_file_dialog(display, cartridgeChooser) && al_get_native_file_dialog_count(cartridgeChooser) > 0)
             InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
           break;
         case FILE_REMOVE_CARTRIDGE_ID:
@@ -731,11 +690,10 @@ void Keyboard(void) {
           Z80_Reset();
           break;
         case FILE_SAVE_SCREENSHOT_ID:
-          if (al_show_native_file_dialog(display, screenshotChooser))
-            al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"),  al_get_target_bitmap());
+          SaveScreenshot();
           break;
         case FILE_LOAD_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamLoadChooser)) {
+          if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
             if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
               fread(VRAM, 1, 0x1000, f); //read full 4K
               fclose(f);
@@ -744,7 +702,7 @@ void Keyboard(void) {
           }
           break;
         case FILE_SAVE_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamSaveChooser)) {
+          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
             if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
               fwrite(VRAM, 1, 0x1000, f); //write full 4K
               fclose(f);
@@ -753,14 +711,6 @@ void Keyboard(void) {
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
-          break;
-        case VIEW_SHOW_SCANLINES_ID:
-          videomode = !videomode;
-          ResetView();
-          break;
-        case VIEW_WINDOW_SIZE_960_720:
-          al_resize_display(display, DISPLAY_WIDTH+2*DISPLAY_BORDER, DISPLAY_HEIGHT+2*DISPLAY_BORDER);
-          ResetView();
           break;
         case SPEED_SYNC:
           Sync = !Sync;
@@ -830,6 +780,18 @@ void Keyboard(void) {
             "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0);
           break;
+        case VIEW_FULLSCREEN:
+          ToggleFullscreen();
+          break;
+        default:
+          if (event.user.data1 > VIEW_WINDOW_MENU && event.user.data1 < VIEW_WINDOW_MENU+10) {
+            videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
+            UpdateDisplaySettings(videomode);
+            UpdateViewMenu(menu);
+            al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+            ClearScreen();
+          }
+          break;
       }
     }
   }
@@ -844,8 +806,7 @@ void Keyboard(void) {
 
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
-    if (al_show_native_file_dialog(display, screenshotChooser))
-      al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0),".png"),  al_get_target_bitmap());
+    SaveScreenshot();
   
   /* F9 = pause / unpause */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
@@ -859,17 +820,9 @@ void Keyboard(void) {
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
   }
 
-  /* F11 and F12 for volume up/down */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11)) {
-    if (mastervolume == 10) mastervolume = 4;
-    else if (mastervolume == 4) mastervolume = 1;
-    UpdateVolumeMenu(menu, mastervolume);
-  }
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F12)) {
-    if (mastervolume == 1) mastervolume = 4;
-    else if (mastervolume == 4) mastervolume = 10;
-    UpdateVolumeMenu(menu, mastervolume);
-  }
+  /* F11 toggle fullscreen */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
+    ToggleFullscreen();
 
   /* ALT-F4 or CTRL-Q to quit M2000 */
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
@@ -906,23 +859,40 @@ void Pause(int ms) {
 /****************************************************************************/
 static void PutImage (void) {
   al_flip_display();
+
+  if (makeScreenshot) {
+    makeScreenshot = 0;
+    if (screenshotBitmap) al_destroy_bitmap(screenshotBitmap);
+    screenshotBitmap = al_clone_bitmap(al_get_target_bitmap());
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), screenshotBitmap);
+  }
+  
+#ifdef __linux__
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  static int first = 1;
+  if (first && al_get_display_height(display) != (DisplayHeight + 2*DisplayHBorder)) {
+    if (Verbose) puts("Initial display adjustment...");
+    al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+    first = 0;
+  }
+#endif
 }
 
 void DrawScanlines(int x, int y) {
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 80);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
-  for (i=0; i<CHAR_TILE_HEIGHT; i+=3)
+  for (i=0; i<DisplayTileHeight; i+=3)
   {
-    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
-      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i,
+    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i,
+      DisplayHBorder + (x+1) * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i,
       evenLineColor, 1);
-    al_draw_line(DISPLAY_BORDER + x * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
-      DISPLAY_BORDER + (x+1) * CHAR_TILE_WIDTH,
-      DISPLAY_BORDER + y * CHAR_TILE_HEIGHT + i+2,
+    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i+2,
+      DisplayHBorder + (x+1) * DisplayTileWidth,
+      DisplayVBorder + y * DisplayTileHeight + i+2,
       scanlineColor, 1);
   }
 }
@@ -931,47 +901,48 @@ void DrawScanlines(int x, int y) {
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
 static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
+#ifndef __linux__
   int K = c + (eor << 8) + (ul << 16);
   if (K == OldCharacter[y * 80 + x])
     return;
   OldCharacter[y * 80 + x] = K;
+#endif
 
+  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
-  al_draw_bitmap_region(
-      (eor ? FontBuf_bk : FontBuf), 0.5 * c * CHAR_TILE_WIDTH, 
-      0.0, 0.5 * CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+  al_draw_scaled_bitmap(
+      (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 0.5 * DisplayTileWidth, DisplayTileHeight, 0);
   if (ul)
     al_draw_filled_rectangle(
-        DISPLAY_BORDER + 0.5 * x * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 2.0, 
-        DISPLAY_BORDER + 0.5 * (x + 1) * CHAR_TILE_WIDTH, DISPLAY_BORDER + (y + 1) * CHAR_TILE_HEIGHT - 1.0, 
+        DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
+        DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
-  if (videomode == 1)
-    DrawScanlines(x, y);
 }
 
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
-{
+static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si) {
+#ifndef __linux__
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
+#endif
 
   al_set_target_bitmap(al_get_backbuffer(display));
-  al_draw_tinted_bitmap_region(
+  al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
       c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
-      DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
+      DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
+      DisplayTileWidth, DisplayTileHeight, 0);
   if (bg)
-    al_draw_tinted_bitmap_region(
+    al_draw_tinted_scaled_bitmap(
         (si ? FontBuf_bk_scaled : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-        DISPLAY_BORDER + x * CHAR_TILE_WIDTH, DISPLAY_BORDER + y * CHAR_TILE_HEIGHT, 0);
-  if (videomode == 1)
-    DrawScanlines(x, y);
+        DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
+        DisplayTileWidth, DisplayTileHeight, 0);
 }

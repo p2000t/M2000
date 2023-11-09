@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <sys/time.h>
 #include <sys/farptr.h>
 #include <go32.h>
@@ -35,10 +36,10 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 #define NUM_STACKS      16         /* Number of IRQ stacks                  */
 #define STACK_SIZE      8192       /* Size of each IRQ stack                */
 
-char *Title="M2000 - Philips P2000 emulatorT";    /* Title for -help output                */
+char *Title="M2000 - Philips P2000 emulator";    /* Title for -help output                */
 
 
-int videomode;                     /* T emulation only: 0=256x240 1=640x480 */ 
+int videomode=1;                   /* T emulation only: 0=256x240 1=640x480 */ 
 static int *OldCharacter;          /* Holds characters on the screen        */
 static int *CharacterCache;        /* Current cache contents                */
 static byte *FontBuf;              /* Pointer to font used                  */
@@ -302,8 +303,11 @@ static int keyb_interrupt (void)
       PausePressed=0;
      switch (code)
      {
-      case VK_Escape:
-       Z80_Running=0;
+      case VK_Q:
+       if (keybstatus[VK_Ctrl]) Z80_Running=0;
+       break;
+      case VK_F4:
+       if (keybstatus[VK_Alt]) Z80_Running=0;
        break;
       case VK_F5:
 #ifdef DEBUG
@@ -317,12 +321,6 @@ static int keyb_interrupt (void)
        break;
       case VK_F10:
        soundoff=(!soundoff);
-       break;
-      case VK_F11:
-       SB_DecreaseVolume ();
-       break;
-      case VK_F12:
-       SB_IncreaseVolume ();
        break;
       case VK_F6:
        calloptions=1;
