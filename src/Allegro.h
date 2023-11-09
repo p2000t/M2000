@@ -1,9 +1,14 @@
 #pragma once
+#define DEFAULT_VIDEO_MODE 1
+#define FULLSCREEN_VIDEO_MODE 9
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
-int videomode = 1;
-int showScanlines = 0;
+static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _DisplayTileWidth, _DisplayTileHeight;
+int videomode = DEFAULT_VIDEO_MODE;
+int scanlines = 0;
+int menubarHeight = 0;
 int makeScreenshot = 0;
+int firstResize = 1;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -25,16 +30,13 @@ ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
-static int *OldCharacter;          /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
-ALLEGRO_BITMAP *screenshotBitmap = NULL;
 
-static unsigned char joyKeyMapping[2][5] = 
-{
+static unsigned char joyKeyMapping[2][5] = {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
   {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
 };
@@ -51,17 +53,15 @@ static int CpuSpeed;
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
 
-static int Displays[][4] = { 
-// width height border scanlines
-  {  640,   480,     6,     0 },
-  {  800,   600,     8,     0 },
-  {  960,   720,    10,     0 },
-  // {  960,   720,    10,     1 },
-  { 1280,   960,    10,     0 },
-  // { 1280,   960,    10,     1 },
+static int Displays[][2] = { 
+  // width height 
+  {  640,   480 },
+  {  800,   600 },
+  {  960,   720 },
+  { 1280,   960 },
 };
 
-static unsigned char Pal[8*3] =             /* SAA5050 palette                       */
+static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
 {
   0x00,0x00,0x00, //black
   0xFF,0x00,0x00, //red
@@ -74,11 +74,11 @@ static unsigned char Pal[8*3] =             /* SAA5050 palette                  
 };
 
 void UpdateDisplaySettings() {
-  if (videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = 0;
+  if (videomode < 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = DEFAULT_VIDEO_MODE;
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
-  DisplayHBorder = DisplayVBorder = Displays[videomode][2];
   DisplayTileWidth = DisplayWidth / 40;
   DisplayTileHeight = DisplayHeight / 24;
-  showScanlines = Displays[videomode][3];
+  DisplayHBorder = DisplayTileWidth;
+  DisplayVBorder = DisplayTileHeight / 2;
 }

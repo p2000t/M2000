@@ -56,6 +56,7 @@ static char *Options[]=
   /* 22 */ "cart",
   /* 23 */ "keymap",
   /* 24 */ "joymap",
+  /* 25 */ "scanlines",
   NULL
 };
 
@@ -75,6 +76,7 @@ extern int UseSHM;
 extern int SaveCPU;
 #endif
 extern int videomode;
+extern int scanlines;
 
 static int  CpuSpeed;
 static int  shadow_argc;
@@ -284,6 +286,12 @@ static int ParseOptions (int argc,char *argv[])
               joymap=atoi(argv[N])
 #endif
              ;else
+              misparm=1;
+             break;
+    case 25: N++;  /* scanlines */
+             if (N<argc)
+              scanlines=atoi(argv[N]);
+             else
               misparm=1;
              break;
     default: ShowErrorMessage("Wrong option '%s'\n",argv[N]);

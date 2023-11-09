@@ -19,6 +19,7 @@
             "command": "M2000",
             "args": [
                 "-t",
+                //"-scanlines", "1",
                 //"-video", "0",
                 //"-sound", "1",
                 //"-cpuspeed",  "100",

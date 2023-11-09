@@ -16,6 +16,11 @@
 #define FILE_SAVE_VIDEORAM_ID 10
 
 #define VIEW_WINDOW_MENU 20
+#define VIEW_WINDOW_640x480 21
+#define VIEW_WINDOW_800x600 22
+#define VIEW_WINDOW_960x720 23
+#define VIEW_WINDOW_1280x960 24
+#define VIEW_SCANLINES 28
 #define VIEW_FULLSCREEN 29
 
 #define KEYBOARD_SYMBOLIC_ID 30
@@ -52,10 +57,10 @@
 
 ALLEGRO_MENU *menu = NULL;
 
-void UpdateViewMenu() {
+void UpdateViewMenu(int vmode) {
   int i;
   for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++)
-    al_set_menu_item_flags(menu, i + VIEW_WINDOW_MENU + 1, videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+    al_set_menu_item_flags(menu, i + VIEW_WINDOW_MENU + 1, vmode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
 void UpdateVolumeMenu () {
@@ -74,9 +79,8 @@ void UpdateCpuSpeedMenu () {
   al_set_menu_item_flags(menu, SPEED_10_ID, (SPEED_10_ID == CpuSpeed + SPEED_OFFSET) ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
-void CreateEmulatorMenu() {
-  int i;
-  char menuTitle[50];
+void CreateEmulatorMenu() 
+{
   ALLEGRO_MENU_INFO menu_info[] = {
     ALLEGRO_START_OF_MENU("File", 0),
       { "Insert Cassette...", FILE_INSERT_CASSETTE_ID, 0, NULL },
@@ -96,8 +100,14 @@ void CreateEmulatorMenu() {
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("View", VIEW_WINDOW_MENU),
+      { "Scanlines On/Off", VIEW_SCANLINES, scanlines ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Fullscreen (F11)", VIEW_FULLSCREEN, 0, NULL },
+      { "640 x 480", VIEW_WINDOW_640x480, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "800 x 600", VIEW_WINDOW_800x600, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "960 x 720", VIEW_WINDOW_960x720, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "1280 x 960", VIEW_WINDOW_1280x960, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      ALLEGRO_MENU_SEPARATOR,
+      { "Full Screen (F11)", VIEW_FULLSCREEN, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Speed", 0),
@@ -154,11 +164,6 @@ void CreateEmulatorMenu() {
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  ALLEGRO_MENU *viewMenu = al_find_menu(menu, VIEW_WINDOW_MENU);
-  for (i=sizeof(Displays)/sizeof(*Displays)-1; i>=0; i--) {
-    sprintf(menuTitle, "%i x %i%s", Displays[i][0], Displays[i][1], Displays[i][3] ? " (scanlines)" : "");
-    al_insert_menu_item(viewMenu, 0, menuTitle, VIEW_WINDOW_MENU + i + 1,
-      videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL, NULL);
-  }
+  UpdateViewMenu(videomode);
   al_set_display_menu(display, menu);
 }
