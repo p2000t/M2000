@@ -3,6 +3,7 @@
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 int videomode = 1;
 int showScanlines = 0;
+int makeScreenshot = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -30,6 +31,7 @@ ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
+ALLEGRO_BITMAP *screenshotBitmap = NULL;
 
 static unsigned char joyKeyMapping[2][5] = 
 {
