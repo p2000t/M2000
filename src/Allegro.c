@@ -489,16 +489,23 @@ void ToggleFullscreen()
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
   
   if (fullScreen) {
+    //fullscreen: hide menu and mouse
+    al_remove_display_menu(display);
+    al_hide_mouse_cursor(display);
+
+    _DisplayWidth = DisplayWidth;
+    _DisplayHeight = DisplayHeight;
+    _DisplayTileWidth = DisplayTileWidth;
+    _DisplayTileHeight = DisplayTileHeight;
+    _DisplayHBorder = DisplayHBorder;
+    _DisplayVBorder = DisplayVBorder;
+
     ALLEGRO_MONITOR_INFO info;
     for (int i=0; i<al_get_num_video_adapters(); i++) {
       al_get_monitor_info(i, &info);
       if (info.x1 == 0 && info.y1 == 0) {
         //primary display found
         if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
-        //fullscreen: hide menu and mouse
-        al_remove_display_menu(display);
-        al_hide_mouse_cursor(display);
-
         DisplayHeight = info.y2 - info.y1;
         DisplayWidth = DisplayHeight * 4 / 3;
         DisplayVBorder = 0;
@@ -514,8 +521,12 @@ void ToggleFullscreen()
     //back to window mode
     al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
-    UpdateDisplaySettings();
-    UpdateViewMenu(videomode);
+    DisplayWidth = _DisplayWidth;
+    DisplayHeight = _DisplayHeight;
+    DisplayTileWidth = _DisplayTileWidth;
+    DisplayTileHeight = _DisplayTileHeight;
+    DisplayHBorder = _DisplayHBorder;
+    DisplayVBorder = _DisplayVBorder;
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
   }
 }
@@ -653,7 +664,7 @@ void Keyboard(void)
         DisplayHeight = DisplayTileHeight * 24;
         DisplayHBorder = (event.display.width - DisplayWidth) / 2;
         DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-        UpdateViewMenu(-1);
+        UpdateViewMenu(-1); //deselect the view-dimensions in menu
       }
     }
 
