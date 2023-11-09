@@ -207,6 +207,8 @@ int InitMachine(void)
   //create menu
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
+  menubarHeight = al_get_display_height(display) - (DisplayHeight + 2.0*DisplayVBorder);
+  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   /* start the 50Hz/60Hz timer */
@@ -485,16 +487,15 @@ void ToggleFullscreen()
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
   
   if (fullScreen) {
-    //fullscreen: hide menu and mouse
-    al_remove_display_menu(display);
-    al_hide_mouse_cursor(display);
-
     ALLEGRO_MONITOR_INFO info;
     for (int i=0; i<al_get_num_video_adapters(); i++) {
       al_get_monitor_info(i, &info);
       if (info.x1 == 0 && info.y1 == 0) {
         //primary display found
         if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
+        //fullscreen: hide menu and mouse
+        al_remove_display_menu(display);
+        al_hide_mouse_cursor(display);
 
         DisplayHeight = info.y2 - info.y1;
         DisplayWidth = DisplayHeight * 4 / 3;
@@ -502,17 +503,19 @@ void ToggleFullscreen()
         DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
         DisplayTileWidth = DisplayWidth / 40;
         DisplayTileHeight = DisplayHeight / 24;
+
+        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
         break;
       }
     }
   } else {
     //back to window mode
     al_show_mouse_cursor(display);
-    UpdateDisplaySettings(videomode);
     al_set_display_menu(display,  menu);
+    UpdateDisplaySettings();
+    UpdateViewMenu();
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
   }
-
-  al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 }
 
 /****************************************************************************/
@@ -624,8 +627,23 @@ void Keyboard(void)
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon was clicked
       Z80_Running = 0;
 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE)
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
+      //if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
+      DisplayWidth = event.display.width * 40 / 42;
+      DisplayHeight = event.display.height * 24 / 25;
+      DisplayTileWidth = DisplayWidth / 40;
+      DisplayTileHeight = DisplayHeight / 24;
+      DisplayWidth = DisplayTileWidth * 40;
+      DisplayHeight = DisplayTileHeight * 24;
+      DisplayHBorder = (event.display.width - DisplayWidth) / 2;
+      DisplayVBorder = (event.display.height - DisplayHeight) / 2;
+      videomode = -1; //assume new videomode isn't one of the predefined ones
+      for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++)
+        if (DisplayWidth == Displays[i][0] && DisplayHeight == Displays[i][1])
+          videomode = i;
+      UpdateViewMenu();
+    }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
@@ -752,9 +770,9 @@ void Keyboard(void)
           break;
         case VIEW_WINDOW_640x480: case VIEW_WINDOW_800x600: case VIEW_WINDOW_960x720: case VIEW_WINDOW_1280x960:
           videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
-          UpdateDisplaySettings(videomode);
-          UpdateViewMenu(menu);
-          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+          UpdateDisplaySettings();
+          UpdateViewMenu();
+          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
           break;
       }
     }

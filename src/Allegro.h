@@ -1,8 +1,10 @@
 #pragma once
+#define DEFAULT_VIDEO_MODE 1
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
-int videomode = 1;
+int videomode = DEFAULT_VIDEO_MODE;
 int scanlines = 0;
+int menubarHeight = 0;
 int makeScreenshot = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
@@ -48,12 +50,12 @@ static int CpuSpeed;
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
 
-static int Displays[][3] = { 
-// width height border
-  {  640,   480,     6 },
-  {  800,   600,     9 },
-  {  960,   720,    12 },
-  { 1280,   960,    15 },
+static int Displays[][2] = { 
+  // width height 
+  {  640,   480 },
+  {  800,   600 },
+  {  960,   720 },
+  { 1280,   960 },
 };
 
 static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
@@ -69,10 +71,11 @@ static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
 };
 
 void UpdateDisplaySettings() {
-  if (videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = 0;
+  if (videomode < 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = DEFAULT_VIDEO_MODE;
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
-  DisplayHBorder = DisplayVBorder = Displays[videomode][2];
   DisplayTileWidth = DisplayWidth / 40;
   DisplayTileHeight = DisplayHeight / 24;
+  DisplayHBorder = DisplayTileWidth;
+  DisplayVBorder = DisplayTileHeight / 2;
 }
