@@ -110,11 +110,61 @@ void UpdateWindowTitle()
   al_set_window_title(display, windowTitle);
 }
 
+void ToggleFullscreen() 
+{
+  int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
+  fullScreen = !fullScreen; //toggle fullscreen
+  al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
+  
+  if (fullScreen) {
+    //fullscreen: hide menu and mouse
+    al_remove_display_menu(display);
+    al_hide_mouse_cursor(display);
+
+    _DisplayWidth = DisplayWidth;
+    _DisplayHeight = DisplayHeight;
+    _DisplayTileWidth = DisplayTileWidth;
+    _DisplayTileHeight = DisplayTileHeight;
+    _DisplayHBorder = DisplayHBorder;
+    _DisplayVBorder = DisplayVBorder;
+
+    ALLEGRO_MONITOR_INFO info;
+    for (int i=0; i<al_get_num_video_adapters(); i++) {
+      al_get_monitor_info(i, &info);
+      if (info.x1 == 0 && info.y1 == 0) {
+        //primary display found
+        if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
+        DisplayHeight = info.y2 - info.y1;
+        DisplayWidth = DisplayHeight * 4 / 3;
+        DisplayVBorder = 0;
+        DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
+        DisplayTileWidth = DisplayWidth / 40;
+        DisplayTileHeight = DisplayHeight / 24;
+
+        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+        break;
+      }
+    }
+  } else {
+    //back to window mode
+    al_show_mouse_cursor(display);
+    al_set_display_menu(display,  menu);
+    DisplayWidth = _DisplayWidth;
+    DisplayHeight = _DisplayHeight;
+    DisplayTileWidth = _DisplayTileWidth;
+    DisplayTileHeight = _DisplayTileHeight;
+    DisplayHBorder = _DisplayHBorder;
+    DisplayVBorder = _DisplayVBorder;
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+  }
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
 int InitMachine(void)
 {
+  int startFullScreen = videomode == FULLSCREEN_VIDEO_MODE;
   //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
   CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
   if (CpuSpeed > 350) CpuSpeed = 500;
@@ -212,6 +262,9 @@ int InitMachine(void)
   if (menubarHeight > 0)
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
   if (Verbose) puts(menu ? "OK" : "FAILED");
+
+  if (startFullScreen)
+    ToggleFullscreen();
 
   /* start the 50Hz/60Hz timer */
   al_start_timer(timer);
@@ -482,55 +535,6 @@ void ReleaseKey(byte keyCode)
   if (mRow < 10) KeyMap[mRow] |= mCol;
 }
 
-void ToggleFullscreen() 
-{
-  int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
-  fullScreen = !fullScreen; //toggle fullscreen
-  al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
-  
-  if (fullScreen) {
-    //fullscreen: hide menu and mouse
-    al_remove_display_menu(display);
-    al_hide_mouse_cursor(display);
-
-    _DisplayWidth = DisplayWidth;
-    _DisplayHeight = DisplayHeight;
-    _DisplayTileWidth = DisplayTileWidth;
-    _DisplayTileHeight = DisplayTileHeight;
-    _DisplayHBorder = DisplayHBorder;
-    _DisplayVBorder = DisplayVBorder;
-
-    ALLEGRO_MONITOR_INFO info;
-    for (int i=0; i<al_get_num_video_adapters(); i++) {
-      al_get_monitor_info(i, &info);
-      if (info.x1 == 0 && info.y1 == 0) {
-        //primary display found
-        if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
-        DisplayHeight = info.y2 - info.y1;
-        DisplayWidth = DisplayHeight * 4 / 3;
-        DisplayVBorder = 0;
-        DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
-        DisplayTileWidth = DisplayWidth / 40;
-        DisplayTileHeight = DisplayHeight / 24;
-
-        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-        break;
-      }
-    }
-  } else {
-    //back to window mode
-    al_show_mouse_cursor(display);
-    al_set_display_menu(display,  menu);
-    DisplayWidth = _DisplayWidth;
-    DisplayHeight = _DisplayHeight;
-    DisplayTileWidth = _DisplayTileWidth;
-    DisplayTileHeight = _DisplayTileHeight;
-    DisplayHBorder = _DisplayHBorder;
-    DisplayVBorder = _DisplayVBorder;
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
-  }
-}
-
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
@@ -642,16 +646,15 @@ void Keyboard(void)
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
-      //if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
-      if (firstResize) {
-        firstResize = 0;
-#ifdef __linux__
-        /* fix the display height after menu was attached */
-        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-        return;
-#endif
-      }
       if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
+        if (firstResize) {
+          firstResize = 0;
+#ifdef __linux__
+          /* fix the display height after menu was attached */
+          al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+          return;
+  #endif
+        }
         DisplayWidth = event.display.width * 40 / 42;
         DisplayHeight = event.display.height * 24 / 25;
         if (3 * DisplayWidth > 4 * DisplayHeight)

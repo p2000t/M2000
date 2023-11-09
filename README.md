@@ -80,6 +80,7 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
                            640x480 (MS-DOS)
                        2 - 960x720 (Windows)
                        3 - 1280x960 (Windows)
+                       9 - Full Screen (Windows)
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
                        1 - Show scanlines (only for Windows version)
