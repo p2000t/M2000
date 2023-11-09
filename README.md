@@ -173,6 +173,18 @@ The resulting `m2000` will be copied into the root of your cloned M2000 repo, wh
 * If sound isn't working, please try installing also-oss (`sudo apt install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
   `aoss ./m2000`
 
+### Linux (Allegro5 libraries and with cmake)
+* Ensure all dependencies are installed
+  ```
+  sudo apt update
+  sudo apt install -y build-essential cmake liballegro5-dev
+  ```
+* Create a separate build directory, run cmake and start the compilation
+  ```
+  mkdir build && cd build
+  cmake ../src && make -j
+  ```
+
 ### Windows:
 * Make sure to have MinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install MinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
