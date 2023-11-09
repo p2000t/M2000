@@ -515,6 +515,7 @@ void ToggleFullscreen()
     al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
     UpdateDisplaySettings();
+    UpdateViewMenu(videomode);
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
   }
 }
@@ -630,7 +631,7 @@ void Keyboard(void)
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
-      if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
+      //if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
       if (firstResize) {
         firstResize = 0;
 #ifdef __linux__
@@ -642,12 +643,17 @@ void Keyboard(void)
       if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
         DisplayWidth = event.display.width * 40 / 42;
         DisplayHeight = event.display.height * 24 / 25;
+        if (3 * DisplayWidth > 4 * DisplayHeight)
+          DisplayWidth = DisplayHeight * 4 / 3;
+        else
+          DisplayHeight = DisplayWidth * 3 / 4;
         DisplayTileWidth = DisplayWidth / 40;
         DisplayTileHeight = DisplayHeight / 24;
         DisplayWidth = DisplayTileWidth * 40;
         DisplayHeight = DisplayTileHeight * 24;
         DisplayHBorder = (event.display.width - DisplayWidth) / 2;
         DisplayVBorder = (event.display.height - DisplayHeight) / 2;
+        UpdateViewMenu(-1);
       }
     }
 
@@ -777,6 +783,7 @@ void Keyboard(void)
         case VIEW_WINDOW_640x480: case VIEW_WINDOW_800x600: case VIEW_WINDOW_960x720: case VIEW_WINDOW_1280x960:
           videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
           UpdateDisplaySettings();
+          UpdateViewMenu(videomode);
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
           break;
       }
