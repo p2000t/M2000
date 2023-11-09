@@ -204,10 +204,11 @@ int InitMachine(void)
     ResetAudioStream();
   }
 
-  //create menu
+  // create menu
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
   menubarHeight = al_get_display_height(display) - (DisplayHeight + 2.0*DisplayVBorder);
+  // fix display height after menu was attached
   if (menubarHeight > 0)
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
   if (Verbose) puts(menu ? "OK" : "FAILED");
@@ -633,6 +634,7 @@ void Keyboard(void)
       if (firstResize) {
         firstResize = 0;
 #ifdef __linux__
+        /* fix the display height after menu was attached */
         al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
         return;
 #endif
