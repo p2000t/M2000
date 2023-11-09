@@ -43,6 +43,7 @@ int UseSHM=1;                   /* If 0, do not use SHM extensions          */
 #endif
 
 int videomode=1;                /* 0=500x300, 1=520x490                     */
+int scanlines=0;                /* 0 = no scanlines                         */
 byte *DisplayBuf;               /* Screen buffer                            */
 static int *OldCharacter;       /* Holds the characters put in DisplayBuf   */
 static byte *FontBuf;           /* Teletext font buffer                     */

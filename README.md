@@ -61,14 +61,14 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
                        4 - Tape messages
 -ifreq <frequency>     Select interrupt frequency [50] Hz
 -cpuspeed <speed>      Set Z80 CPU speed [100]%
--sync <value>          Sync/Do not sync emulation [1]
+-sync <mode>           Sync/Do not sync emulation [1]
                        0 - Do not sync   1 - Sync
                        Emulation is faster if sync is turned off
 -ram <value>           Select amount of RAM installed [32KB]
 -uperiod <period>      Number of interrupts per screen update [1]
                        Try -uperiod 2 or -uperiod 3 if emulation is a bit slow
 -t / -m                Select P2000 model [-t]
--keymap <mode>         Select keyboard mapping [1]
+-keymap <value>        Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping (only for Windows version)
 -video <mode>          Select video mode/window size [1]
@@ -80,6 +80,9 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
                            640x480 (MS-DOS)
                        2 - 960x720 (Windows)
                        3 - 1280x960 (Windows)
+-scanlines <mode>      Show/Do not show scanlines [0]
+                       0 - Do not show scanlines
+                       1 - Show scanlines (only for Windows version)
 -printer <filename>    Select file for printer output [Printer.out]
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix

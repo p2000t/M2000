@@ -154,7 +154,7 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+  al_set_new_display_flags(ALLEGRO_WINDOWED // | ALLEGRO_RESIZABLE
 #ifdef __linux__
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
@@ -745,16 +745,17 @@ void Keyboard(void)
             "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0);
           break;
+        case VIEW_SCANLINES:
+          scanlines = !scanlines;
+          break;
         case VIEW_FULLSCREEN:
           ToggleFullscreen();
           break;
-        default:
-          if (event.user.data1 > VIEW_WINDOW_MENU && event.user.data1 < VIEW_WINDOW_MENU+10) {
-            videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
-            UpdateDisplaySettings(videomode);
-            UpdateViewMenu(menu);
-            al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-          }
+        case VIEW_WINDOW_640x480: case VIEW_WINDOW_800x600: case VIEW_WINDOW_960x720: case VIEW_WINDOW_1280x960:
+          videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
+          UpdateDisplaySettings(videomode);
+          UpdateViewMenu(menu);
+          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
           break;
       }
     }
@@ -817,11 +818,24 @@ void Pause(int ms) {
   al_rest((double)ms / 1000.0);
 }
 
+void DrawScanlines() {
+  int i; 
+  ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
+  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
+  for (i=0; i<DisplayHeight + 2*DisplayVBorder; i+=3)
+  {
+    al_draw_line(0, i, DisplayWidth + 2* DisplayHBorder, i, scanlineColor, 1);
+    al_draw_line(0, i+1, DisplayWidth + 2* DisplayHBorder, i+1, evenLineColor, 1);
+    
+  }
+}
+
 /****************************************************************************/
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
+  if (scanlines) DrawScanlines();
   al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
 
@@ -841,25 +855,6 @@ static void PutImage (void) {
     first = 0;
   }
 #endif
-}
-
-void DrawScanlines(int x, int y) {
-  int i; 
-  ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 80);
-  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 180);
-  for (i=0; i<DisplayTileHeight; i+=3)
-  {
-    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
-      DisplayVBorder + y * DisplayTileHeight + i,
-      DisplayHBorder + (x+1) * DisplayTileWidth,
-      DisplayVBorder + y * DisplayTileHeight + i,
-      evenLineColor, 1);
-    al_draw_line(DisplayHBorder + x * DisplayTileWidth,
-      DisplayVBorder + y * DisplayTileHeight + i+2,
-      DisplayHBorder + (x+1) * DisplayTileWidth,
-      DisplayVBorder + y * DisplayTileHeight + i+2,
-      scanlineColor, 1);
-  }
 }
 
 /****************************************************************************/

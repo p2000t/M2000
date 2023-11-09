@@ -2,7 +2,7 @@
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 int videomode = 1;
-int showScanlines = 0;
+int scanlines = 0;
 int makeScreenshot = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
@@ -48,17 +48,15 @@ static int CpuSpeed;
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
 
-static int Displays[][4] = { 
-// width height border scanlines
-  {  640,   480,     6,     0 },
-  {  800,   600,     8,     0 },
-  {  960,   720,    10,     0 },
-  // {  960,   720,    10,     1 },
-  { 1280,   960,    10,     0 },
-  // { 1280,   960,    10,     1 },
+static int Displays[][3] = { 
+// width height border
+  {  640,   480,     6 },
+  {  800,   600,     9 },
+  {  960,   720,    12 },
+  { 1280,   960,    15 },
 };
 
-static unsigned char Pal[8*3] =             /* SAA5050 palette                       */
+static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
 {
   0x00,0x00,0x00, //black
   0xFF,0x00,0x00, //red
@@ -77,5 +75,4 @@ void UpdateDisplaySettings() {
   DisplayHBorder = DisplayVBorder = Displays[videomode][2];
   DisplayTileWidth = DisplayWidth / 40;
   DisplayTileHeight = DisplayHeight / 24;
-  showScanlines = Displays[videomode][3];
 }
