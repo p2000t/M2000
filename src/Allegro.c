@@ -39,11 +39,10 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   if (soundbuf) free (soundbuf);
-  if (OldCharacter) free (OldCharacter);
 }
 
-int InitAllegro() {
-  // init allegro
+int InitAllegro() 
+{
   if (Verbose) printf("Initialising Allegro... ");
   if (!al_init()) return ShowErrorMessage("Allegro could not initialize its core.");
   if (!al_init_primitives_addon()) return ShowErrorMessage("Allegro could not initialize primitives addon.");
@@ -52,11 +51,6 @@ int InitAllegro() {
   if (!al_install_keyboard())return ShowErrorMessage("Allegro could not install keyboard.");
   if (Verbose) puts("OK");
   return 1;
-}
-
-void ClearScreen() {
-  al_clear_to_color(al_map_rgb(0, 0, 0));
-  memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
 int ShowErrorMessage(const char *format, ...)
@@ -70,7 +64,8 @@ int ShowErrorMessage(const char *format, ...)
   return 0; //always return error code
 }
 
-void ResetAudioStream() {
+void ResetAudioStream() 
+{
     if (Verbose) printf("  Creating the audio stream: ");
     for (buf_size = 4096; buf_size >= 128; buf_size /= 2) if (buf_size * IFreq <= 44100) break;
     sample_rate = buf_size * IFreq;
@@ -82,8 +77,7 @@ void ResetAudioStream() {
       al_destroy_audio_stream(stream);
     }
     stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
-    if (!stream || !soundbuf)
-    {
+    if (!stream || !soundbuf) {
       if (Verbose) puts("FAILED");
       soundmode = 0;
     }
@@ -99,7 +93,8 @@ void ResetAudioStream() {
     else if (Verbose) puts("OK");
 }
 
-void UpdateWindowTitle() {
+void UpdateWindowTitle() 
+{
   static char windowTitle[ALLEGRO_NEW_WINDOW_TITLE_MAX_SIZE];
   static char tapeFileName[50];
   if (TapeName) {
@@ -146,8 +141,7 @@ int InitMachine(void)
   vRamSaveChooser = al_create_native_file_dialog(NULL,
     "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
 
-  if (joymode) 
-  {
+  if (joymode) {
     if (Verbose) printf("Initialising and detecting joystick... ");
     joymode=0; //assume not found
     if (al_install_joystick()) {
@@ -169,6 +163,7 @@ int InitMachine(void)
   UpdateDisplaySettings();
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
+  al_clear_to_color(al_map_rgb(0, 0, 0));
   if (Verbose) puts("OK");
 
   if (Verbose) printf("Creating timer and queues... ");
@@ -183,8 +178,7 @@ int InitMachine(void)
 
   //set app icon
   ALLEGRO_FILE *iconFile;
-  if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) 
-  {
+  if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) {
     ALLEGRO_BITMAP *bm = al_load_bitmap_f(iconFile, ".png");
     al_set_display_icon(display, bm);
     al_fclose(iconFile);
@@ -196,20 +190,12 @@ int InitMachine(void)
   al_register_event_source(eventQueue, al_get_default_menu_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
-  if (P2000_Mode) /* black and white palette */
-  {
+  if (P2000_Mode) { /* M-mode uses black and white palette */
     Pal[0] = Pal[1] = Pal[2] = 0;
     Pal[3] = Pal[4] = Pal[5] = 255;
   }
 
-  if (Verbose) printf("  Allocating cache buffers... ");
-  OldCharacter = malloc(80 * 24 * sizeof(int));
-  if (!OldCharacter) return ShowErrorMessage("Could not allocate character buffer.");
-  ClearScreen();
-  if (Verbose) puts("OK");
-
-  if (soundmode)
-  {
+  if (soundmode) {
     /* sound init */
     if (Verbose) printf("Initializing sound...");
     if (!al_install_audio()) soundmode = 0;
@@ -239,22 +225,17 @@ void FlushSound(void)
   static int soundstate = 0;
   static int sample_count = 1;
 
-  if (!soundoff && soundmode)
-  {
+  if (!soundoff && soundmode) {
     int8_t *playbuf = al_get_audio_stream_fragment(stream);
-    if (playbuf)
-    {
-      for (i=0;i<buf_size;++i)
-      {
-        if (soundbuf[i])
-        {
+    if (playbuf) {
+      for (i=0;i<buf_size;++i) {
+        if (soundbuf[i]) {
           soundstate=soundbuf[i];
           soundbuf[i]=0;
           sample_count=sample_rate/1000;
         }
         playbuf[i]=soundstate+128;
-        if (!--sample_count)
-        {
+        if (!--sample_count) {
           sample_count=sample_rate/1000;
           if (soundstate>0) --soundstate;
           if (soundstate<0) ++soundstate;
@@ -265,10 +246,8 @@ void FlushSound(void)
   }
 
   // sync emulation by waiting for timer event (fired 50/60 times a second)
-  if (Sync) 
-  {
-    if (al_get_next_event(timerQueue, &event))
-    {
+  if (Sync) {
+    if (al_get_next_event(timerQueue, &event)) {
 #ifdef DEBUG
       printf("Sync lagged behind @ ts %f...\n", event.timer.timestamp);
 #endif
@@ -290,8 +269,7 @@ void Sound(int toggle)
   if (soundoff || !soundmode) 
     return;
 
-  if (toggle!=last)
-  {
+  if (toggle!=last) {
     last=toggle;
     pos=(buf_size-1)-(buf_size*Z80_ICount/Z80_IPeriod);
     val=(toggle)? (-mastervolume*8):(mastervolume*8);
@@ -326,34 +304,29 @@ int LoadFont(char *filename)
 
   al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR | ALLEGRO_MIN_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
-  if (!FontBuf)
-  {
+  if (!FontBuf) {
     if (Verbose) printf("  Creating font bitmap... ");
     if ((FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
       return ShowErrorMessage("Could not create font bitmap.");
     if (Verbose) puts("OK");
   }
 
-  if (!FontBuf_bk)
-  {
+  if (!FontBuf_bk) {
     if (Verbose) printf("  Creating font background bitmap... ");
     if ((FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
       return ShowErrorMessage("Could not create font background bitmap.");
     if (Verbose) puts("OK");
   }
 
-  if (!P2000_Mode)
-  {
-    if (!FontBuf_scaled) //double height
-    {
+  if (!P2000_Mode) {
+    if (!FontBuf_scaled) { //double height
       if (Verbose) printf("  Creating double-height font bitmap... ");
       if ((FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
         return ShowErrorMessage("Could not create double-height font bitmap.");
       if (Verbose) puts("OK");
     }
 
-    if (!FontBuf_bk_scaled)
-    {
+    if (!FontBuf_bk_scaled) {
       if (Verbose) printf("  Creating double-height font background bitmap... ");
       if ((FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
         return ShowErrorMessage("Could not create double-height font background bitmap.");
@@ -375,8 +348,7 @@ int LoadFont(char *filename)
   if (Verbose) printf("  Opening font file %s... ", filename);
   i = 0;
   F = fopen(filename, "rb");
-  if (F)
-  {
+  if (F) {
     printf("Reading... ");
     if (fread(TempBuf, 2240, 1, F)) i = 1;
     fclose(F);
@@ -480,7 +452,8 @@ int LoadFont(char *filename)
   return 1;
 }
 
-void SaveScreenshot() {
+void SaveScreenshot() 
+{
   if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
     makeScreenshot = 1;
 }
@@ -506,7 +479,8 @@ void ReleaseKey(byte keyCode)
   if (mRow < 10) KeyMap[mRow] |= mCol;
 }
 
-void ToggleFullscreen() {
+void ToggleFullscreen() 
+{
   int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
   fullScreen = !fullScreen; //toggle fullscreen
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
@@ -521,7 +495,7 @@ void ToggleFullscreen() {
       al_get_monitor_info(i, &info);
       if (info.x1 == 0 && info.y1 == 0) {
         //primary display found
-        if (Verbose) printf("Primary display has dimension %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
+        if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
 
         DisplayHeight = info.y2 - info.y1;
         DisplayWidth = DisplayHeight * 4 / 3;
@@ -532,8 +506,7 @@ void ToggleFullscreen() {
         break;
       }
     }
-  }
-  else {
+  } else {
     //back to window mode
     al_show_mouse_cursor(display);
     UpdateDisplaySettings(videomode);
@@ -541,15 +514,14 @@ void ToggleFullscreen() {
   }
 
   al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-  ClearScreen();
 }
 
 /****************************************************************************/
 /*** This function is called at every interrupt to update the P2000       ***/
 /*** keyboard matrix and check for special events                         ***/
 /****************************************************************************/
-void Keyboard(void) {
-
+void Keyboard(void) 
+{
   static byte delayedShiftedKeyPress = 0;
   if (delayedShiftedKeyPress) {
     if (delayedShiftedKeyPress > 100) {
@@ -613,8 +585,7 @@ void Keyboard(void) {
         if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
           queuedKeys[i] = 0;
           PushKey(keyCode);
-        }
-        else {
+        } else {
           // first, the shift must be pressed/un-pressed in this interrupt
           // then in the next interrupt the target key itself will be pressed
           KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
@@ -623,14 +594,11 @@ void Keyboard(void) {
         activeKeys[i] = 1;
         if (!isNormalKey) 
           isSpecialKeyPressed = true;
-      }
-      else {
-        if (activeKeys[i]) {
-          // unpress key and second key in P2000's keyboard matrix
-          if (isCombiKey) ReleaseKey(keyCodeCombi);
-          ReleaseKey(keyCode);
-          activeKeys[i] = 0;
-        }
+      } else if (activeKeys[i]) {
+        // unpress key and second key in P2000's keyboard matrix
+        if (isCombiKey) ReleaseKey(keyCodeCombi);
+        ReleaseKey(keyCode);
+        activeKeys[i] = 0;
       }
     }
     if (!isSpecialKeyPressed) {
@@ -651,17 +619,14 @@ void Keyboard(void) {
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
     }
-    if (!isNextEvent) event.type = 0; //clear event type from last event
+    if (!isNextEvent) 
+      event.type = 0; //clear event type from last event
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon was clicked
       Z80_Running = 0;
 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
-      ClearScreen();
-
-    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE)
       al_acknowledge_resize(display);
-    }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
@@ -789,7 +754,6 @@ void Keyboard(void) {
             UpdateDisplaySettings(videomode);
             UpdateViewMenu(menu);
             al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-            ClearScreen();
           }
           break;
       }
@@ -858,17 +822,18 @@ void Pause(int ms) {
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
+  al_unlock_bitmap(al_get_backbuffer(display));
   al_flip_display();
 
   if (makeScreenshot) {
     makeScreenshot = 0;
-    if (screenshotBitmap) al_destroy_bitmap(screenshotBitmap);
-    screenshotBitmap = al_clone_bitmap(al_get_target_bitmap());
-    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), screenshotBitmap);
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
   }
-  
-#ifdef __linux__
+
+  al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_clear_to_color(al_map_rgb(0, 0, 0));
+
+#ifdef __linux__
   static int first = 1;
   if (first && al_get_display_height(display) != (DisplayHeight + 2*DisplayHBorder)) {
     if (Verbose) puts("Initial display adjustment...");
@@ -901,14 +866,6 @@ void DrawScanlines(int x, int y) {
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
 static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
-#ifndef __linux__
-  int K = c + (eor << 8) + (ul << 16);
-  if (K == OldCharacter[y * 80 + x])
-    return;
-  OldCharacter[y * 80 + x] = K;
-#endif
-
-  //al_lock_bitmap(al_get_backbuffer(display),  ALLEGRO_PIXEL_FORMAT_ANY, ALLEGRO_LOCK_READONLY);
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
       (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
@@ -924,13 +881,6 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si) {
-#ifndef __linux__
-  int K = c + (fg << 8) + (bg << 16) + (si << 24);
-  if (K == OldCharacter[y * 40 + x])
-    return;
-  OldCharacter[y * 40 + x] = K;
-#endif
-
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),

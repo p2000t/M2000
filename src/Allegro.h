@@ -25,16 +25,13 @@ ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
-static int *OldCharacter;          /* Holds characters on the screen        */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
-ALLEGRO_BITMAP *screenshotBitmap = NULL;
 
-static unsigned char joyKeyMapping[2][5] = 
-{
+static unsigned char joyKeyMapping[2][5] = {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
   {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
 };
