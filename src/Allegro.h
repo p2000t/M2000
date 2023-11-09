@@ -6,6 +6,7 @@ int videomode = DEFAULT_VIDEO_MODE;
 int scanlines = 0;
 int menubarHeight = 0;
 int makeScreenshot = 0;
+int firstResize = 1;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;

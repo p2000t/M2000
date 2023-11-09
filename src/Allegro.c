@@ -208,7 +208,8 @@ int InitMachine(void)
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
   menubarHeight = al_get_display_height(display) - (DisplayHeight + 2.0*DisplayVBorder);
-  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+  if (menubarHeight > 0)
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   /* start the 50Hz/60Hz timer */
@@ -513,7 +514,6 @@ void ToggleFullscreen()
     al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
     UpdateDisplaySettings();
-    UpdateViewMenu();
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
   }
 }
@@ -629,20 +629,24 @@ void Keyboard(void)
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
-      //if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
-      DisplayWidth = event.display.width * 40 / 42;
-      DisplayHeight = event.display.height * 24 / 25;
-      DisplayTileWidth = DisplayWidth / 40;
-      DisplayTileHeight = DisplayHeight / 24;
-      DisplayWidth = DisplayTileWidth * 40;
-      DisplayHeight = DisplayTileHeight * 24;
-      DisplayHBorder = (event.display.width - DisplayWidth) / 2;
-      DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-      videomode = -1; //assume new videomode isn't one of the predefined ones
-      for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++)
-        if (DisplayWidth == Displays[i][0] && DisplayHeight == Displays[i][1])
-          videomode = i;
-      UpdateViewMenu();
+      if (Verbose) puts("ALLEGRO_EVENT_DISPLAY_RESIZE");
+      if (firstResize) {
+        firstResize = 0;
+#ifdef __linux__
+        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+        return;
+#endif
+      }
+      if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
+        DisplayWidth = event.display.width * 40 / 42;
+        DisplayHeight = event.display.height * 24 / 25;
+        DisplayTileWidth = DisplayWidth / 40;
+        DisplayTileHeight = DisplayHeight / 24;
+        DisplayWidth = DisplayTileWidth * 40;
+        DisplayHeight = DisplayTileHeight * 24;
+        DisplayHBorder = (event.display.width - DisplayWidth) / 2;
+        DisplayVBorder = (event.display.height - DisplayHeight) / 2;
+      }
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
@@ -771,7 +775,6 @@ void Keyboard(void)
         case VIEW_WINDOW_640x480: case VIEW_WINDOW_800x600: case VIEW_WINDOW_960x720: case VIEW_WINDOW_1280x960:
           videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
           UpdateDisplaySettings();
-          UpdateViewMenu();
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
           break;
       }
@@ -859,15 +862,6 @@ static void PutImage (void) {
     al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
   }
   al_clear_to_color(al_map_rgb(0, 0, 0));
-
-#ifdef __linux__
-  static int first = 1;
-  if (first && al_get_display_height(display) != (DisplayHeight + 2*DisplayHBorder)) {
-    if (Verbose) puts("Initial display adjustment...");
-    al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-    first = 0;
-  }
-#endif
 }
 
 /****************************************************************************/
