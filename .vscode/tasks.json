@@ -5,8 +5,8 @@
     "tasks": [
         {
             "label": "Make",
-            "type": "shell",
-            "command": "make allegro",
+            "type": "process",
+            "command": "make",
             "options": {
                 "cwd": "src"
             },
@@ -20,7 +20,7 @@
             "args": [
                 "-t",
                 //"-scanlines", "1",
-                //"-video", "0",
+                //"-video", "1",
                 //"-sound", "1",
                 //"-cpuspeed",  "100",
                 // "-tape", "test/cas/SAA5050.cas",

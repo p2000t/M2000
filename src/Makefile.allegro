@@ -1,3 +1,4 @@
+
 #### Makefile for M2000 Allegro portable library
 # Following #defines can be used:
 # DEBUG			Compile with builtin debugger
@@ -7,7 +8,7 @@ CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
-	  -DLSB_FIRST -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND
+	  -DLSB_FIRST -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND # -DDEBUG
 LFLAGS  = -s
 # -mwindows
 #-Wl,-subsystem,windows 
