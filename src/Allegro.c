@@ -147,8 +147,6 @@ void ToggleFullscreen()
     }
   } else {
     //back to window mode
-    al_show_mouse_cursor(display);
-    al_set_display_menu(display,  menu);
     DisplayWidth = _DisplayWidth;
     DisplayHeight = _DisplayHeight;
     DisplayTileWidth = _DisplayTileWidth;
@@ -156,6 +154,8 @@ void ToggleFullscreen()
     DisplayHBorder = _DisplayHBorder;
     DisplayVBorder = _DisplayVBorder;
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+    al_show_mouse_cursor(display);
+    al_set_display_menu(display,  menu);
   }
 }
 
@@ -637,12 +637,17 @@ void Keyboard(void)
         pausePressed = 0;
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
+      if (al_key_up(&kbdstate, ALLEGRO_KEY_RIGHT)) {
+        break; //advance one frame
+      }
     }
     if (!isNextEvent) 
       event.type = 0; //clear event type from last event
 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) //window close icon was clicked
+    if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
+      break;
+    }
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
