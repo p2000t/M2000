@@ -1,9 +1,4 @@
 default:
-	@echo "To compile M2000, use one of the following:"
-	@echo " make allegro - Make the Allegro version (requires Allegro5 libs)"
-	@echo " make dos     - Make the MS-DOS version (requires DJGPP libs)"
-
-allegro:
 	$(MAKE) -f Makefile.allegro
 
 dos:
