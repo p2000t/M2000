@@ -3,9 +3,10 @@ Version 0.7-SNAPSHOT
                                      
 ## Supported platforms
 
-* MS-DOS
-* Unix/X
 * Windows
+* Linux
+* Mac
+* MS-DOS
 
 ## Downloads
 
@@ -34,6 +35,9 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 
 ## Function Keys
 ```
+F1               -  ZOEK key (show cassette index in BASIC)
+F2               -  START key (start loaded program in BASIC)
+Shift-F2         -  STOP key (pause/halt program in BASIC)
 F5               -  Reset P2000
 F6               -  Change options (MS-DOS version only)
 F7               -  Make screenshot
@@ -41,11 +45,6 @@ F9               -  Toggle pause on/off
 F10              -  Toggle sound on/off
 F11              -  Toggle fullscreen on/off
 Alt-F4 / Ctrl-Q  -  Quit emulator
-
-Windows version only:
-F1               -  ZOEK key (show cassette index in BASIC)
-F2               -  START key (start loaded program in BASIC)
-Shift-F2         -  STOP key (pause/halt program in BASIC)
 ```
 
 ## Command line options
@@ -70,20 +69,18 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
 -t / -m                Select P2000 model [-t]
 -keymap <value>        Select keyboard mapping [1]
                        0 - Positional mapping
-                       1 - Symbolic mapping (only for Windows version)
+                       1 - Symbolic mapping (not supported in MS-DOS)
 -video <mode>          Select video mode/window size [1]
-                       0 - 640x480 (Windows)
-                           500x300 (Unix/X)
+                       0 - 640x480
                            256x240 (MS-DOS)
-                       1 - 800x600 (Windows)
-                           520x490 (Unix/X)
+                       1 - 800x600
                            640x480 (MS-DOS)
-                       2 - 960x720 (Windows)
-                       3 - 1280x960 (Windows)
-                       9 - Full Screen (Windows)
+                       2 - 960x720
+                       3 - 1280x960
+                       9 - Full Screen
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
-                       1 - Show scanlines (only for Windows version)
+                       1 - Show scanlines (not supported in MS-DOS)
 -printer <filename>    Select file for printer output [Printer.out]
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix
@@ -108,9 +105,6 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
                            The main button emulates pressing the spacebar
                        1 - Fraxxon mode: Left/right emulates cursorkeys left/up
                            The main button emulates pressing the spacebar
--shm <mode>            Use/Do not use MIT SHM extensions for X [1] 
-                       (note: Unix/X version only)
-                       0 - Don't use SHM   1 - Use SHM
 ```
 
 ### Configuration file (optional)
@@ -122,10 +116,10 @@ This is a plain text file containing optional command line options. Options can 
 
 There are two keyboard mappings available in M2000:
 - **Positional** key mapping, in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2. \
-***Positional key mapping is the default and only avialable option for the MS-DOS and Unix/X versions of M2000.***
+***Positional key mapping is the default and only avialable option for the MS-DOS version of M2000.***
 
 - **Symbolic** key mapping, in which typing a key on your keyboard will - as far as possible - show the actual character/symbol written on the keycap. So that means that typing Shift-2 will show the @ symbol in the emulator. \
-***Symbolic key mapping is the default option for the Windows version of M2000, but can be changed to positional key mapping by passing `-keymap 0` as command line argument.***
+***Symbolic key mapping is the default option for M2000, but can be changed to positional key mapping by passing `-keymap 0` as command line argument.***
 
 ### Positional key mapping overview
 
@@ -165,17 +159,6 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
 * Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
 * Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
 * Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
-
-### Unix/X:
-* Make sure you have installed: make, gcc and the X11 libs:
-  ```
-  sudo apt update
-  sudo apt install make gcc libx11-dev libxext-dev
-  ``` 
-* Now go into the src folder of the cloned M2000 repo and type: `make x`. \
-The resulting `m2000` will be copied into the root of your cloned M2000 repo, where you can now run it.
-* If sound isn't working, please try installing also-oss (`sudo apt install alsa-oss`) and run m2000 through the alsa-oss wrapper: \
-  `aoss ./m2000`
 
 ### Linux (Allegro5 libraries and with cmake)
 * Ensure all dependencies are installed

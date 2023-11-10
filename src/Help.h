@@ -27,9 +27,7 @@ char *HelpText[] =
   "  -ifreq <frequency>         - Set interrupt frequency [50Hz]",
   "  -sync <value>              - Sync/Do not sync emulation [1]",
   "                               0 - Dot no sync   1 - Sync",
-#ifndef ALLEGRO
   "  -uperiod <value>           - Set number of interrupts per screen update [1]",
-#endif
   "  -t / -m                    - Select P2000 model [-t]",
 #ifdef ALLEGRO
   "  -keymap <mode>             - Select keyboard mapping [1]",
@@ -43,9 +41,6 @@ char *HelpText[] =
 #endif
 #ifdef MSDOS
   "                               0 - 256x240   1 - 640x480",
-#endif
-#ifdef UNIX_X
-  "                               0 - 500x300   1 - 520x490",
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
   "  -printer <filename>        - Select file for printer output [Printer.out]",
@@ -62,10 +57,6 @@ char *HelpText[] =
 #ifdef MSDOS
   "                               1 - PC Speaker",
   "                               2 - SoundBlaster",
-#else
-#ifdef UNIX_X
-  "                               1 - /dev/dsp",
-#endif
 #endif
   "                               255 - Detect",
   "  -volume <value>            - Select initial volume [10]",
@@ -78,14 +69,6 @@ char *HelpText[] =
   "                                   The main button emulates the spacebar",
   "                               1 - Fraxxon mode: Moving left/right does left/up",
   "                                   The main button emulates the spacebar",
-#endif
-#ifdef MITSHM
-  "  -shm <mode>                - Use/Don't use MITSHM extensions for X [1]",
-  "                               0 - Don't use SHM   1 - Use SHM",
-#endif
-#ifdef UNIX_X
-  "  -savecpu <mode>            - Save/Don't save CPU when inactive [1]",
-  "                               0 - Don't save CPU   1 - Save CPU",
 #endif
   NULL
 };

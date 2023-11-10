@@ -50,13 +50,11 @@ static char *Options[]=
   /* 16 */ "volume",
   /* 17 */ "ram",
   /* 18 */ "sync",
-  /* 19 */ "shm",
-  /* 20 */ "savecpu",
-  /* 21 */ "video",
-  /* 22 */ "cart",
-  /* 23 */ "keymap",
-  /* 24 */ "joymap",
-  /* 25 */ "scanlines",
+  /* 19 */ "video",
+  /* 20 */ "cart",
+  /* 21 */ "keymap",
+  /* 22 */ "joymap",
+  /* 23 */ "scanlines",
   NULL
 };
 
@@ -68,12 +66,6 @@ extern int mastervolume;
 #ifdef JOYSTICK
 extern int joymode;
 extern int joymap;
-#endif
-#ifdef MITSHM
-extern int UseSHM;
-#endif
-#ifdef UNIX_X
-extern int SaveCPU;
 #endif
 extern int videomode;
 extern int scanlines;
@@ -248,39 +240,23 @@ static int ParseOptions (int argc,char *argv[])
              break;
     case 19: N++;
              if (N<argc)
-#ifdef MITSHM
-              UseSHM=atoi(argv[N])
-#endif
-             ;else
-              misparm=1;
-             break;
-    case 20: N++;
-             if (N<argc)
-#ifdef UNIX_X
-              SaveCPU=atoi(argv[N])
-#endif
-             ;else
-              misparm=1;
-             break;
-    case 21: N++;
-             if (N<argc)
               videomode=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 22: N++; /* cart */
+    case 20: N++; /* cart */
              if (N<argc)
               CartName=argv[N];
              else
               misparm=1;
              break;
-    case 23: N++;  /* keymap */
+    case 21: N++;  /* keymap */
              if (N<argc)
               keyboardmap=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 24: N++;  /* joymap */
+    case 22: N++;  /* joymap */
              if (N<argc)
 #ifdef JOYSTICK
               joymap=atoi(argv[N])
@@ -288,7 +264,7 @@ static int ParseOptions (int argc,char *argv[])
              ;else
               misparm=1;
              break;
-    case 25: N++;  /* scanlines */
+    case 23: N++;  /* scanlines */
              if (N<argc)
               scanlines=atoi(argv[N]);
              else
