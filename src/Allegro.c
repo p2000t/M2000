@@ -123,12 +123,12 @@ void ToggleFullscreen()
   int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
   fullScreen = !fullScreen; //toggle fullscreen
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
+  ClearScreen();
   
   if (fullScreen) {
     //fullscreen: hide menu and mouse
     al_remove_display_menu(display);
     al_hide_mouse_cursor(display);
-    ClearScreen();
 
     _DisplayWidth = DisplayWidth;
     _DisplayHeight = DisplayHeight;
@@ -218,7 +218,7 @@ int InitMachine(void)
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
   );
-
+  al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
   UpdateDisplaySettings();
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
