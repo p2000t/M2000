@@ -225,7 +225,7 @@ int InitMachine(void)
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
   );
-#ifdef __linux__
+#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
   ignoreResizeEvent = 1;
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
@@ -659,7 +659,7 @@ void Keyboard(void)
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
-    printf("event.type=%i\n", event.type);
+    //printf("event.type=%i\n", event.type);
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -690,36 +690,24 @@ void Keyboard(void)
         while (al_get_next_event(eventQueue, &event))
           al_acknowledge_resize(display);
         al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-        puts("!ignored resize!");
+        ClearScreen();
         return;
       }
 #endif
-      puts("!RESIZING!");
-  //    if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
-        if (firstResize) {
-          firstResize = 0;
-// #ifdef __linux__
-//           /* fix the display height after menu was attached */
-//           al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-//           ClearScreen();
-//           return;
-// #endif
-        }
-        DisplayWidth = event.display.width * 40 / 42;
-        DisplayHeight = event.display.height * 24 / 25;
-        if (3 * DisplayWidth > 4 * DisplayHeight)
-          DisplayWidth = DisplayHeight * 4 / 3;
-        else
-          DisplayHeight = DisplayWidth * 3 / 4;
-        DisplayTileWidth = DisplayWidth / 40;
-        DisplayTileHeight = DisplayHeight / 24;
-        DisplayWidth = DisplayTileWidth * 40;
-        DisplayHeight = DisplayTileHeight * 24;
-        DisplayHBorder = (event.display.width - DisplayWidth) / 2;
-        DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-        UpdateViewMenu(-1); //deselect the view-dimensions in menu
-        ClearScreen();
-//      }
+      DisplayWidth = event.display.width * 40 / 42;
+      DisplayHeight = event.display.height * 24 / 25;
+      if (3 * DisplayWidth > 4 * DisplayHeight)
+        DisplayWidth = DisplayHeight * 4 / 3;
+      else
+        DisplayHeight = DisplayWidth * 3 / 4;
+      DisplayTileWidth = DisplayWidth / 40;
+      DisplayTileHeight = DisplayHeight / 24;
+      DisplayWidth = DisplayTileWidth * 40;
+      DisplayHeight = DisplayTileHeight * 24;
+      DisplayHBorder = (event.display.width - DisplayWidth) / 2;
+      DisplayVBorder = (event.display.height - DisplayHeight) / 2;
+      UpdateViewMenu(-1); //deselect the view-dimensions in menu
+      ClearScreen();
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
@@ -780,13 +768,13 @@ void Keyboard(void)
         case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_200_ID: case SPEED_500_ID:
           CpuSpeed = event.user.data1 - SPEED_OFFSET;
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
-          UpdateCpuSpeedMenu(menu, CpuSpeed);
+          UpdateCpuSpeedMenu();
           break;
         case FPS_50_ID: case FPS_60_ID:
           IFreq = (event.user.data1 == FPS_50_ID ? 50 : 60);
           if ((IFreq == 50 && CpuSpeed == 120) || (IFreq == 60 && CpuSpeed == 100)) {
             CpuSpeed = 2*IFreq;
-            UpdateCpuSpeedMenu(menu, CpuSpeed);
+            UpdateCpuSpeedMenu();
           } else {
             Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
           }
@@ -822,7 +810,7 @@ void Keyboard(void)
           break;
         case OPTIONS_VOLUME_HIGH_ID: case OPTIONS_VOLUME_MEDIUM_ID: case OPTIONS_VOLUME_LOW_ID:
           mastervolume = event.user.data1 - OPTIONS_VOLUME_OFFSET;
-          UpdateVolumeMenu(menu,mastervolume);
+          UpdateVolumeMenu();
           break;
         case OPTIONS_JOYSTICK_ID:
           joymode = !joymode;
