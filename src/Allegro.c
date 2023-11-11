@@ -124,7 +124,7 @@ void ToggleFullscreen()
   fullScreen = !fullScreen; //toggle fullscreen
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
   ClearScreen();
-  
+
   if (fullScreen) {
     //fullscreen: hide menu and mouse
     al_remove_display_menu(display);
@@ -573,7 +573,7 @@ void Keyboard(void)
   bool isCombiKey, isNormalKey, isShiftKey;
   bool isSpecialKeyPressed = 0;
   byte keyCode, keyCodeCombi;
-  bool al_shift_down;
+  bool al_shift_down, al_ctrl_alt_cmd_down;
   bool isP2000ShiftDown;
   FILE *f;
 
@@ -586,58 +586,64 @@ void Keyboard(void)
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
+  al_ctrl_alt_cmd_down = al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND) ||
+     al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) || 
+     al_key_down(&kbdstate,ALLEGRO_KEY_RCTRL) ||
+     al_key_down(&kbdstate,ALLEGRO_KEY_ALT);
 
-  if (keyboardmap == 0) {
-    /* Positional Key Mapping */
-    //fill P2000 KeyMap
-    for (i = 0; i < 80; i++) {
-      k = i / 8;
-      j = 1 << (i % 8);
-      if (!keymask[i])
-        continue;
-      if (al_key_down(&kbdstate, keymask[i]))
-        KeyMap[k] &= ~j;
-      else
-        KeyMap[k] |= j;  
-    }
-  }
-  else {
-    /* Symbolic Key Mapping */
-    isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
-    for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
-      keyPressed = keyMappings[i][0];
-      isCombiKey = keyMappings[i][1] != keyMappings[i][3];
-      isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
-      isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
-      keyCode = keyMappings[i][al_shift_down ? 3 : 1];
-      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
-
-      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
-        if (isCombiKey) 
-          ReleaseKey(keyCodeCombi);
-        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
-          queuedKeys[i] = 0;
-          PushKey(keyCode);
-        } else {
-          // first, the shift must be pressed/un-pressed in this interrupt
-          // then in the next interrupt the target key itself will be pressed
-          KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
-          queuedKeys[i] = 1;
-        }
-        activeKeys[i] = 1;
-        if (!isNormalKey) 
-          isSpecialKeyPressed = true;
-      } else if (activeKeys[i]) {
-        // unpress key and second key in P2000's keyboard matrix
-        if (isCombiKey) ReleaseKey(keyCodeCombi);
-        ReleaseKey(keyCode);
-        activeKeys[i] = 0;
+  if (!al_ctrl_alt_cmd_down) {
+    if (keyboardmap == 0) {
+      /* Positional Key Mapping */
+      //fill P2000 KeyMap
+      for (i = 0; i < 80; i++) {
+        k = i / 8;
+        j = 1 << (i % 8);
+        if (!keymask[i])
+          continue;
+        if (al_key_down(&kbdstate, keymask[i]))
+          KeyMap[k] &= ~j;
+        else
+          KeyMap[k] |= j;  
       }
     }
-    if (!isSpecialKeyPressed) {
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+    else {
+      /* Symbolic Key Mapping */
+      isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+      for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
+        keyPressed = keyMappings[i][0];
+        isCombiKey = keyMappings[i][1] != keyMappings[i][3];
+        isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
+        isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
+        keyCode = keyMappings[i][al_shift_down ? 3 : 1];
+        keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
+
+        if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
+          if (isCombiKey) 
+            ReleaseKey(keyCodeCombi);
+          if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
+            queuedKeys[i] = 0;
+            PushKey(keyCode);
+          } else {
+            // first, the shift must be pressed/un-pressed in this interrupt
+            // then in the next interrupt the target key itself will be pressed
+            KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
+            queuedKeys[i] = 1;
+          }
+          activeKeys[i] = 1;
+          if (!isNormalKey) 
+            isSpecialKeyPressed = true;
+        } else if (activeKeys[i]) {
+          // unpress key and second key in P2000's keyboard matrix
+          if (isCombiKey) ReleaseKey(keyCodeCombi);
+          ReleaseKey(keyCode);
+          activeKeys[i] = 0;
+        }
+      }
+      if (!isSpecialKeyPressed) {
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+      }
     }
   }
 
@@ -812,15 +818,15 @@ void Keyboard(void)
             "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
             NULL, 0);
           break;
-        case VIEW_SCANLINES:
+        case DISPLAY_SCANLINES:
           scanlines = !scanlines;
           ClearScreen();
           break;
-        case VIEW_FULLSCREEN:
+        case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
           break;
-        case VIEW_WINDOW_640x480: case VIEW_WINDOW_800x600: case VIEW_WINDOW_960x720: case VIEW_WINDOW_1280x960:
-          videomode = event.user.data1 - VIEW_WINDOW_MENU - 1;
+        case DISPLAY_WINDOW_640x480: case DISPLAY_WINDOW_800x600: case DISPLAY_WINDOW_960x720: case DISPLAY_WINDOW_1280x960:
+          videomode = event.user.data1 - DISPLAY_WINDOW_MENU - 1;
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
