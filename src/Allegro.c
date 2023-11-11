@@ -225,6 +225,9 @@ int InitMachine(void)
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
   );
+#ifdef __linux__
+  ignoreResizeEvent = 1;
+#endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
   UpdateDisplaySettings();
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
@@ -686,18 +689,21 @@ void Keyboard(void)
         ignoreResizeEvent = 0;
         while (al_get_next_event(eventQueue, &event))
           al_acknowledge_resize(display);
+        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+        puts("!ignored resize!");
         return;
       }
 #endif
-      if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
+      puts("!RESIZING!");
+  //    if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
         if (firstResize) {
           firstResize = 0;
-#ifdef __linux__
-          /* fix the display height after menu was attached */
-          al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-          ClearScreen();
-          return;
-#endif
+// #ifdef __linux__
+//           /* fix the display height after menu was attached */
+//           al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+//           ClearScreen();
+//           return;
+// #endif
         }
         DisplayWidth = event.display.width * 40 / 42;
         DisplayHeight = event.display.height * 24 / 25;
@@ -713,7 +719,7 @@ void Keyboard(void)
         DisplayVBorder = (event.display.height - DisplayHeight) / 2;
         UpdateViewMenu(-1); //deselect the view-dimensions in menu
         ClearScreen();
-      }
+//      }
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
