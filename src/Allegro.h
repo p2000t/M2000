@@ -52,6 +52,7 @@ static int CpuSpeed;
 
 int soundmode=255;                 /* Sound mode, 255=auto-detect           */
 static int soundoff=0;             /* If 1, sound is turned off             */
+static int *OldCharacter;          /* Holds characters on the screen        */
 
 static int Displays[][2] = { 
   // width height 

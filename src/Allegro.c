@@ -39,6 +39,7 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   if (soundbuf) free (soundbuf);
+  if (OldCharacter) free (OldCharacter);
 }
 
 int InitAllegro() 
@@ -64,6 +65,13 @@ int ShowErrorMessage(const char *format, ...)
   return 0; //always return error code
 }
 
+void ClearScreen() 
+{
+  al_set_target_bitmap(al_get_backbuffer(display));
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
+}
+
 void ResetAudioStream() 
 {
     if (Verbose) printf("  Creating the audio stream: ");
@@ -76,7 +84,7 @@ void ResetAudioStream()
       al_detach_audio_stream(stream);
       al_destroy_audio_stream(stream);
     }
-    stream = al_create_audio_stream(16, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+    stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
     if (!stream || !soundbuf) {
       if (Verbose) puts("FAILED");
       soundmode = 0;
@@ -120,6 +128,7 @@ void ToggleFullscreen()
     //fullscreen: hide menu and mouse
     al_remove_display_menu(display);
     al_hide_mouse_cursor(display);
+    ClearScreen();
 
     _DisplayWidth = DisplayWidth;
     _DisplayHeight = DisplayHeight;
@@ -213,7 +222,6 @@ int InitMachine(void)
   UpdateDisplaySettings();
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
-  al_clear_to_color(al_map_rgb(0, 0, 0));
   if (Verbose) puts("OK");
 
   if (Verbose) printf("Creating timer and queues... ");
@@ -244,6 +252,12 @@ int InitMachine(void)
     Pal[0] = Pal[1] = Pal[2] = 0;
     Pal[3] = Pal[4] = Pal[5] = 255;
   }
+
+  if (Verbose) printf("  Allocating cache buffers... ");
+  OldCharacter = malloc(80 * 24 * sizeof(int));
+  if (!OldCharacter) return ShowErrorMessage("Could not allocate character buffer.");
+  ClearScreen();
+  if (Verbose) puts("OK");
 
   if (soundmode) {
     /* sound init */
@@ -644,6 +658,9 @@ void Keyboard(void)
     if (!isNextEvent) 
       event.type = 0; //clear event type from last event
 
+    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
+      ClearScreen();
+
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
       break;
@@ -657,6 +674,7 @@ void Keyboard(void)
 #ifdef __linux__
           /* fix the display height after menu was attached */
           al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+          ClearScreen();
           return;
   #endif
         }
@@ -673,6 +691,7 @@ void Keyboard(void)
         DisplayHBorder = (event.display.width - DisplayWidth) / 2;
         DisplayVBorder = (event.display.height - DisplayHeight) / 2;
         UpdateViewMenu(-1); //deselect the view-dimensions in menu
+        ClearScreen();
       }
     }
 
@@ -795,6 +814,7 @@ void Keyboard(void)
           break;
         case VIEW_SCANLINES:
           scanlines = !scanlines;
+          ClearScreen();
           break;
         case VIEW_FULLSCREEN:
           ToggleFullscreen();
@@ -804,6 +824,7 @@ void Keyboard(void)
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+          ClearScreen();
           break;
       }
     }
@@ -870,11 +891,21 @@ void DrawScanlines() {
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
-  for (i=0; i<DisplayHeight + 2*DisplayVBorder; i+=3)
+  for (i=DisplayVBorder; i<DisplayHeight + DisplayVBorder; i+=3)
   {
-    al_draw_line(0, i, DisplayWidth + 2* DisplayHBorder, i, scanlineColor, 1);
-    al_draw_line(0, i+1, DisplayWidth + 2* DisplayHBorder, i+1, evenLineColor, 1);
-    
+    al_draw_line(DisplayHBorder, i, DisplayWidth + DisplayHBorder, i, scanlineColor, 1);
+    al_draw_line(DisplayHBorder, i+1, DisplayWidth + DisplayHBorder, i+1, evenLineColor, 1);
+  }
+}
+
+void DrawScanlinesTile(int x, int y) {
+  int i; 
+  ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
+  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
+  for (i=DisplayVBorder+y*DisplayTileHeight; i<DisplayVBorder+(y+1)*DisplayTileHeight; i+=3)
+  {
+    al_draw_line(DisplayHBorder + x*DisplayTileWidth, i, DisplayHBorder + (x+1)*DisplayTileWidth, i, evenLineColor, 1);
+    al_draw_line(DisplayHBorder + x*DisplayTileWidth, i+2, DisplayHBorder + (x+1)*DisplayTileWidth, i+2, scanlineColor, 1);
   }
 }
 
@@ -883,19 +914,31 @@ void DrawScanlines() {
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 static void PutImage (void) {
+#ifdef __linux__
   if (scanlines) DrawScanlines();
+#endif
   al_flip_display();
   if (makeScreenshot) {
     makeScreenshot = 0;
     al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
   }
+#ifdef __linux__
   al_clear_to_color(al_map_rgb(0, 0, 0));
+#endif
 }
 
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000M emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
+static inline void PutChar_M(int x, int y, int c, int eor, int ul) 
+{
+#ifndef __linux__
+  int K = c + (eor << 8) + (ul << 16);
+  if (K == OldCharacter[y * 80 + x])
+    return;
+  OldCharacter[y * 80 + x] = K;
+#endif
+
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
       (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
@@ -905,12 +948,23 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul) {
         DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
         DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
+#ifndef __linux__
+  if (scanlines) DrawScanlinesTile(x, y);
+#endif
 }
 
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si) {
+static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
+{
+#ifndef __linux__
+  int K = c + (fg << 8) + (bg << 16) + (si << 24);
+  if (K == OldCharacter[y * 40 + x])
+    return;
+  OldCharacter[y * 40 + x] = K;
+#endif
+
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
       (si ? FontBuf_scaled : FontBuf),
@@ -925,4 +979,7 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si) {
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
+#ifndef __linux__
+  if (scanlines) DrawScanlinesTile(x, y);
+#endif
 }
