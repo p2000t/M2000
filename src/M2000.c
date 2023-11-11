@@ -16,6 +16,8 @@
 #include <ctype.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <allegro5/allegro.h>
+
 
 #include "P2000.h"
 #include "Help.h"
