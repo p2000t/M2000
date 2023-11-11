@@ -16,6 +16,10 @@
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
+#ifndef _WIN32
+#define AL_RESIZE_DISPLAY_FIRES_EVENTS
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -122,6 +126,9 @@ void ToggleFullscreen()
 {
   int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
   fullScreen = !fullScreen; //toggle fullscreen
+#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
+  ignoreResizeEvent = 1;
+#endif
   al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
   ClearScreen();
 
@@ -649,7 +656,7 @@ void Keyboard(void)
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
-    //printf("event.type=%i\n", event.type);
+    printf("event.type=%i\n", event.type);
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -674,6 +681,14 @@ void Keyboard(void)
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
       al_acknowledge_resize(display);
+#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
+      if (ignoreResizeEvent) {
+        ignoreResizeEvent = 0;
+        while (al_get_next_event(eventQueue, &event))
+          al_acknowledge_resize(display);
+        return;
+      }
+#endif
       if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)) {
         if (firstResize) {
           firstResize = 0;
@@ -682,7 +697,7 @@ void Keyboard(void)
           al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
           ClearScreen();
           return;
-  #endif
+#endif
         }
         DisplayWidth = event.display.width * 40 / 42;
         DisplayHeight = event.display.height * 24 / 25;
@@ -829,6 +844,9 @@ void Keyboard(void)
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU - 1;
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
+#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
+          ignoreResizeEvent = 1;
+#endif
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
           ClearScreen();
           break;

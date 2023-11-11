@@ -9,6 +9,7 @@ int scanlines = 0;
 int menubarHeight = 0;
 int makeScreenshot = 0;
 int firstResize = 1;
+int ignoreResizeEvent = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
