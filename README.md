@@ -138,48 +138,37 @@ For the other key mappings, see picture below.
 If you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone https://github.com/p2000t/M2000.git`
 
-### MS-DOS:
-* Download and install [DOSBox](https://www.dosbox.com/)
-* Go to the folder which contains your cloned M2000 repo and open the subfolder `djgpp`
-* Extract all files from the 5 zips (`djdev202.zip`, `bnu281b.zip`, `gcc281b.zip`, `mak377b.zip` and `csdpmi4b.zip`) directly into `djgpp`, so this folder will get subfolders `bin`, `gnu`, `include`, etc.
-* Open the DOSBox options file and copy/paste these lines at the bottom under [autoexec]: \
-  ***note: replace "C:\path-to-your-clone-of-M2000" with the actual path***
+### Linux
+* Install the Allegro 5 libs, depending on your Linux distro:
+  * Debian/Ubuntu/Linux Mint
+    ```
+    sudo apt install liballegro*5.2 liballegro*5-dev
+    ```
+  * Fedora
+    ```
+    sudo dnf install allegro5*
+    ```
+* Go into the src directory and run make
   ```
-  mount c "C:\path-to-your-clone-of-M2000"
-  c:
-  set PATH=C:\DJGPP\BIN;%PATH%
-  set DJGPP=C:\DJGPP\DJGPP.ENV
-  #optional: reduce sound volume to 20%
-  MIXER MASTER 20
-  MIXER SPKR 20
-  MIXER SB 20
-  MIXER FM 20
+  cd src
+  make
   ```
-  Note: if you have a joystick attached, pleas make sure to set `timed=false` in the DOSBox options.
-* Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
-* Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
-* Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
+  The resulting `M2000` executable will be available in the root folder.
 
-### Linux (Allegro5 libraries and with cmake)
-* Ensure all dependencies are installed
-  ```
-  sudo apt update
-  sudo apt install -y build-essential cmake liballegro5-dev
-  ```
-* Create a separate build directory, run cmake and start the compilation
-  ```
-  mkdir build && cd build
-  cmake ../src && make -j
-  ```
-
-### macOS (tested for macOS 10.13)
-* Install the Allegro libs
+### macOS
+* Install the Allegro 5 libs using brew
   ```
   brew install allegro
   ```
-* `cd` into the `src` folder and run `make`. The resulting `M2000` executable will be available in the root folder.
+* Go into the src directory and run make
+  ```
+  cd src
+  make
+  ```
+  The resulting `M2000` executable will be available in the root folder. \
+  Tested for macOS 10.13 (High Sierra).
 
-### Windows:
+### Windows
 * Make sure to have MinGW (the Windows port of gcc) installed on your machine. \
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install MinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
@@ -205,6 +194,28 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
   ```
 * The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
   the `.zip` file found in the same folder and deploy the emulator in another folder.
+
+### MS-DOS
+* Download and install [DOSBox](https://www.dosbox.com/)
+* Go to the folder which contains your cloned M2000 repo and open the subfolder `djgpp`
+* Extract all files from the 5 zips (`djdev202.zip`, `bnu281b.zip`, `gcc281b.zip`, `mak377b.zip` and `csdpmi4b.zip`) directly into `djgpp`, so this folder will get subfolders `bin`, `gnu`, `include`, etc.
+* Open the DOSBox options file and copy/paste these lines at the bottom under [autoexec]: \
+  ***note: replace "C:\path-to-your-clone-of-M2000" with the actual path***
+  ```
+  mount c "C:\path-to-your-clone-of-M2000"
+  c:
+  set PATH=C:\DJGPP\BIN;%PATH%
+  set DJGPP=C:\DJGPP\DJGPP.ENV
+  #optional: reduce sound volume to 20%
+  MIXER MASTER 20
+  MIXER SPKR 20
+  MIXER SB 20
+  MIXER FM 20
+  ```
+  Note: if you have a joystick attached, pleas make sure to set `timed=false` in the DOSBox options.
+* Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
+* Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
+* Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
 
 ## More information on the P2000
 
