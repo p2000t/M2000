@@ -579,6 +579,12 @@ void Keyboard(void)
     return; //stop handling rest of keys
   }
 
+#ifdef __APPLE__
+  //workaround to show mouse cursor coming back from fullscreen mode
+  if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
+    al_show_mouse_cursor(display);
+#endif
+
   int i,j,k;
   byte keyPressed;
   bool isCombiKey, isNormalKey, isShiftKey;
