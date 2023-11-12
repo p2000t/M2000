@@ -5,7 +5,7 @@ Version 0.7-SNAPSHOT
 
 * Windows
 * Linux
-* Mac
+* macOS
 * MS-DOS
 
 ## Downloads
@@ -92,7 +92,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -font <filename>       Select font to use [Default.fnt]
 -sound <mode>          Select sound mode [255]
                        0 - No sound
-                       1 - PC Speaker (MS-DOS) or /dev/dsp (Unix)
+                       1 - PC Speaker (MS-DOS)
                        2 - SoundBlaster (MS-DOS)
                        255 - Detect
 -volume <value>        Select initial volume
@@ -171,6 +171,13 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   mkdir build && cd build
   cmake ../src && make -j
   ```
+
+### macOS (tested for macOS 10.13)
+* Install the Allegro libs
+  ```
+  brew install allegro
+  ```
+* `cd` into the `src` folder and run `make`. The resulting `M2000` executable will be available in the root folder.
 
 ### Windows:
 * Make sure to have MinGW (the Windows port of gcc) installed on your machine. \
