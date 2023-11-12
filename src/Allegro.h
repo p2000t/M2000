@@ -7,7 +7,6 @@ static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _Dis
 int videomode = DEFAULT_VIDEO_MODE;
 int scanlines = 0;
 int menubarHeight = 0;
-int makeScreenshot = 0;
 int ignoreResizeEvent = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;

@@ -535,7 +535,8 @@ int LoadFont(char *filename)
 
 void SaveScreenshot() 
 {
-  makeScreenshot = al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0;
+  if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
+    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -905,25 +906,14 @@ void Pause(int ms) {
   al_rest((double)ms / 1000.0);
 }
 
-void DrawScanlines() {
+void DrawTileScanlines(int tileX, int tileY) {
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
-  for (i=DisplayVBorder; i<DisplayHeight + DisplayVBorder; i+=3)
+  for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3)
   {
-    al_draw_line(DisplayHBorder, i, DisplayWidth + DisplayHBorder, i, scanlineColor, 1);
-    al_draw_line(DisplayHBorder, i+1, DisplayWidth + DisplayHBorder, i+1, evenLineColor, 1);
-  }
-}
-
-void DrawScanlinesTile(int x, int y) {
-  int i; 
-  ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
-  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
-  for (i=DisplayVBorder+y*DisplayTileHeight; i<DisplayVBorder+(y+1)*DisplayTileHeight; i+=3)
-  {
-    al_draw_line(DisplayHBorder + x*DisplayTileWidth, i, DisplayHBorder + (x+1)*DisplayTileWidth, i, evenLineColor, 1);
-    al_draw_line(DisplayHBorder + x*DisplayTileWidth, i+2, DisplayHBorder + (x+1)*DisplayTileWidth, i+2, scanlineColor, 1);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, evenLineColor, 1);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2, scanlineColor, 1);
   }
 }
 
@@ -931,18 +921,9 @@ void DrawScanlinesTile(int x, int y) {
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
-static void PutImage (void) {
-#ifdef __linux__
-  if (scanlines) DrawScanlines();
-#endif
+static void PutImage (void)
+{
   al_flip_display();
-  if (makeScreenshot) {
-    makeScreenshot = 0;
-    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
-  }
-#ifdef __linux__
-  al_clear_to_color(al_map_rgb(0, 0, 0));
-#endif
 }
 
 /****************************************************************************/
@@ -950,12 +931,10 @@ static void PutImage (void) {
 /****************************************************************************/
 static inline void PutChar_M(int x, int y, int c, int eor, int ul) 
 {
-#ifndef __linux__
   int K = c + (eor << 8) + (ul << 16);
   if (K == OldCharacter[y * 80 + x])
     return;
   OldCharacter[y * 80 + x] = K;
-#endif
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
@@ -966,9 +945,7 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
         DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
         DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
         al_map_rgb(255, 255, 255));
-#ifndef __linux__
-  if (scanlines) DrawScanlinesTile(x, y);
-#endif
+  if (scanlines) DrawTileScanlines(x, y);
 }
 
 /****************************************************************************/
@@ -976,12 +953,10 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 /****************************************************************************/
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 {
-#ifndef __linux__
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
-#endif
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
@@ -997,7 +972,5 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
-#ifndef __linux__
-  if (scanlines) DrawScanlinesTile(x, y);
-#endif
+  if (scanlines) DrawTileScanlines(x, y);
 }
