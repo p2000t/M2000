@@ -39,7 +39,7 @@ int _crt0_startup_flags = _CRT0_FLAG_NONMOVE_SBRK |
 char *Title="M2000 - Philips P2000 emulator";    /* Title for -help output                */
 
 
-int videomode=1;                   /* T emulation only: 0=256x240 1=640x480 */ 
+int videomode=0;                   /* T emulation only: 0=256x240 1=640x480 */ 
 int scanlines=0;                   /* 0 = no scanlines                      */
 static int *OldCharacter;          /* Holds characters on the screen        */
 static int *CharacterCache;        /* Current cache contents                */

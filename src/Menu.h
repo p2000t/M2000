@@ -20,6 +20,9 @@
 #define DISPLAY_WINDOW_800x600 22
 #define DISPLAY_WINDOW_960x720 23
 #define DISPLAY_WINDOW_1280x960 24
+#define DISPLAY_WINDOW_1440x1080 25
+#define DISPLAY_WINDOW_1600x1200 26
+#define DISPLAY_WINDOW_1920x1440 27
 #define DISPLAY_SCANLINES 28
 #define DISPLAY_FULLSCREEN 29
 
@@ -59,8 +62,8 @@ ALLEGRO_MENU *menu = NULL;
 
 void UpdateViewMenu(int vmode) {
   int i;
-  for (i=0; i< sizeof(Displays)/sizeof(*Displays); i++)
-    al_set_menu_item_flags(menu, i + DISPLAY_WINDOW_MENU + 1, vmode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  for (i=1; i< sizeof(Displays)/sizeof(*Displays); i++)
+    al_set_menu_item_flags(menu, i + DISPLAY_WINDOW_MENU, vmode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
 void UpdateVolumeMenu () {
@@ -106,6 +109,9 @@ void CreateEmulatorMenu()
       { "800 x 600", DISPLAY_WINDOW_800x600, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "960 x 720", DISPLAY_WINDOW_960x720, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "1280 x 960", DISPLAY_WINDOW_1280x960, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "1440 x 1080", DISPLAY_WINDOW_1440x1080, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "1600 x 1200", DISPLAY_WINDOW_1600x1200, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { "1920 x 1440", DISPLAY_WINDOW_1920x1440, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "Full Screen (F11)", DISPLAY_FULLSCREEN, 0, NULL },
       ALLEGRO_END_OF_MENU,
