@@ -1,10 +1,11 @@
 #pragma once
-#define DEFAULT_VIDEO_MODE 1
-#define FULLSCREEN_VIDEO_MODE 9
+#define FULLSCREEN_VIDEO_MODE 99
+
+#include "P2000.h"
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _DisplayTileWidth, _DisplayTileHeight;
-int videomode = DEFAULT_VIDEO_MODE;
+int videomode = 0; /* autodetect */
 int scanlines = 0;
 int menubarHeight = 0;
 int ignoreResizeEvent = 0;
@@ -24,6 +25,7 @@ int mastervolume=4;               /* Master volume setting                 */
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
+ALLEGRO_MONITOR_INFO monitorInfo;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
@@ -55,10 +57,14 @@ static int *OldCharacter;          /* Holds characters on the screen        */
 
 static int Displays[][2] = { 
   // width height 
+  {   -1,    -1 }, //autodetect
   {  640,   480 },
   {  800,   600 },
   {  960,   720 },
   { 1280,   960 },
+  { 1440,  1080 },
+  { 1600,  1200 },
+  { 1920,  1440 },
 };
 
 static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
@@ -74,7 +80,17 @@ static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
 };
 
 void UpdateDisplaySettings() {
-  if (videomode < 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) videomode = DEFAULT_VIDEO_MODE;
+  int i;
+  if (videomode <= 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) {
+    // autodetect best videomode, which should fit within 75% of the screensize
+    for (i = sizeof(Displays)/sizeof(*Displays)-1; i>1; i--) {
+      if ((Displays[i][0] / 40 * 42) <= 0.75*(monitorInfo.x2 - monitorInfo.x1) && 
+          (Displays[i][1] / 24 * 25) <= 0.75*(monitorInfo.y2 - monitorInfo.y1))
+        break;
+    }
+    videomode = i; // 640 x 480 will be the minimum
+    if (Verbose) printf("Best display window size: %i x %i\n", Displays[videomode][0], Displays[videomode][1]);
+  }
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
   DisplayTileWidth = DisplayWidth / 40;

@@ -124,16 +124,24 @@ void UpdateWindowTitle()
 
 void ToggleFullscreen() 
 {
-  int fullScreen = al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW;
-  fullScreen = !fullScreen; //toggle fullscreen
+  ClearScreen();
 #ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
   ignoreResizeEvent = 1;
 #endif
-  al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , fullScreen);
-  ClearScreen();
-
-  if (fullScreen) {
-    //fullscreen: hide menu and mouse
+  if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
+    //back to window mode
+    DisplayWidth = _DisplayWidth;
+    DisplayHeight = _DisplayHeight;
+    DisplayTileWidth = _DisplayTileWidth;
+    DisplayTileHeight = _DisplayTileHeight;
+    DisplayHBorder = _DisplayHBorder;
+    DisplayVBorder = _DisplayVBorder;
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+    al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
+    al_show_mouse_cursor(display);
+    al_set_display_menu(display,  menu);
+  } else {
+    //go fullscreen: hide menu and mouse
     al_remove_display_menu(display);
     al_hide_mouse_cursor(display);
 
@@ -144,34 +152,15 @@ void ToggleFullscreen()
     _DisplayHBorder = DisplayHBorder;
     _DisplayVBorder = DisplayVBorder;
 
-    ALLEGRO_MONITOR_INFO info;
-    for (int i=0; i<al_get_num_video_adapters(); i++) {
-      al_get_monitor_info(i, &info);
-      if (info.x1 == 0 && info.y1 == 0) {
-        //primary display found
-        if (Verbose) printf("Primary fullscreen display: %i x %i\n", info.x2 - info.x1, info.y2 - info.y1);
-        DisplayHeight = info.y2 - info.y1;
-        DisplayWidth = DisplayHeight * 4 / 3;
-        DisplayVBorder = 0;
-        DisplayHBorder = (info.x2 - info.x1 - DisplayWidth) / 2;
-        DisplayTileWidth = DisplayWidth / 40;
-        DisplayTileHeight = DisplayHeight / 24;
-
-        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-        break;
-      }
-    }
-  } else {
-    //back to window mode
-    DisplayWidth = _DisplayWidth;
-    DisplayHeight = _DisplayHeight;
-    DisplayTileWidth = _DisplayTileWidth;
-    DisplayTileHeight = _DisplayTileHeight;
-    DisplayHBorder = _DisplayHBorder;
-    DisplayVBorder = _DisplayVBorder;
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
-    al_show_mouse_cursor(display);
-    al_set_display_menu(display,  menu);
+    DisplayHeight = monitorInfo.y2 - monitorInfo.y1;
+    DisplayWidth = DisplayHeight * 4 / 3;
+    DisplayVBorder = 0;
+    DisplayHBorder = (monitorInfo.x2 - monitorInfo.x1 - DisplayWidth) / 2;
+    DisplayTileWidth = DisplayWidth / 40;
+    DisplayTileHeight = DisplayHeight / 24;
+    if (Verbose) printf("Fullscreen resizing to %ix%i\n",DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+    al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 1);
   }
 }
 
@@ -180,7 +169,7 @@ void ToggleFullscreen()
 /****************************************************************************/
 int InitMachine(void)
 {
-  int startFullScreen = videomode == FULLSCREEN_VIDEO_MODE;
+  int startFullScreen = (videomode == FULLSCREEN_VIDEO_MODE);
   //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
   CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
   if (CpuSpeed > 350) CpuSpeed = 500;
@@ -195,7 +184,15 @@ int InitMachine(void)
   IFreq = IFreq >= 55 ? 60 : 50; 
 
   if (!InitAllegro()) return 0;
-  
+
+  /* get primary display monitor info */
+  for (int i=0; i<al_get_num_video_adapters(); i++) {
+    if (al_get_monitor_info(i, &monitorInfo) && monitorInfo.x1 == 0 && monitorInfo.y1 == 0) {
+      if (Verbose) printf("Primary fullscreen display: %i x %i\n", monitorInfo.x2 - monitorInfo.x1, monitorInfo.y2 - monitorInfo.y1);
+      break; //primary display found
+    }
+  }
+
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
@@ -219,6 +216,7 @@ int InitMachine(void)
     if (!joymode && Verbose) puts("FAILED");
   }
 
+  UpdateDisplaySettings();
   if (Verbose) printf("Creating the display window... ");
   al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
 #ifdef __linux__
@@ -229,7 +227,6 @@ int InitMachine(void)
   ignoreResizeEvent = 1;
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
-  UpdateDisplaySettings();
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
@@ -841,8 +838,9 @@ void Keyboard(void)
         case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
           break;
-        case DISPLAY_WINDOW_640x480: case DISPLAY_WINDOW_800x600: case DISPLAY_WINDOW_960x720: case DISPLAY_WINDOW_1280x960:
-          videomode = event.user.data1 - DISPLAY_WINDOW_MENU - 1;
+        case DISPLAY_WINDOW_640x480: case DISPLAY_WINDOW_800x600: case DISPLAY_WINDOW_960x720: case DISPLAY_WINDOW_1280x960: 
+        case DISPLAY_WINDOW_1440x1080: case DISPLAY_WINDOW_1600x1200: case DISPLAY_WINDOW_1920x1440:
+          videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
 #ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS

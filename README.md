@@ -70,14 +70,17 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -keymap <value>        Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping (not supported in MS-DOS)
--video <mode>          Select video mode/window size [1]
-                       0 - 640x480
-                           256x240 (MS-DOS)
-                       1 - 800x600
-                           640x480 (MS-DOS)
-                       2 - 960x720
-                       3 - 1280x960
-                       9 - Full Screen
+-video <mode>          Select video mode/window size [0]
+                       0  - Autodetect best window size
+                            256x240 (only for MS-DOS)
+                       1  - 640x480
+                       2  - 800x600
+                       2  - 960x720
+                       3  - 1280x960
+                       4  - 1440x1080
+                       5  - 1600x1200
+                       6  - 1920x1440
+                       99 - Full Screen
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
                        1 - Show scanlines (not supported in MS-DOS)
