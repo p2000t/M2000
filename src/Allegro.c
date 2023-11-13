@@ -128,9 +128,6 @@ void ToggleFullscreen()
   return;
 #endif
   ClearScreen();
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-  ignoreResizeEvent = 1;
-#endif
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
     //back to window mode
     DisplayWidth = _DisplayWidth;
@@ -140,8 +137,13 @@ void ToggleFullscreen()
     DisplayHBorder = _DisplayHBorder;
     DisplayVBorder = _DisplayVBorder;
     if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+#ifdef __APPLE__
+    al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+#else
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
+#endif
     al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
   } else {
@@ -222,17 +224,20 @@ int InitMachine(void)
 
   UpdateDisplaySettings();
   if (Verbose) printf("Creating the display window... ");
-  al_set_new_display_flags(ALLEGRO_WINDOWED // | ALLEGRO_RESIZABLE
 #ifdef __linux__
-    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
-#endif
-  );
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-  ignoreResizeEvent = 1;
+  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
+#else
+  al_set_new_display_flags (ALLEGRO_WINDOWED);
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
+#ifdef __linux__
+  if ((display = al_create_display(Displays[1][0], Displays[1][1])) == NULL)
+    return ShowErrorMessage("Could not initialize display.");
+  al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+#else
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
     return ShowErrorMessage("Could not initialize display.");
+#endif
   if (Verbose) puts("OK");
 
   if (Verbose) printf("Creating timer and queues... ");
@@ -282,10 +287,11 @@ int InitMachine(void)
   // create menu
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
+#ifdef _WIN32
   menubarHeight = al_get_display_height(display) - (DisplayHeight + 2.0*DisplayVBorder);
   // fix display height after menu was attached
-  if (menubarHeight > 0)
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+#endif
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   if (startFullScreen)
@@ -689,33 +695,8 @@ void Keyboard(void)
       break;
     }
 
-    // if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
-    //   al_acknowledge_resize(display);
-// #ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-//       if (ignoreResizeEvent) {
-//         ignoreResizeEvent = 0;
-//         while (al_get_next_event(eventQueue, &event))
-//           al_acknowledge_resize(display);
-//         al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-//         ClearScreen();
-//         return;
-//       }
-// #endif
-//       DisplayWidth = event.display.width * 40 / 42;
-//       DisplayHeight = event.display.height * 24 / 25;
-//       if (3 * DisplayWidth > 4 * DisplayHeight)
-//         DisplayWidth = DisplayHeight * 4 / 3;
-//       else
-//         DisplayHeight = DisplayWidth * 3 / 4;
-//       DisplayTileWidth = DisplayWidth / 40;
-//       DisplayTileHeight = DisplayHeight / 24;
-//       DisplayWidth = DisplayTileWidth * 40;
-//       DisplayHeight = DisplayTileHeight * 24;
-//       DisplayHBorder = (event.display.width - DisplayWidth) / 2;
-//       DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-//       UpdateViewMenu(-1); //deselect the view-dimensions in menu
-//       ClearScreen();
-    // }
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE)
+      al_acknowledge_resize(display);
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
@@ -846,9 +827,6 @@ void Keyboard(void)
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-          ignoreResizeEvent = 1;
-#endif
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
           ClearScreen();
           break;
@@ -880,9 +858,14 @@ void Keyboard(void)
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
   }
 
+#ifdef __APPLE__
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_COMMAND) && al_key_up(&kbdstate, ALLEGRO_KEY_F))
+    ToggleFullscreen();
+#else
   /* F11 toggle fullscreen */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
     ToggleFullscreen();
+#endif
 
   /* ALT-F4 or CTRL-Q to quit M2000 */
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||

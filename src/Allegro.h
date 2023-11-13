@@ -8,7 +8,6 @@ static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _Dis
 int videomode = 0; /* autodetect */
 int scanlines = 0;
 int menubarHeight = 0;
-int ignoreResizeEvent = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
