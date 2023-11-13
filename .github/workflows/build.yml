@@ -74,6 +74,10 @@ jobs:
       run: mkdir build && cd build && cmake ../src
     - name: Build
       run: cd build && make -j
+    - name: Zip package
+      run: |
+        cd build
+        zip -vr M2000.zip .
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-ubuntu" >> $GITHUB_OUTPUT
@@ -82,10 +86,7 @@ jobs:
       with:
         name: ${{ steps.generate-name.outputs.artifact_name }}
         path: |
-          build/M2000
-          build/Default.fnt
-          build/P2000ROM.bin
-          build/BASIC.bin
+          build/M2000.zip
 
   build-macos:
     runs-on: macos-11
