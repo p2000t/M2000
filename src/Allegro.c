@@ -124,6 +124,9 @@ void UpdateWindowTitle()
 
 void ToggleFullscreen() 
 {
+#ifdef __linux__
+  return;
+#endif
   ClearScreen();
 #ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
   ignoreResizeEvent = 1;
@@ -136,6 +139,7 @@ void ToggleFullscreen()
     DisplayTileHeight = _DisplayTileHeight;
     DisplayHBorder = _DisplayHBorder;
     DisplayVBorder = _DisplayVBorder;
+    if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
     al_show_mouse_cursor(display);
@@ -685,33 +689,33 @@ void Keyboard(void)
       break;
     }
 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
-      al_acknowledge_resize(display);
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-      if (ignoreResizeEvent) {
-        ignoreResizeEvent = 0;
-        while (al_get_next_event(eventQueue, &event))
-          al_acknowledge_resize(display);
-        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-        ClearScreen();
-        return;
-      }
-#endif
-      DisplayWidth = event.display.width * 40 / 42;
-      DisplayHeight = event.display.height * 24 / 25;
-      if (3 * DisplayWidth > 4 * DisplayHeight)
-        DisplayWidth = DisplayHeight * 4 / 3;
-      else
-        DisplayHeight = DisplayWidth * 3 / 4;
-      DisplayTileWidth = DisplayWidth / 40;
-      DisplayTileHeight = DisplayHeight / 24;
-      DisplayWidth = DisplayTileWidth * 40;
-      DisplayHeight = DisplayTileHeight * 24;
-      DisplayHBorder = (event.display.width - DisplayWidth) / 2;
-      DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-      UpdateViewMenu(-1); //deselect the view-dimensions in menu
-      ClearScreen();
-    }
+    // if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+    //   al_acknowledge_resize(display);
+// #ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
+//       if (ignoreResizeEvent) {
+//         ignoreResizeEvent = 0;
+//         while (al_get_next_event(eventQueue, &event))
+//           al_acknowledge_resize(display);
+//         al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+//         ClearScreen();
+//         return;
+//       }
+// #endif
+//       DisplayWidth = event.display.width * 40 / 42;
+//       DisplayHeight = event.display.height * 24 / 25;
+//       if (3 * DisplayWidth > 4 * DisplayHeight)
+//         DisplayWidth = DisplayHeight * 4 / 3;
+//       else
+//         DisplayHeight = DisplayWidth * 3 / 4;
+//       DisplayTileWidth = DisplayWidth / 40;
+//       DisplayTileHeight = DisplayHeight / 24;
+//       DisplayWidth = DisplayTileWidth * 40;
+//       DisplayHeight = DisplayTileHeight * 24;
+//       DisplayHBorder = (event.display.width - DisplayWidth) / 2;
+//       DisplayVBorder = (event.display.height - DisplayHeight) / 2;
+//       UpdateViewMenu(-1); //deselect the view-dimensions in menu
+//       ClearScreen();
+    // }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
