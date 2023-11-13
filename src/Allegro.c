@@ -16,7 +16,9 @@
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
+#ifdef __APPLE__
 #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -664,7 +666,9 @@ void Keyboard(void)
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     //printf("event.type=%i\n", event.type);
+#ifdef __APPLE__
     al_clear_keyboard_state(display); //event? -> reset keyboard state
+#endif
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -824,14 +828,12 @@ void Keyboard(void)
   }
 
   /* press F5 to Reset (or trace in DEBUG mode) */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
 #ifdef DEBUG
     Z80_Trace = !Z80_Trace;
 #else
-    al_clear_keyboard_state(display);
     Z80_Reset ();
 #endif
-  }
 
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
@@ -849,19 +851,20 @@ void Keyboard(void)
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
   }
 
-#ifdef __APPLE__
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_COMMAND) && al_key_up(&kbdstate, ALLEGRO_KEY_F))
-    ToggleFullscreen();
-#else
   /* F11 toggle fullscreen */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
     ToggleFullscreen();
-#endif
 
   /* ALT-F4 or CTRL-Q to quit M2000 */
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
       (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
+
+#ifdef __APPLE__
+  for (i=ALLEGRO_KEY_F1; i<=ALLEGRO_KEY_F12; i++)
+    if (al_key_down(&kbdstate, i))
+      al_clear_keyboard_state(display);
+#endif
 
   // handle joystick
   if (joymode) {

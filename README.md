@@ -43,7 +43,7 @@ F6               -  Change options (MS-DOS version only)
 F7               -  Make screenshot
 F9               -  Toggle pause on/off
 F10              -  Toggle sound on/off
-F11 / ^⌘F       -  Toggle fullscreen on/off (F11 for Windows, ^⌘F for macOS)
+F11              -  Toggle fullscreen on/off (use Shift-F11 for macOS)
 Alt-F4 / Ctrl-Q  -  Quit emulator
 ```
 
