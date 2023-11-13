@@ -16,6 +16,7 @@
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
+#define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
 #ifndef _WIN32
 #define AL_RESIZE_DISPLAY_FIRES_EVENTS
 #endif
@@ -885,6 +886,8 @@ void Keyboard(void)
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
       (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
+
+  al_clear_keyboard_state(display);
 
   // handle joystick
   if (joymode) {
