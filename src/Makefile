@@ -36,7 +36,7 @@ CFLAGS  = -Wall -fomit-frame-pointer -O2 -static\
 	  -DLSB_FIRST -DALLEGRO -DALLEGRO_STATICLINK -DJOYSTICK -DSOUND # -DDEBUG
 LFLAGS  = -s
 ifeq ($(OS),Windows_NT)
-  LFLAGS += -mwindows
+#  LFLAGS += -mwindows
 endif
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o

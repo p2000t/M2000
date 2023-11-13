@@ -10,7 +10,7 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define CHAR_PIXEL_WIDTH 6 //must be even
+#define CHAR_PIXEL_WIDTH 2 //must be even
 #define CHAR_PIXEL_HEIGHT 2
 #define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
@@ -380,7 +380,6 @@ int LoadFont(char *filename)
   char *TempBuf;
   FILE *F;
 
-  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR | ALLEGRO_MIN_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
   if (!FontBuf) {
     if (Verbose) printf("  Creating font bitmap... ");
