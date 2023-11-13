@@ -119,7 +119,7 @@ void CreateEmulatorMenu()
       { "Full Screen (F11)", DISPLAY_FULLSCREEN, 0, NULL },
 #endif
 #ifdef __APPLE__
-      { "Full Screen (^⌘F)", DISPLAY_FULLSCREEN, 0, NULL },
+      { "Full Screen (Shift-F11)", DISPLAY_FULLSCREEN, 0, NULL },
 #endif
       ALLEGRO_END_OF_MENU,
 
