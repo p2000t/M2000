@@ -60,10 +60,10 @@
 
 ALLEGRO_MENU *menu = NULL;
 
-void UpdateViewMenu(int vmode) {
+void UpdateViewMenu() {
   int i;
   for (i=1; i< sizeof(Displays)/sizeof(*Displays); i++)
-    al_set_menu_item_flags(menu, i + DISPLAY_WINDOW_MENU, vmode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+    al_set_menu_item_flags(menu, i + DISPLAY_WINDOW_MENU, videomode == i ?  ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
 void UpdateVolumeMenu () {
@@ -177,5 +177,6 @@ void CreateEmulatorMenu()
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
+  UpdateViewMenu();
   al_set_display_menu(display, menu);
 }

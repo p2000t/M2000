@@ -222,14 +222,21 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
+  UpdateDisplaySettings();
 #ifdef __linux__
   al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
 #else
   al_set_new_display_flags (ALLEGRO_WINDOWED);
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
+#ifdef __linux__
+  // for Linux create smallest display, as it cannot correctly scale back
   if ((display = al_create_display(Displays[1][0], Displays[1][1])) == NULL)
+#else
+  if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
+#endif
     return ShowErrorMessage("Could not initialize display.");
+
   if (Verbose) puts("OK");
 
   if (Verbose) printf("Creating timer and queues... ");
@@ -280,12 +287,12 @@ int InitMachine(void)
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
 #ifdef _WIN32
-  menubarHeight = al_get_display_height(Displays[1][1]) - 480;
+  menubarHeight = al_get_display_height(display) - DisplayHeight - 2*DisplayVBorder;
 #endif
+#if defined(_WIN32) || defined(__linux__)
   // resize display after menu was attached
-  UpdateDisplaySettings();
-  UpdateViewMenu(videomode);
   al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+#endif
 
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
@@ -819,7 +826,7 @@ void Keyboard(void)
         case DISPLAY_WINDOW_1440x1080: case DISPLAY_WINDOW_1600x1200: case DISPLAY_WINDOW_1920x1440:
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
-          UpdateViewMenu(videomode);
+          UpdateViewMenu();
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
           ClearScreen();
           break;

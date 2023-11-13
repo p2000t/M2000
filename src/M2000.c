@@ -363,7 +363,7 @@ int main(int argc,char *argv[])
 #ifdef ALLEGRO
   if (!al_init()) {
     puts("Allegro could not initialize its core.");
-    return 1;c
+    return 1;
   }
   strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), '/'));
 #else
