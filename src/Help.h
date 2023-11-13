@@ -34,12 +34,15 @@ char *HelpText[] =
   "                                0 - Positional mapping",
   "                                1 - Symbolic mapping",
 #endif
-  "  -video <mode>              - Select window size [1]",
+  "  -video <mode>              - Select window size [0]",
 #ifdef ALLEGRO
-  "                               0 - 640x480   1 - 800x600",
-  "                               2 - 960x720   3 - 1280x960",
-#endif
-#ifdef MSDOS
+  "                               0  - Detect best window size",
+  "                               1  - 640 x 480    2 - 800 x 600",
+  "                               3  - 960 x 720    4 - 1280 x 960",
+  "                               5  - 1440 x 1080  6 - 1600 x 1200",
+  "                               7  - 1920 x 1440",
+  "                               99 - Full screen (not supported on Linux)",
+#else //MS-DOS
   "                               0 - 256x240   1 - 640x480",
 #endif
   "  -ram <size>                - Select amount of RAM installed [32KB]",
@@ -61,7 +64,6 @@ char *HelpText[] =
   "                               255 - Detect",
   "  -volume <value>            - Select initial volume [10]",
   "                               0 - Silent    15 - Maximum",
-#ifdef JOYSTICK
   "  -joystick <mode>           - Select joystick mode [1]",
   "                               0 - No joystick support  1 - Joystick support",
   "  -joymap <mode>             - Select joystick mapping [0]",
@@ -69,6 +71,5 @@ char *HelpText[] =
   "                                   The main button emulates the spacebar",
   "                               1 - Fraxxon mode: Moving left/right does left/up",
   "                                   The main button emulates the spacebar",
-#endif
   NULL
 };

@@ -17,7 +17,6 @@
 /****************************************************************************/
 /* #define DEBUG      */              /* Compile debugging version          */
 /* #define X86_ASM    */              /* Compile optimised GCC/x86 version  */
-/* #define LSB_FIRST  */              /* Compile for low-endian CPU         */
 /* #define __64BIT__  */              /* Compile for 64 bit machines        */
 /* #define __128BIT__ */              /* Compile for 128 bit machines       */
 
@@ -43,37 +42,18 @@ typedef signed char    offset;
 typedef union
 {
 #ifdef __128BIT__
- #ifdef LSB_FIRST
    struct { byte l,h,h2,h3,h4,h5,h6,h7,
                  h8,h9,h10,h11,h12,h13,h14,h15; } B;
    struct { word l,h,h2,h3,h4,h5,h6,h7; } W;
    dword D;
- #else
-   struct { byte h15,h14,h13,h12,h11,h10,h9,h8,
-                 h7,h6,h5,h4,h3,h2,h,l; } B;
-   struct { word h7,h6,h5,h4,h3,h2,h,l; } W;
-   dword D;
- #endif
 #elif __64BIT__
- #ifdef LSB_FIRST
    struct { byte l,h,h2,h3,h4,h5,h6,h7; } B;
    struct { word l,h,h2,h3; } W;
    dword D;
- #else
-   struct { byte h7,h6,h5,h4,h3,h2,h,l; } B;
-   struct { word h3,h2,h,l; } W;
-   dword D;
- #endif
 #else
- #ifdef LSB_FIRST
    struct { byte l,h,h2,h3; } B;
    struct { word l,h; } W;
    dword D;
- #else
-   struct { byte h3,h2,h,l; } B;
-   struct { word h,l; } W;
-   dword D;
- #endif
 #endif
 } pair;
 

@@ -16,8 +16,9 @@
 #include <ctype.h>
 #include <signal.h>
 #include <sys/stat.h>
+#ifdef ALLEGRO
 #include <allegro5/allegro.h>
-
+#endif
 
 #include "P2000.h"
 #include "Help.h"
@@ -61,14 +62,10 @@ static char *Options[]=
 };
 
 extern int keyboardmap;
-#ifdef SOUND
 extern int soundmode;
 extern int mastervolume;
-#endif
-#ifdef JOYSTICK
 extern int joymode;
 extern int joymap;
-#endif
 extern int videomode;
 extern int scanlines;
 
@@ -159,25 +156,19 @@ static int ParseOptions (int argc,char *argv[])
              break;
     case 6:  N++;
              if(N<argc)
-#ifdef SOUND
               soundmode=atoi(argv[N])
-#endif
              ;else
               misparm=1;
              break;
     case 16: N++;
              if(N<argc)
-#ifdef SOUND
               mastervolume=atoi(argv[N])
-#endif
              ;else
               misparm=1;
              break;
     case 7:  N++;
              if(N<argc)
-#ifdef JOYSTICK
               joymode=atoi(argv[N])
-#endif
              ;else
               misparm=1;
              break;
@@ -260,9 +251,7 @@ static int ParseOptions (int argc,char *argv[])
              break;
     case 22: N++;  /* joymap */
              if (N<argc)
-#ifdef JOYSTICK
               joymap=atoi(argv[N])
-#endif
              ;else
               misparm=1;
              break;

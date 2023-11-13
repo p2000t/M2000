@@ -528,26 +528,14 @@ int InitMachine(void)
     {
      unsigned a;
      a=0;
-#ifdef LSB_FIRST
      if (c&0x08) a|=i; else a|=j;
      if (c&0x04) a|=(i<<8); else a|=(j<<8);
      if (c&0x02) a|=(i<<16); else a|=(j<<16);
      if (c&0x01) a|=(i<<24); else a|=(j<<24);
-#else
-     if (c&0x01) a|=i; else a|=j;
-     if (c&0x02) a|=(i<<8); else a|=(j<<8);
-     if (c&0x04) a|=(i<<16); else a|=(j<<16);
-     if (c&0x08) a|=(i<<24); else a|=(j<<24);
-#endif
      font2screen[i*8*64+j*64+c].high=a;
      a=0;
-#ifdef LSB_FIRST
      if (c&0x20) a|=i; else a|=j;
      if (c&0x10) a|=(i<<8); else a|=(j<<8);
-#else
-     if (c&0x10) a|=i; else a|=j;
-     if (c&0x20) a|=(i<<8); else a|=(j<<8);
-#endif
      font2screen[i*8*64+j*64+c].low=a;
     }
  }
