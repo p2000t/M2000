@@ -177,6 +177,5 @@ void CreateEmulatorMenu()
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  UpdateViewMenu(videomode);
   al_set_display_menu(display, menu);
 }
