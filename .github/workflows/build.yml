@@ -104,4 +104,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: package/M2000.app
+        path: package/
