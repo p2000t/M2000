@@ -8,7 +8,6 @@ static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _Dis
 int videomode = 0; /* autodetect */
 int scanlines = 0;
 int menubarHeight = 0;
-int ignoreResizeEvent = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -84,8 +83,8 @@ void UpdateDisplaySettings() {
   if (videomode <= 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) {
     // autodetect best videomode, which should fit within 75% of the screensize
     for (i = sizeof(Displays)/sizeof(*Displays)-1; i>1; i--) {
-      if ((Displays[i][0] / 40 * 42) <= 0.75*(monitorInfo.x2 - monitorInfo.x1) && 
-          (Displays[i][1] / 24 * 25) <= 0.75*(monitorInfo.y2 - monitorInfo.y1))
+      if ((Displays[i][0] / 40 * 42) <= 0.8*(monitorInfo.x2 - monitorInfo.x1) && 
+          (Displays[i][1] / 24 * 25) <= 0.8*(monitorInfo.y2 - monitorInfo.y1))
         break;
     }
     videomode = i; // 640 x 480 will be the minimum

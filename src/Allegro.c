@@ -10,15 +10,14 @@
 /***     Please, notify me, if you make any changes to this file          ***/
 /****************************************************************************/
 
-#define CHAR_PIXEL_WIDTH 6 //must be even
+#define CHAR_PIXEL_WIDTH 2 //must be even
 #define CHAR_PIXEL_HEIGHT 2
 #define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
+#ifdef __APPLE__
 #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
-#ifndef _WIN32
-#define AL_RESIZE_DISPLAY_FIRES_EVENTS
 #endif
 
 #include <stdio.h>
@@ -125,10 +124,10 @@ void UpdateWindowTitle()
 
 void ToggleFullscreen() 
 {
-  ClearScreen();
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-  ignoreResizeEvent = 1;
+#ifdef __linux__
+  return;
 #endif
+  ClearScreen();
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
     //back to window mode
     DisplayWidth = _DisplayWidth;
@@ -137,8 +136,14 @@ void ToggleFullscreen()
     DisplayTileHeight = _DisplayTileHeight;
     DisplayHBorder = _DisplayHBorder;
     DisplayVBorder = _DisplayVBorder;
+    if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+#ifdef __APPLE__
+    al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+#else
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
+#endif
     al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
   } else {
@@ -217,18 +222,14 @@ int InitMachine(void)
     if (!joymode && Verbose) puts("FAILED");
   }
 
-  UpdateDisplaySettings();
   if (Verbose) printf("Creating the display window... ");
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
 #ifdef __linux__
-    | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
-#endif
-  );
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-  ignoreResizeEvent = 1;
+  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
+#else
+  al_set_new_display_flags (ALLEGRO_WINDOWED);
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
-  if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
+  if ((display = al_create_display(Displays[1][0], Displays[1][1])) == NULL)
     return ShowErrorMessage("Could not initialize display.");
   if (Verbose) puts("OK");
 
@@ -279,10 +280,14 @@ int InitMachine(void)
   // create menu
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
-  menubarHeight = al_get_display_height(display) - (DisplayHeight + 2.0*DisplayVBorder);
-  // fix display height after menu was attached
-  if (menubarHeight > 0)
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+#ifdef _WIN32
+  menubarHeight = al_get_display_height(Displays[1][1]) - 480;
+#endif
+  // resize display after menu was attached
+  UpdateDisplaySettings();
+  UpdateViewMenu(videomode);
+  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
   if (startFullScreen)
@@ -381,7 +386,6 @@ int LoadFont(char *filename)
   char *TempBuf;
   FILE *F;
 
-  al_set_new_bitmap_flags(ALLEGRO_MAG_LINEAR | ALLEGRO_MIN_LINEAR);
   if (Verbose) printf("Loading font %s...\n", filename);
   if (!FontBuf) {
     if (Verbose) printf("  Creating font bitmap... ");
@@ -588,7 +592,7 @@ void Keyboard(void)
   bool isCombiKey, isNormalKey, isShiftKey;
   bool isSpecialKeyPressed = 0;
   byte keyCode, keyCodeCombi;
-  bool al_shift_down, al_ctrl_alt_cmd_down;
+  bool al_shift_down;
   bool isP2000ShiftDown;
   FILE *f;
 
@@ -601,70 +605,71 @@ void Keyboard(void)
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
-  al_ctrl_alt_cmd_down = al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND) ||
-     al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) || 
-     al_key_down(&kbdstate,ALLEGRO_KEY_RCTRL) ||
-     al_key_down(&kbdstate,ALLEGRO_KEY_ALT);
 
-  if (!al_ctrl_alt_cmd_down) {
-    if (keyboardmap == 0) {
-      /* Positional Key Mapping */
-      //fill P2000 KeyMap
-      for (i = 0; i < 80; i++) {
-        k = i / 8;
-        j = 1 << (i % 8);
-        if (!keymask[i])
-          continue;
-        if (al_key_down(&kbdstate, keymask[i]))
-          KeyMap[k] &= ~j;
-        else
-          KeyMap[k] |= j;  
+  if (keyboardmap == 0) {
+    /* Positional Key Mapping */
+    //fill P2000 KeyMap
+    for (i = 0; i < 80; i++) {
+      k = i / 8;
+      j = 1 << (i % 8);
+      if (!keymask[i])
+        continue;
+      if (al_key_down(&kbdstate, keymask[i]))
+        KeyMap[k] &= ~j;
+      else
+        KeyMap[k] |= j;  
+    }
+  }
+  else {
+    /* Symbolic Key Mapping */
+    isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+    for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
+      keyPressed = keyMappings[i][0];
+      isCombiKey = keyMappings[i][1] != keyMappings[i][3];
+      isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
+      isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
+      keyCode = keyMappings[i][al_shift_down ? 3 : 1];
+      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
+
+      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
+        if (isCombiKey) 
+          ReleaseKey(keyCodeCombi);
+        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
+          queuedKeys[i] = 0;
+          PushKey(keyCode);
+        } else {
+          // first, the shift must be pressed/un-pressed in this interrupt
+          // then in the next interrupt the target key itself will be pressed
+          KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
+          queuedKeys[i] = 1;
+        }
+        activeKeys[i] = 1;
+#ifdef __APPLE__
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
+          al_clear_keyboard_state(display);
+#endif
+        if (!isNormalKey) 
+          isSpecialKeyPressed = true;
+      } else if (activeKeys[i]) {
+        // unpress key and second key in P2000's keyboard matrix
+        if (isCombiKey) ReleaseKey(keyCodeCombi);
+        ReleaseKey(keyCode);
+        activeKeys[i] = 0;
       }
     }
-    else {
-      /* Symbolic Key Mapping */
-      isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
-      for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
-        keyPressed = keyMappings[i][0];
-        isCombiKey = keyMappings[i][1] != keyMappings[i][3];
-        isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
-        isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
-        keyCode = keyMappings[i][al_shift_down ? 3 : 1];
-        keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
-
-        if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
-          if (isCombiKey) 
-            ReleaseKey(keyCodeCombi);
-          if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
-            queuedKeys[i] = 0;
-            PushKey(keyCode);
-          } else {
-            // first, the shift must be pressed/un-pressed in this interrupt
-            // then in the next interrupt the target key itself will be pressed
-            KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
-            queuedKeys[i] = 1;
-          }
-          activeKeys[i] = 1;
-          if (!isNormalKey) 
-            isSpecialKeyPressed = true;
-        } else if (activeKeys[i]) {
-          // unpress key and second key in P2000's keyboard matrix
-          if (isCombiKey) ReleaseKey(keyCodeCombi);
-          ReleaseKey(keyCode);
-          activeKeys[i] = 0;
-        }
-      }
-      if (!isSpecialKeyPressed) {
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
-      }
+    if (!isSpecialKeyPressed) {
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
     }
   }
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     //printf("event.type=%i\n", event.type);
+#ifdef __APPLE__
+    al_clear_keyboard_state(display); //event? -> reset keyboard state
+#endif
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -685,34 +690,6 @@ void Keyboard(void)
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
       break;
-    }
-
-    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
-      al_acknowledge_resize(display);
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-      if (ignoreResizeEvent) {
-        ignoreResizeEvent = 0;
-        while (al_get_next_event(eventQueue, &event))
-          al_acknowledge_resize(display);
-        al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-        ClearScreen();
-        return;
-      }
-#endif
-      DisplayWidth = event.display.width * 40 / 42;
-      DisplayHeight = event.display.height * 24 / 25;
-      if (3 * DisplayWidth > 4 * DisplayHeight)
-        DisplayWidth = DisplayHeight * 4 / 3;
-      else
-        DisplayHeight = DisplayWidth * 3 / 4;
-      DisplayTileWidth = DisplayWidth / 40;
-      DisplayTileHeight = DisplayHeight / 24;
-      DisplayWidth = DisplayTileWidth * 40;
-      DisplayHeight = DisplayTileHeight * 24;
-      DisplayHBorder = (event.display.width - DisplayWidth) / 2;
-      DisplayVBorder = (event.display.height - DisplayHeight) / 2;
-      UpdateViewMenu(-1); //deselect the view-dimensions in menu
-      ClearScreen();
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
@@ -844,10 +821,7 @@ void Keyboard(void)
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
           UpdateViewMenu(videomode);
-#ifdef AL_RESIZE_DISPLAY_FIRES_EVENTS
-          ignoreResizeEvent = 1;
-#endif
-          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
           ClearScreen();
           break;
       }
@@ -887,7 +861,11 @@ void Keyboard(void)
       (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
 
-  al_clear_keyboard_state(display);
+#ifdef __APPLE__
+  for (i=ALLEGRO_KEY_F1; i<=ALLEGRO_KEY_F12; i++)
+    if (al_key_down(&kbdstate, i))
+      al_clear_keyboard_state(display);
+#endif
 
   // handle joystick
   if (joymode) {

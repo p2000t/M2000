@@ -43,7 +43,7 @@ F6               -  Change options (MS-DOS version only)
 F7               -  Make screenshot
 F9               -  Toggle pause on/off
 F10              -  Toggle sound on/off
-F11              -  Toggle fullscreen on/off
+F11              -  Toggle fullscreen on/off (use Shift-F11 for macOS)
 Alt-F4 / Ctrl-Q  -  Quit emulator
 ```
 
@@ -80,7 +80,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        4  - 1440x1080
                        5  - 1600x1200
                        6  - 1920x1440
-                       99 - Full Screen
+                       99 - Full Screen (not supported on Linux)
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
                        1 - Show scanlines (not supported in MS-DOS)

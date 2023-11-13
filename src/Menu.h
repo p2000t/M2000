@@ -112,8 +112,15 @@ void CreateEmulatorMenu()
       { "1440 x 1080", DISPLAY_WINDOW_1440x1080, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "1600 x 1200", DISPLAY_WINDOW_1600x1200, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "1920 x 1440", DISPLAY_WINDOW_1920x1440, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+#ifndef __linux__
       ALLEGRO_MENU_SEPARATOR,
+#endif
+#ifdef _WIN32
       { "Full Screen (F11)", DISPLAY_FULLSCREEN, 0, NULL },
+#endif
+#ifdef __APPLE__
+      { "Full Screen (Shift-F11)", DISPLAY_FULLSCREEN, 0, NULL },
+#endif
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Speed", 0),
@@ -170,6 +177,5 @@ void CreateEmulatorMenu()
   if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  UpdateViewMenu(videomode);
   al_set_display_menu(display, menu);
 }
