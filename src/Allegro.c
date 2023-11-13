@@ -16,11 +16,6 @@
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
 
-#define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
-#ifndef _WIN32
-#define AL_RESIZE_DISPLAY_FIRES_EVENTS
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -254,7 +249,7 @@ int InitMachine(void)
   }
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
-  //al_register_event_source(eventQueue, al_get_keyboard_event_source());
+  al_register_event_source(eventQueue, al_get_keyboard_event_source());
   al_register_event_source(eventQueue, al_get_default_menu_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
@@ -607,9 +602,6 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
-  // if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
-  //   al_clear_keyboard_state(display);
-
   if (keyboardmap == 0) {
     /* Positional Key Mapping */
     //fill P2000 KeyMap
@@ -667,7 +659,6 @@ void Keyboard(void)
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     //printf("event.type=%i\n", event.type);
-    al_clear_keyboard_state(display); //event? -> reset keyboard state
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -827,14 +818,12 @@ void Keyboard(void)
   }
 
   /* press F5 to Reset (or trace in DEBUG mode) */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
 #ifdef DEBUG
     Z80_Trace = !Z80_Trace;
 #else
-    al_clear_keyboard_state(display);
     Z80_Reset ();
 #endif
-  }
 
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
