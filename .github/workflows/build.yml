@@ -97,11 +97,15 @@ jobs:
       run: cd src && make
     - name: Copy exe
       run: cp M2000 package/M2000.app/Contents/MacOS/
+    - name: Zip package
+      run: |
+        cd package
+        zip -vr "M2000-${{ runner.os }}.zip"
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-macos" >> $GITHUB_OUTPUT
     - name: Upload launcher
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: package/
+        name: ${{ runner.os }} M2000
+        path: package/M2000-${{ runner.os }}.zip
