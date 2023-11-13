@@ -334,6 +334,7 @@ static char * MakeFullPath (char *dest, char *src)
   return dest;
 }
 
+#ifdef MSDOS
 /* Get the path of the specified filename */
 static void GetBasePath (char *szFile,char *szPath) {
   char *p,*q;
@@ -346,6 +347,7 @@ static void GetBasePath (char *szFile,char *szPath) {
   };
   *p='\0';                       /* remove filename */
 }
+#endif
 
 int main(int argc,char *argv[])
 {
@@ -357,7 +359,17 @@ int main(int argc,char *argv[])
 
   /* Get the cartridge name */
   GetCartOrTapeName (argc,argv);
+
+#ifdef ALLEGRO
+  if (!al_init()) {
+    puts("Allegro could not initialize its core.");
+    return 1;c
+  }
+  strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), '/'));
+#else
   GetBasePath (argv[0],ProgramPath);
+#endif
+  if (Verbose) printf("ProgramPath=%s\n", ProgramPath);
 
   /* Load M2000.cfg */
   memset (ConfigFile,0,sizeof(ConfigFile));

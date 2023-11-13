@@ -48,8 +48,7 @@ void TrashMachine(void)
 
 int InitAllegro() 
 {
-  if (Verbose) printf("Initialising Allegro... ");
-  if (!al_init()) return ShowErrorMessage("Allegro could not initialize its core.");
+  if (Verbose) printf("Initialising Allegro addons... ");
   if (!al_init_primitives_addon()) return ShowErrorMessage("Allegro could not initialize primitives addon.");
   if (!al_init_image_addon()) return ShowErrorMessage("Allegro could not initialize image addon.");
   if (!al_init_native_dialog_addon()) return ShowErrorMessage("Allegro could not initialize native dialog addon.");
