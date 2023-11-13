@@ -218,7 +218,7 @@ int InitMachine(void)
 
   UpdateDisplaySettings();
   if (Verbose) printf("Creating the display window... ");
-  al_set_new_display_flags(ALLEGRO_WINDOWED | ALLEGRO_RESIZABLE
+  al_set_new_display_flags(ALLEGRO_WINDOWED // | ALLEGRO_RESIZABLE
 #ifdef __linux__
     | ALLEGRO_GTK_TOPLEVEL // required for menu in Linux
 #endif
