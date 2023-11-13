@@ -606,9 +606,6 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
-  // if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
-  //   al_clear_keyboard_state(display);
-
   if (keyboardmap == 0) {
     /* Positional Key Mapping */
     //fill P2000 KeyMap
@@ -647,6 +644,10 @@ void Keyboard(void)
           queuedKeys[i] = 1;
         }
         activeKeys[i] = 1;
+#ifdef __APPLE__
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
+          al_clear_keyboard_state(display);
+#endif
         if (!isNormalKey) 
           isSpecialKeyPressed = true;
       } else if (activeKeys[i]) {
