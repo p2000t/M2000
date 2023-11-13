@@ -593,7 +593,7 @@ void Keyboard(void)
   bool isCombiKey, isNormalKey, isShiftKey;
   bool isSpecialKeyPressed = 0;
   byte keyCode, keyCodeCombi;
-  bool al_shift_down, al_ctrl_alt_cmd_down;
+  bool al_shift_down;
   bool isP2000ShiftDown;
   FILE *f;
 
@@ -606,70 +606,68 @@ void Keyboard(void)
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
-  al_ctrl_alt_cmd_down = al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND) ||
-     al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) || 
-     al_key_down(&kbdstate,ALLEGRO_KEY_RCTRL) ||
-     al_key_down(&kbdstate,ALLEGRO_KEY_ALT);
 
-  if (!al_ctrl_alt_cmd_down) {
-    if (keyboardmap == 0) {
-      /* Positional Key Mapping */
-      //fill P2000 KeyMap
-      for (i = 0; i < 80; i++) {
-        k = i / 8;
-        j = 1 << (i % 8);
-        if (!keymask[i])
-          continue;
-        if (al_key_down(&kbdstate, keymask[i]))
-          KeyMap[k] &= ~j;
-        else
-          KeyMap[k] |= j;  
+  // if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
+  //   al_clear_keyboard_state(display);
+
+  if (keyboardmap == 0) {
+    /* Positional Key Mapping */
+    //fill P2000 KeyMap
+    for (i = 0; i < 80; i++) {
+      k = i / 8;
+      j = 1 << (i % 8);
+      if (!keymask[i])
+        continue;
+      if (al_key_down(&kbdstate, keymask[i]))
+        KeyMap[k] &= ~j;
+      else
+        KeyMap[k] |= j;  
+    }
+  }
+  else {
+    /* Symbolic Key Mapping */
+    isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+    for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
+      keyPressed = keyMappings[i][0];
+      isCombiKey = keyMappings[i][1] != keyMappings[i][3];
+      isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
+      isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
+      keyCode = keyMappings[i][al_shift_down ? 3 : 1];
+      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
+
+      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
+        if (isCombiKey) 
+          ReleaseKey(keyCodeCombi);
+        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
+          queuedKeys[i] = 0;
+          PushKey(keyCode);
+        } else {
+          // first, the shift must be pressed/un-pressed in this interrupt
+          // then in the next interrupt the target key itself will be pressed
+          KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
+          queuedKeys[i] = 1;
+        }
+        activeKeys[i] = 1;
+        if (!isNormalKey) 
+          isSpecialKeyPressed = true;
+      } else if (activeKeys[i]) {
+        // unpress key and second key in P2000's keyboard matrix
+        if (isCombiKey) ReleaseKey(keyCodeCombi);
+        ReleaseKey(keyCode);
+        activeKeys[i] = 0;
       }
     }
-    else {
-      /* Symbolic Key Mapping */
-      isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
-      for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
-        keyPressed = keyMappings[i][0];
-        isCombiKey = keyMappings[i][1] != keyMappings[i][3];
-        isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
-        isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
-        keyCode = keyMappings[i][al_shift_down ? 3 : 1];
-        keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
-
-        if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
-          if (isCombiKey) 
-            ReleaseKey(keyCodeCombi);
-          if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
-            queuedKeys[i] = 0;
-            PushKey(keyCode);
-          } else {
-            // first, the shift must be pressed/un-pressed in this interrupt
-            // then in the next interrupt the target key itself will be pressed
-            KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
-            queuedKeys[i] = 1;
-          }
-          activeKeys[i] = 1;
-          if (!isNormalKey) 
-            isSpecialKeyPressed = true;
-        } else if (activeKeys[i]) {
-          // unpress key and second key in P2000's keyboard matrix
-          if (isCombiKey) ReleaseKey(keyCodeCombi);
-          ReleaseKey(keyCode);
-          activeKeys[i] = 0;
-        }
-      }
-      if (!isSpecialKeyPressed) {
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
-      }
+    if (!isSpecialKeyPressed) {
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+      if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
     }
   }
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     //printf("event.type=%i\n", event.type);
+    al_clear_keyboard_state(display); //event? -> reset keyboard state
 
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
@@ -829,12 +827,14 @@ void Keyboard(void)
   }
 
   /* press F5 to Reset (or trace in DEBUG mode) */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
 #ifdef DEBUG
     Z80_Trace = !Z80_Trace;
 #else
+    al_clear_keyboard_state(display);
     Z80_Reset ();
 #endif
+  }
 
   /* press F7 for screenshot */
   if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
@@ -865,8 +865,6 @@ void Keyboard(void)
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
       (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
-
-  al_clear_keyboard_state(display);
 
   // handle joystick
   if (joymode) {
