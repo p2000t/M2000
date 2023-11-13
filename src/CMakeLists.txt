@@ -95,12 +95,18 @@ endif()
 target_link_libraries(
     M2000 
     -L${allegro5_SOURCE_DIR}/lib 
-    -lallegro_monolith
+    -lallegro
+    -lallegro_main
+    -lallegro_primitives
+    -lallegro_image
+    -lallegro_audio
+    -lallegro_dialog
+    -lallegro_memfile
 )
 
 if(USE_WIN32 OR USE_WIN64)
     # copy all dependencies to build a self-contained zip file 
-    set(DEPDLL allegro_monolith-5.2.dll)
+    set(DEPDLL allegro-5.2.dll allegro_primitives-5.2.dll allegro_image-5.2.dll allegro_audio-5.2.dll allegro_dialog-5.2.dll allegro_memfile-5.2.dll)
     FOREACH(FDLL ${DEPDLL})
         file(COPY ${allegro5_SOURCE_DIR}/bin/${FDLL} DESTINATION ${CMAKE_BINARY_DIR})
     ENDFOREACH()
