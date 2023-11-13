@@ -100,7 +100,7 @@ jobs:
     - name: Zip package
       run: |
         cd package
-        zip -vr "M2000-${{ runner.os }}.zip"
+        zip -vr "M2000-${{ runner.os }}.zip" M2000.app
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-macos" >> $GITHUB_OUTPUT
