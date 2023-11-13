@@ -5,7 +5,7 @@ on:
     branches: [ "*" ]
 
 jobs:
-  
+
   # build-m2000-windows-64bit:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -96,7 +96,7 @@ jobs:
     - name: Build
       run: cd src && make
     - name: Copy exe
-      run: cp M2000 package/MacOS/
+      run: cp M2000 package/M2000.app/Contents/MacOS/
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-macos" >> $GITHUB_OUTPUT
