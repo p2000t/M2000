@@ -77,7 +77,7 @@ jobs:
     - name: Zip package
       run: |
         cd build
-        zip -vr M2000.zip .
+        zip -vr M2000.zip M2000 Default.fnt P2000ROM.bin BASIC.bin
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-ubuntu" >> $GITHUB_OUTPUT
