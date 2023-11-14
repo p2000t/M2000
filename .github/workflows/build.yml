@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: Install-Package Allegro -force 
+      run: nuget install Allegro -version 5.2.8
     - name: Env vars
       run: |
         echo "C_INCLUDE_PATH=./Allegro.5.2.8/build/native/include:$C_INCLUDE_PATH" >> $GITHUB_ENV
