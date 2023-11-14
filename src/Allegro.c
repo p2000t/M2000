@@ -1,14 +1,38 @@
-/*** M2000: Portable P2000 emulator *****************************************/
-/***                                                                      ***/
-/***                               allegro.c                              ***/
-/***                                                                      ***/
-/*** This file contains the Allegro 5 drivers.                            ***/
-/***                                                                      ***/
-/*** Copyright (C) Stefano Bodrato 2013                                   ***/
-/*** Copyright (C) Dion Olsthoorn  2023                                   ***/
-/***     You are not allowed to distribute this software commercially     ***/
-/***     Please, notify me, if you make any changes to this file          ***/
-/****************************************************************************/
+/******************************************************************************/
+/*   Allegro.c                                                                */
+/*   This file contains the Allegro 5 drivers.                                */
+/*                                                                            */
+/*                         part of M2000, the portable                        */
+/*           |||||||||||||||||||||||||||||||||||||||||||||||||||||            */
+/*           ||         |         |         |         |         ||            */
+/*           ||   |||   |   |||   |   |||   |   |||   |   |||   ||            */
+/*           ||   |||   |||||||   |   |||   |   |||   |   |||   ||            */
+/*           ||         ||||||   ||   |||   |   |||   |   |||   ||            */
+/*           ||   ||||||||||   ||||   |||   |   |||   |   |||   ||            */
+/*           ||   ||||||||   ||||||   |||   |   |||   |   |||   ||            */
+/*           ||   |||||||         |         |         |         ||            */
+/*           |||||||||||||||||||||||||||||||||||||||||||||||||||||            */
+/*                                 emulator                                   */
+/*                                                                            */
+/*   Author(s): Stefano Bodrato                                               */
+/*              Dion Olsthoorn                                                */
+/*                                                                            */
+/*   Copyright (C) 1996-2023 by Marcel de Kogel and the M2000 team            */
+/*                                                                            */
+/*   This program is free software: you can redistribute it and/or modify     */
+/*   it under the terms of the GNU General Public License as published by     */
+/*   the Free Software Foundation, either version 3 of the License, or        */
+/*   (at your option) any later version.                                      */
+/*                                                                            */
+/*   This program is distributed in the hope that it will be useful,          */
+/*   but WITHOUT ANY WARRANTY; without even the implied warranty of           */
+/*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            */
+/*   GNU General Public License for more details.                             */
+/*                                                                            */
+/*   You should have received a copy of the GNU General Public License        */
+/*   along with this program. If not, see <http://www.gnu.org/licenses/>.     */
+/*                                                                            */
+/******************************************************************************/
 
 #define CHAR_PIXEL_WIDTH 2 //must be even
 #define CHAR_PIXEL_HEIGHT 2
