@@ -8,13 +8,14 @@ jobs:
 
   build-m2000-win:
     runs-on: windows-latest
-    env:
-      C_INCLUDE_PATH: ./Allegro.5.2.8/build/native/include
-      LD_LIBRARY_PATH: ./Allegro.5.2.8/build/native/ClangCL/x64
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
       run: Install-Package Allegro -force 
+    - name: Env vars
+      run: |
+        echo "C_INCLUDE_PATH=./Allegro.5.2.8/build/native/include:$C_INCLUDE_PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=./Allegro.5.2.8/build/native/ClangCL/x64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
     - name: Build
       run: |
         cd src
