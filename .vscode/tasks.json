@@ -15,8 +15,8 @@
         },
         {
             "label": "Build and Run",
-            "type": "process",
-            "command": "M2000",
+            "type": "shell",
+            "command": "./M2000",
             "args": [
                 "-t",
                 //"-scanlines", "1",

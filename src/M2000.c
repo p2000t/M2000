@@ -366,6 +366,10 @@ int main(int argc,char *argv[])
     return 1;
   }
   strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), '/'));
+
+  // debian install check
+  if (!strcmp(ProgramPath,"/usr/bin/"))
+    strcpy(ProgramPath, "/usr/share/M2000/");
 #else
   GetBasePath (argv[0],ProgramPath);
 #endif

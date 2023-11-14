@@ -74,9 +74,18 @@ jobs:
       run: |
         cd src
         make
-    - name: Zip package
+    - name: Copy files
       run: |
-        zip -vr M2000.zip M2000 Default.fnt P2000ROM.bin BASIC.bin
+        mkdir package/M2000_0.7_amd64/usr/bin/
+        mkdir package/M2000_0.7_amd64/usr/share/M2000/
+        cp M2000 package/M2000_0.7_amd64/usr/bin/
+        cp Default.fnt package/M2000_0.7_amd64/usr/share/M2000/
+        cp P2000ROM.bin package/M2000_0.7_amd64/usr/share/M2000/
+        cp BASIC.bin package/M2000_0.7_amd64/usr/share/M2000/
+    - name: Create package
+      run: |
+        cd package
+        dpkg-deb --build M2000_0.7_amd64
     - name: Generate artifact name
       id: generate-name
       run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-ubuntu" >> $GITHUB_OUTPUT
@@ -84,7 +93,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: M2000.zip
+        path: package/M2000_0.7_amd64.deb
 
   build-macos:
     runs-on: macos-11
