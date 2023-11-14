@@ -6,112 +6,128 @@ on:
 
 jobs:
 
-  build-m2000-windows-64bit:
-    runs-on: ubuntu-latest
+  build-m2000-win:
+    runs-on: windows-latest
     steps:
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar
     - uses: actions/checkout@v3
-    - name: Configure CMake
-      run: mkdir build && cd build && cmake ../src -DUSE_WIN64=1
-    - name: Build
-      run: cd build && make -j
-    - name: Generate artifact name
-      id: generate-name
-      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win64" >> $GITHUB_OUTPUT
-    - name: Upload launcher
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: |
-          build/M2000.exe
-          build/allegro*.dll
-          build/Default.fnt
-          build/P2000ROM.bin
-          build/BASIC.bin
-
-  build-m2000-windows-32bit:
-    runs-on: ubuntu-latest
-    steps:
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar
-    - uses: actions/checkout@v3
-    - name: Configure CMake
-      run: mkdir build && cd build && cmake ../src -DUSE_WIN32=1
-    - name: Build
-      run: cd build && make -j
-    - name: Generate artifact name
-      id: generate-name
-      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win32" >> $GITHUB_OUTPUT
-    - name: Upload launcher
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: |
-          build/M2000.exe
-          build/allegro*.dll
-          build/Default.fnt
-          build/P2000ROM.bin
-          build/BASIC.bin
-
-  build-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
-    - uses: actions/checkout@v3
+      run: Install-Package Allegro
     - name: Build
       run: |
         cd src
-        make
-    - name: Copy files
-      run: |
-        mkdir -p package/M2000_amd64/usr/bin/
-        mkdir -p package/M2000_amd64/usr/share/M2000/
-        cp M2000 package/M2000_amd64/usr/bin/
-        cp Default.fnt package/M2000_amd64/usr/share/M2000/
-        cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
-        cp BASIC.bin package/M2000_amd64/usr/share/M2000/
-    - name: Create package
-      run: |
-        cd package
-        dpkg-deb --build M2000_amd64
-    - name: Generate artifact name
-      id: generate-name
-      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-ubuntu" >> $GITHUB_OUTPUT
-    - name: Upload launcher
+        make 
+    - name: Upload package
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: package/M2000_amd64.deb
+        name: test
+        path: M2000.exe
 
-  build-macos:
-    runs-on: macos-11
-    env:
-      MACOSX_DEPLOYMENT_TARGET: 10.11
-    steps:
-    - name: Install dependencies
-      run: brew install allegro
-    - uses: actions/checkout@v3
-    - name: Build
-      run: | 
-        cd src
-        make
-    - name: Copy files
-      run: |
-        cp M2000 package/M2000.app/Contents/MacOS/
-        cp Default.fnt package/M2000.app/Contents/Resources/
-        cp P2000ROM.bin package/M2000.app/Contents/Resources/
-        cp BASIC.bin package/M2000.app/Contents/Resources/
-    - name: Zip package
-      run: |
-        cd package
-        zip -vr M2000.zip M2000.app
-    - name: Generate artifact name
-      id: generate-name
-      run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-macos" >> $GITHUB_OUTPUT
-    - name: Upload launcher
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: package/M2000.zip
+  # build-m2000-windows-64bit:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install dependencies
+  #     run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar
+  #   - uses: actions/checkout@v3
+  #   - name: Configure CMake
+  #     run: mkdir build && cd build && cmake ../src -DUSE_WIN64=1
+  #   - name: Build
+  #     run: cd build && make -j
+  #   - name: Generate artifact name
+  #     id: generate-name
+  #     run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win64" >> $GITHUB_OUTPUT
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: ${{ steps.generate-name.outputs.artifact_name }}
+  #       path: |
+  #         build/M2000.exe
+  #         build/allegro*.dll
+  #         build/Default.fnt
+  #         build/P2000ROM.bin
+  #         build/BASIC.bin
+
+  # build-m2000-windows-32bit:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install dependencies
+  #     run: sudo apt-get update && sudo apt-get install -y mingw-w64 build-essential cmake zip curl tar
+  #   - uses: actions/checkout@v3
+  #   - name: Configure CMake
+  #     run: mkdir build && cd build && cmake ../src -DUSE_WIN32=1
+  #   - name: Build
+  #     run: cd build && make -j
+  #   - name: Generate artifact name
+  #     id: generate-name
+  #     run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-win32" >> $GITHUB_OUTPUT
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: ${{ steps.generate-name.outputs.artifact_name }}
+  #       path: |
+  #         build/M2000.exe
+  #         build/allegro*.dll
+  #         build/Default.fnt
+  #         build/P2000ROM.bin
+  #         build/BASIC.bin
+
+  # build-ubuntu:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install dependencies
+  #     run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
+  #   - uses: actions/checkout@v3
+  #   - name: Build
+  #     run: |
+  #       cd src
+  #       make
+  #   - name: Copy files
+  #     run: |
+  #       mkdir -p package/M2000_amd64/usr/bin/
+  #       mkdir -p package/M2000_amd64/usr/share/M2000/
+  #       cp M2000 package/M2000_amd64/usr/bin/
+  #       cp Default.fnt package/M2000_amd64/usr/share/M2000/
+  #       cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
+  #       cp BASIC.bin package/M2000_amd64/usr/share/M2000/
+  #   - name: Create package
+  #     run: |
+  #       cd package
+  #       dpkg-deb --build M2000_amd64
+  #   - name: Generate artifact name
+  #     id: generate-name
+  #     run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-ubuntu" >> $GITHUB_OUTPUT
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: ${{ steps.generate-name.outputs.artifact_name }}
+  #       path: package/M2000_amd64.deb
+
+  # build-macos:
+  #   runs-on: macos-11
+  #   env:
+  #     MACOSX_DEPLOYMENT_TARGET: 10.11
+  #   steps:
+  #   - name: Install dependencies
+  #     run: brew install allegro
+  #   - uses: actions/checkout@v3
+  #   - name: Build
+  #     run: | 
+  #       cd src
+  #       make
+  #   - name: Copy files
+  #     run: |
+  #       cp M2000 package/M2000.app/Contents/MacOS/
+  #       cp Default.fnt package/M2000.app/Contents/Resources/
+  #       cp P2000ROM.bin package/M2000.app/Contents/Resources/
+  #       cp BASIC.bin package/M2000.app/Contents/Resources/
+  #   - name: Zip package
+  #     run: |
+  #       cd package
+  #       zip -vr M2000.zip M2000.app
+  #   - name: Generate artifact name
+  #     id: generate-name
+  #     run: echo "artifact_name=M2000-snapshot-$(date +'%Y%m%d%H%M%S')-macos" >> $GITHUB_OUTPUT
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: ${{ steps.generate-name.outputs.artifact_name }}
+  #       path: package/M2000.zip
