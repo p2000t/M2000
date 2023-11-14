@@ -142,12 +142,12 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
 `git clone https://github.com/p2000t/M2000.git`
 
 ### Linux
-* Install the Allegro 5 libs, depending on your Linux distro:
-  * Debian/Ubuntu/Linux Mint
+* Install the Allegro 5 libs, depending on your Linux distro
+  * For Debian/Ubuntu/Linux Mint:
     ```
-    sudo apt install liballegro*5.2 liballegro*5-dev
+    sudo apt install -y build-essential liballegro5-dev
     ```
-  * Fedora
+  * For Fedora:
     ```
     sudo dnf install allegro5*
     ```
@@ -159,7 +159,7 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   The resulting `M2000` executable will be available in the root folder.
 
 ### macOS
-* Install the Allegro 5 libs using brew
+* Make sure you have `brew` installed before you install the Allegro 5 libs:
   ```
   brew install allegro
   ```
