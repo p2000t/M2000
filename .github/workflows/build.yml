@@ -15,7 +15,7 @@ jobs:
     - name: Build
       run: |
         cd src
-        ALLEGRO_LDFLAGS="-LAllegro.5.2.8/build/native/ClangCL/x64" ALLEGRO_CFLAGS="-IAllegro.5.2.8/build/native/include " make
+        make ALLEGRO_LDFLAGS="-LAllegro.5.2.8/build/native/ClangCL/x64" ALLEGRO_CFLAGS="-IAllegro.5.2.8/build/native/include"
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
