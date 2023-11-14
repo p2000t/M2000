@@ -16,10 +16,10 @@ jobs:
       run: |
         echo "C_INCLUDE_PATH=./Allegro.5.2.8/build/native/include:$C_INCLUDE_PATH" >> $GITHUB_ENV
         echo "LD_LIBRARY_PATH=./Allegro.5.2.8/build/native/ClangCL/x64:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-    # - name: Build
-    #   run: |
-    #     cd src
-    #     make 
+    - name: Build
+      run: |
+        cd src
+        make 
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
