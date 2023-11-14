@@ -154,7 +154,7 @@ byte Z80_In (byte Port)
    inputstatus^=0x40;           /* toggle input clock */
    if (TapeStream) inputstatus&=0xEF;
    if (!TapeProtect) inputstatus&=0xF7;
-   if (PrnStream) inputstatus&=0xFD;
+   if (PrnName) inputstatus&=0xFD;
    if (PrnType) inputstatus&=0xFB;
    return inputstatus;
   }
@@ -310,10 +310,6 @@ int StartP2000 (void)
     InsertCassette(TapeName);
   }
 
-  if (Verbose) printf ("Opening printer stream %s... ", PrnName);
-  PrnStream= fopen (PrnName,"wb");
-  if (Verbose) puts ((PrnStream)? "OK":"FAILED");
-
   if (!LoadFont(FontName)) return 0;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
@@ -440,7 +436,7 @@ void OptionsDialogue (void)
           "Font file name   - %s\n"
           "Z80 CPU speed    - %u%%\n",
           (TapeStream)? TapeName:"none",
-          (PrnStream)? PrnName:"none",
+          (PrnName)? PrnName:"none",
           FontName,
           Z80_IPeriod*IFreq*100/2500000);
   printf ("\nAvailable commands are:\n"
@@ -464,10 +460,7 @@ void OptionsDialogue (void)
    case 'p': case 'P':
     strcpy (_PrnName,buf+2);
     PrnName=_PrnName;
-    fclose (PrnStream);
-    if (Verbose) printf ("Opening printer log file %s... ",PrnName);
-    PrnStream=fopen (PrnName,"wb");
-    if (Verbose) puts ((PrnStream)? "OK":"FAILED");
+    if (PrnStream) fclose (PrnStream);
     break;
    case 'f': case 'F':
     strcpy (_FontName,buf+2);
@@ -801,10 +794,12 @@ void Z80_Patch (Z80_Regs *R)
   /** 0x0E5D: Output a byte to the serial port                             **/
   /**************************************************************************/
   case 0xE5D:
-   if (PrnStream)
-   {
-    fputc (R->BC.B.l,PrnStream);
-    if (R->BC.B.l==10) fflush (PrnStream);
+   if (PrnName) {
+    if (!PrnStream) PrnStream= fopen (PrnName,"wb");
+    if (PrnStream) {
+      fputc (R->BC.B.l,PrnStream);
+      if (R->BC.B.l==10) fflush (PrnStream);
+    } else if (Verbose) printf("Failed to open printer stream to %s\n", PrnName);
    }
    R->IFF1=R->IFF2=1;
    break;
