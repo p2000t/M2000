@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: Install-Package Allegro -Version 5.2.8 -force 
+      run: Install-Package Allegro -force 
     - name: Build
       run: |
         cd src
