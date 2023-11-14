@@ -68,15 +68,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential cmake liballegro5-dev
+      run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
     - uses: actions/checkout@v3
-    - name: Configure CMake
-      run: mkdir build && cd build && cmake ../src
     - name: Build
-      run: cd build && make -j
+      run: |
+        cd src
+        make
     - name: Zip package
       run: |
-        cd build
         zip -vr M2000.zip M2000 Default.fnt P2000ROM.bin BASIC.bin
     - name: Generate artifact name
       id: generate-name
@@ -85,8 +84,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.generate-name.outputs.artifact_name }}
-        path: |
-          build/M2000.zip
+        path: M2000.zip
 
   build-macos:
     runs-on: macos-11
@@ -97,9 +95,15 @@ jobs:
       run: brew install allegro
     - uses: actions/checkout@v3
     - name: Build
-      run: cd src && make
-    - name: Copy exe
-      run: cp M2000 package/M2000.app/Contents/MacOS/
+      run: | 
+        cd src
+        make
+    - name: Copy files
+      run: |
+        cp M2000 package/M2000.app/Contents/MacOS/
+        cp Default.fnt package/M2000.app/Contents/Resources/
+        cp P2000ROM.bin package/M2000.app/Contents/Resources/
+        cp BASIC.bin package/M2000.app/Contents/Resources/
     - name: Zip package
       run: |
         cd package
