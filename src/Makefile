@@ -20,8 +20,8 @@ m2000.exe: $(OBJECTS)
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
 Z80.o:      Z80.c Z80.h Z80CDx86.h Z80DAA.h Z80IO.h
-Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.hM
-SDOS.o:    MSDOS.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h Common.h
+Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
+SDOS.o:     MSDOS.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h Common.h
 INT.o:      INT.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h
 DMA.o:      DMA.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h
 SB.o:       SB.c P2000.h MSDOS.h DMA.h INT.h Asm.h Bitmap.h
