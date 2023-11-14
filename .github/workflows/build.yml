@@ -76,8 +76,8 @@ jobs:
         make
     - name: Copy files
       run: |
-        mkdir package/M2000_0.7_amd64/usr/bin/
-        mkdir package/M2000_0.7_amd64/usr/share/M2000/
+        mkdir -p package/M2000_0.7_amd64/usr/bin/
+        mkdir -p package/M2000_0.7_amd64/usr/share/M2000/
         cp M2000 package/M2000_0.7_amd64/usr/bin/
         cp Default.fnt package/M2000_0.7_amd64/usr/share/M2000/
         cp P2000ROM.bin package/M2000_0.7_amd64/usr/share/M2000/
