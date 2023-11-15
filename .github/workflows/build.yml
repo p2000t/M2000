@@ -21,6 +21,8 @@ jobs:
         make CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
+    - name: Set path for candle and light
+      run: echo "$env:WIX\bin" >> $GITHUB_PATH
     - name: Create installer
       shell: cmd
       run: |
