@@ -1,0 +1,34 @@
+{
+    "product": "M2000",
+    "company": "The M2000 Team",
+    "upgrade-code": "",
+    "files": {
+      "guid": "",
+      "items": [
+        "M2000.exe",
+        "Default.fnt",
+        "P2000ROM.bin",
+        "BASIC.bin",
+        "allegro-5.2.dll",
+        "allegro_primitives-5.2.dll",
+        "allegro_image-5.2.dll",
+        "allegro_audio-5.2.dll",
+        "allegro_dialog-5.2.dll",
+        "allegro_memfile-5.2.dll"
+      ]
+    },
+    "shortcuts": {
+      "guid": "",
+      "items": [
+        {
+          "name": "M2000 - Philips P2000 Emulator",
+          "description": "M2000 - Philips P2000 Emulator",
+          "target": "[INSTALLDIR]\\M2000.exe",
+          "wdir": "INSTALLDIR",
+          "arguments": "",
+          "icon": "package/WiX/m2000.ico"
+        }
+      ]
+    }
+  }
+  

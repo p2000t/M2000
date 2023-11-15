@@ -365,7 +365,7 @@ int main(int argc,char *argv[])
     puts("Allegro could not initialize its core.");
     return 1;
   }
-  strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), '/'));
+  strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), PATH_SEPARATOR));
 
   // debian install check
   if (!strcmp(ProgramPath,"/usr/bin/"))
