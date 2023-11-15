@@ -1,5 +1,6 @@
 {
     "product": "M2000",
+    "company": "The M2000 Team",
     "upgrade-code": "",
     "files": {
       "guid": "",
@@ -32,11 +33,6 @@
           "icon": ""
         }
       ]
-    },
-    "choco": {
-      "description": "generate MSI package for Your Product project",
-      "tags": "Your Product",
-      "license-url": "https://opensource.org/licenses/MIT"
     }
   }
   
