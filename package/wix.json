@@ -1,0 +1,44 @@
+{
+    "product": "M2000",
+    "company": "Your Company",
+    "license": "LICENSE",
+    "upgrade-code": "",
+    "files": {
+      "guid": "",
+      "items": [
+        "M2000.exe"
+      ]
+    },
+    "env": {
+      "guid": "",
+      "vars": [
+        {
+          "name": "PATH",
+          "value": "[INSTALLDIR]",
+          "permanent": "no",
+          "system": "no",
+          "action": "set",
+          "part": "last"
+        }
+      ]
+    },
+    "shortcuts": {
+      "guid": "",
+      "items": [
+        {
+          "name": "Your Product MSI",
+          "description": "MSI pakage for your product",
+          "target": "[INSTALLDIR]\\M2000.exe",
+          "wdir": "INSTALLDIR",
+          "arguments": "",
+          "icon": ""
+        }
+      ]
+    },
+    "choco": {
+      "description": "generate MSI package for Your Product project",
+      "tags": "Your Product",
+      "license-url": "https://opensource.org/licenses/MIT"
+    }
+  }
+  
