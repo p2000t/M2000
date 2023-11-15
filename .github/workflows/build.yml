@@ -24,13 +24,15 @@ jobs:
     - name: Create installer
       run: |
         cp package/wix.json .
-        "C:\Program Files\go-msi\go-msi.exe set-guid"
-        "C:\Program Files\go-msi\go-msi.exe make --msi M2000.msi --arch amd64 --version 0.7"
+        "C:\Program Files\go-msi\go-msi.exe" set-guid
+        "C:\Program Files\go-msi\go-msi.exe" make --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
         name: M2000-snapshot-win64
-        path: M2000.msi
+        path: wix.json
+
+    #ProgramFiles
           # M2000.exe
           # Default.fnt
           # P2000ROM.bin
