@@ -1,6 +1,4 @@
-
 CC	= gcc	# C compiler used
-LD	= gcc	# Linker used
 
 ifdef DJGPP # build for MS-DOS
 
@@ -15,7 +13,7 @@ OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o \
 all:    m2000.exe
 
 m2000.exe: $(OBJECTS)
-	$(LD) $(LFLAGS) -Wl,-Map,m2000.map -o ../m2000.exe $(OBJECTS)
+	$(CC) $(LFLAGS) -Wl,-Map,m2000.map -o ../m2000.exe $(OBJECTS)
 
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
@@ -38,7 +36,7 @@ OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o
 all:    m2000
 
 m2000:	$(OBJECTS)
-	$(LD) $(LFLAGS) -o ../M2000 $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog -lallegro_memfile
+	$(CC) $(LFLAGS) -o ../M2000 $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog -lallegro_memfile
 
 M2000.o:    M2000.c P2000.h Z80.h Help.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
