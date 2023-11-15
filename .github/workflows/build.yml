@@ -51,7 +51,7 @@ jobs:
         Invoke-WebRequest -Uri https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip -OutFile allegro.zip
         Expand-Archive allegro.zip -DestinationPath .
     - name: add mingw32 to path
-      run: echo "C:\msys64\mingw32\bin" >> $GITHUB_PATH
+      run: echo "PATH=$PATH:C:\msys64\mingw32\bin" >> $GITHUB_ENV
     - name: Build
       run: |
         cd src
