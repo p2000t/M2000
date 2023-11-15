@@ -27,6 +27,7 @@ jobs:
     - name: Create installer
       shell: cmd
       run: |
+        set PATH=%PATH%;%WIX%\bin
         cp package/wix.json .
         "C:\Program Files\go-msi\go-msi.exe" set-guid
         mkdir ${{ github.workspace }}/tmp
