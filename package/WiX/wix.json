@@ -26,7 +26,7 @@
           "target": "[INSTALLDIR]\\M2000.exe",
           "wdir": "INSTALLDIR",
           "arguments": "",
-          "icon": "m2000.ico"
+          "icon": "package/WiX/m2000.ico"
         }
       ]
     }
