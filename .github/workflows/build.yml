@@ -22,6 +22,7 @@ jobs:
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Create installer
+      shell: cmd
       run: |
         cp package/wix.json .
         "C:\Program Files\go-msi\go-msi.exe" set-guid
