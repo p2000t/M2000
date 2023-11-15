@@ -53,7 +53,7 @@ jobs:
     - name: Build
       run: |
         cd src
-        make CFLAGS="-Wall -O2 -DALLEGRO -m32" LFLAGS="-s -mwindows -m32"
+        make CC=i686-w64-mingw32-gcc LD=i686-w64-mingw32-gcc CFLAGS="-Wall -O2 -DALLEGRO -m32" LFLAGS="-s -mwindows -m32"
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Upload package
