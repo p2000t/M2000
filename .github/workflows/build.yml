@@ -54,6 +54,7 @@ jobs:
       shell: bash
       run: echo "C:\msys64\mingw32\bin" >> $GITHUB_PATH
     - name: Build
+      shell: bash
       run: |
         cd src
         make CC="i686-w64-mingw32-gcc" LD="i686-w64-mingw32-gcc" CFLAGS="-Wall -O2 -DALLEGRO -m32" LFLAGS="-s -mwindows -m32"
