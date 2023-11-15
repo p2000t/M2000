@@ -2,17 +2,17 @@
 /*   Allegro.c                                                                */
 /*   This file contains the Allegro 5 drivers.                                */
 /*                                                                            */
-/*                         part of M2000, the portable                        */
-/*           |||||||||||||||||||||||||||||||||||||||||||||||||||||            */
-/*           ||         |         |         |         |         ||            */
-/*           ||   |||   |   |||   |   |||   |   |||   |   |||   ||            */
-/*           ||   |||   |||||||   |   |||   |   |||   |   |||   ||            */
-/*           ||         ||||||   ||   |||   |   |||   |   |||   ||            */
-/*           ||   ||||||||||   ||||   |||   |   |||   |   |||   ||            */
-/*           ||   ||||||||   ||||||   |||   |   |||   |   |||   ||            */
-/*           ||   |||||||         |         |         |         ||            */
-/*           |||||||||||||||||||||||||||||||||||||||||||||||||||||            */
-/*                                 emulator                                   */
+/*                            M2000, the portable                             */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                ████████|████████|████████|████████|████████                */
+/*                ███||███|███||███|███||███|███||███|███||███                */
+/*                ███||███||||||███|███||███|███||███|███||███                */
+/*                ████████|||||███||███||███|███||███|███||███                */
+/*                ███|||||||||███|||███||███|███||███|███||███                */
+/*                ███|||||||███|||||███||███|███||███|███||███                */
+/*                ███||||||████████|████████|████████|████████                */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                                  emulator                                  */
 /*                                                                            */
 /*   Author(s): Stefano Bodrato                                               */
 /*              Dion Olsthoorn                                                */
@@ -273,17 +273,17 @@ int InitMachine(void)
 
   UpdateWindowTitle();
 
-// #ifdef _WIN32
-//   // Set app icon. Only for Windows, as macOS uses its own app package icons
-//   // and Linux doesn't support al_set_display_icon when using a menu.
-//   ALLEGRO_FILE *iconFile;
-//   if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) {
-//     ALLEGRO_BITMAP *bm = al_load_bitmap_f(iconFile, ".png");
-//     al_set_display_icon(display, bm);
-//     al_fclose(iconFile);
-//     al_destroy_bitmap(bm);
-//   }
-// #endif
+#ifdef _WIN32
+  // Set app icon. Only for Windows, as macOS uses its own app package icons
+  // and Linux doesn't support al_set_display_icon when using a menu.
+  ALLEGRO_FILE *iconFile;
+  if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) {
+    ALLEGRO_BITMAP *bm = al_load_bitmap_f(iconFile, ".png");
+    al_set_display_icon(display, bm);
+    al_fclose(iconFile);
+    al_destroy_bitmap(bm);
+  }
+#endif
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
@@ -574,6 +574,17 @@ void SaveScreenshot()
     al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
 }
 
+void SaveVideoRAM() 
+{
+  FILE *f;
+  if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
+    if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
+      fwrite(VRAM, 1, 0x1000, f); //write full 4K
+      fclose(f);
+    }
+  }
+}
+
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
 {
   if (!al_key_down(kb_state, kb_event)) return false;
@@ -764,12 +775,7 @@ void Keyboard(void)
           }
           break;
         case FILE_SAVE_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
-            if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
-              fwrite(VRAM, 1, 0x1000, f); //write full 4K
-              fclose(f);
-            }
-          }
+          SaveVideoRAM();
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -870,8 +876,12 @@ void Keyboard(void)
 #endif
 
   /* press F7 for screenshot */
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_F7))
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7))
     SaveScreenshot();
+
+  /* press F8 to save video RAM */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8))
+    SaveVideoRAM();
   
   /* F9 = pause / unpause */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
@@ -895,9 +905,9 @@ void Keyboard(void)
     Z80_Running = 0;
 
 #ifdef __APPLE__
-  for (i=ALLEGRO_KEY_F1; i<=ALLEGRO_KEY_F12; i++)
-    if (al_key_down(&kbdstate, i))
-      al_clear_keyboard_state(display);
+  // for (i=ALLEGRO_KEY_F1; i<=ALLEGRO_KEY_F12; i++)
+  //   if (al_key_down(&kbdstate, i))
+  //     al_clear_keyboard_state(display);
 #endif
 
   // handle joystick
