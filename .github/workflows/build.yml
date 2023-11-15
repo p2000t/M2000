@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       C_INCLUDE_PATH: ${{ github.workspace }}/allegro/include
-      LIBRARY_PATH: ${{ github.workspace }}/allegro
+      LD_LIBRARY_PATH: ${{ github.workspace }}/allegro/lib
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
