@@ -18,7 +18,7 @@ jobs:
         choco install -y "go-msi"
         refreshenv
         echo $env:PATH
-  #echo "$env:PATH" >> $GITHUB_PATH
+        echo "$env:PATH" >> $GITHUB_PATH
     - name: Build
       run: |
         cd src
@@ -31,9 +31,9 @@ jobs:
         set PATH=%PATH%;%WIX%bin
         rem echo %PATH%
         rem cp package/wix.json . 
-        "%PROGRAMFILES%\go-msi\go-msi.exe" set-guid --path package/wix.json
+        go-msi set-guid --path package/wix.json
         mkdir ${{ github.workspace }}/tmp
-        "%PROGRAMFILES%\go-msi\go-msi.exe" make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
+        go-msi make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
