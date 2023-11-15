@@ -17,19 +17,6 @@
         "allegro_memfile-5.2.dll"
       ]
     },
-    "env": {
-      "guid": "",
-      "vars": [
-        {
-          "name": "PATH",
-          "value": "[INSTALLDIR]",
-          "permanent": "no",
-          "system": "no",
-          "action": "set",
-          "part": "last"
-        }
-      ]
-    },
     "shortcuts": {
       "guid": "",
       "items": [
