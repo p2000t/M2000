@@ -1,6 +1,5 @@
 {
     "product": "M2000",
-    "company": "Your Company",
     "upgrade-code": "",
     "files": {
       "guid": "",
@@ -25,8 +24,8 @@
       "guid": "",
       "items": [
         {
-          "name": "Your Product MSI",
-          "description": "MSI pakage for your product",
+          "name": "M2000 - Philips P2000 Emulator",
+          "description": "M2000 - Philips P2000 Emulator",
           "target": "[INSTALLDIR]\\M2000.exe",
           "wdir": "INSTALLDIR",
           "arguments": "",
