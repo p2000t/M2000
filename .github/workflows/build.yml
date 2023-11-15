@@ -52,7 +52,7 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
     - name: add mingw32 to path
       shell: bash
-      run: echo "PATH=$PATH:C:\msys64\mingw32\bin" >> $GITHUB_ENV
+      run: echo "C:\msys64\mingw32\bin" >> $GITHUB_PATH
     - name: Build
       shell: bash
       run: |
