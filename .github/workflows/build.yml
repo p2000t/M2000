@@ -53,6 +53,7 @@ jobs:
     - name: add mingw32 to path
       shell: bash
       run: echo "C:\msys64\mingw32\bin" >> $GITHUB_PATH
+    - run: i686-w64-mingw32-gcc --version
     - name: Build
       shell: bash
       run: |
