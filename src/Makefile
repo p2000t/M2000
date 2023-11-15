@@ -30,8 +30,8 @@ Bitmap.o:   Bitmap.c Bitmap.h
 
 else # build for Linux, Windows, macOS
 
-CFLAGS  = -Wall -fomit-frame-pointer -O2 -DALLEGRO $(ALLEGRO_CFLAGS) # -DDEBUG
-LFLAGS  = -s $(ALLEGRO_LDFLAGS)
+CFLAGS  = -Wall -fomit-frame-pointer -O2 -DALLEGRO # -DDEBUG
+LFLAGS  = -s
 ifeq ($(OS),Windows_NT)
   LFLAGS += -mwindows
 endif
