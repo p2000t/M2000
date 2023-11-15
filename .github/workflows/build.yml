@@ -22,7 +22,9 @@ jobs:
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Set path for candle and light
-      run: echo "$env:WIX\bin" >> $GITHUB_PATH
+      run: | 
+        echo "$env:WIX\bin" >> $GITHUB_PATH
+        echo $GITHUB_PATH
     - name: Create installer
       shell: cmd
       run: |
