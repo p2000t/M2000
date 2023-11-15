@@ -36,7 +36,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with: 
         name: M2000-snapshot-win64
-        path: wix.json
+        path: M2000.msi
 
     #ProgramFiles
           # M2000.exe
