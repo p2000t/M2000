@@ -16,6 +16,8 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
         choco install -y "go-msi"
         echo "$PATH" >> $GITHUB_PATH
+    - name: test
+      run: echo "hier is- $GITHUB_PATH"
     - name: Build
       run: |
         cd src
