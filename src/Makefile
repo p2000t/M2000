@@ -30,14 +30,10 @@ Bitmap.o:   Bitmap.c Bitmap.h
 
 else # build for Linux, Windows, macOS
 
-CFLAGS  = -Wall -fomit-frame-pointer -O2 -DALLEGRO # -DDEBUG
+CFLAGS  = -Wall -O2 -DALLEGRO # -DDEBUG
 LFLAGS  = -s
 ifdef _WIN32
   LFLAGS += -mwindows
-  ifndef _WIN64
-    CFLAGS += -m32
-	LFLAGS += -m32
-  endif
 endif
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o

@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: |
         cd src
-        make 
+        make
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Upload package
@@ -53,7 +53,7 @@ jobs:
     - name: Build
       run: |
         cd src
-        make 
+        make CFLAGS="-Wall -O2 -DALLEGRO -m32"
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Upload package
