@@ -31,9 +31,10 @@ jobs:
       run: |
         set PATH=%PATH%;%WIX%bin
         rem echo %PATH%
-        cp package/wix.json . 
+        rem cp package/wix.json . 
         "%PROGRAMFILES%\go-msi\go-msi.exe" set-guid
-        "%PROGRAMFILES%\go-msi\go-msi.exe" make --msi M2000.msi --arch amd64 --version 0.7
+        mkdir ${{ github.workspace }}/tmp
+        "%PROGRAMFILES%\go-msi\go-msi.exe" make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
