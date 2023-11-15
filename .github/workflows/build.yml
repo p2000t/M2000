@@ -17,20 +17,20 @@ jobs:
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         choco install -y "go-msi"
         refreshenv
-        echo $env:PATH
         Add-Content $env:GITHUB_PATH "$env:PATH"
     - name: Build
+      shell: bash
       run: |
         cd src
-        make CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
+        make \
+          CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" 
+          LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
     - name: Copy allegro libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Create installer
       shell: cmd
       run: |
         set PATH=%PATH%;%WIX%bin
-        rem echo %PATH%
-        rem cp package/wix.json . 
         go-msi.exe set-guid --path package/wix.json
         mkdir ${{ github.workspace }}/tmp
         go-msi.exe make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7

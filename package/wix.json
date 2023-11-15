@@ -14,7 +14,8 @@
         "allegro_image-5.2.dll",
         "allegro_audio-5.2.dll",
         "allegro_dialog-5.2.dll",
-        "allegro_memfile-5.2.dll"
+        "allegro_memfile-5.2.dll",
+        "m2000.ico"
       ]
     },
     "shortcuts": {
@@ -26,7 +27,7 @@
           "target": "[INSTALLDIR]\\M2000.exe",
           "wdir": "INSTALLDIR",
           "arguments": "",
-          "icon": ""
+          "icon": "m2000.ico"
         }
       ]
     }
