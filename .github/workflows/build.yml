@@ -28,7 +28,7 @@ jobs:
       shell: cmd
       run: |
         set PATH=%PATH%;%WIX%\bin
-        cp package/wix.json .
+        cp package/wix.json . 
         "C:\Program Files\go-msi\go-msi.exe" set-guid
         mkdir ${{ github.workspace }}/tmp
         "C:\Program Files\go-msi\go-msi.exe" make --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
