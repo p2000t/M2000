@@ -19,10 +19,10 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
     - name: Build
       run: |
-        echo "$C_INCLUDE_PATH"
-        echo "$LD_LIBRARY_PATH"
         cd src
         make 
+    - name: Copy libs to root
+      run: cp allegro/bin/allegro*5.2.dll .
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
@@ -32,12 +32,12 @@ jobs:
           Default.fnt
           P2000ROM.bin
           BASIC.bin
-          allegro/bin/**/allegro-5.2.dll
-          allegro/bin/**/allegro_primitives-5.2.dll
-          allegro/bin/**/allegro_image-5.2.dll
-          allegro/bin/**/allegro_audio-5.2.dll
-          allegro/bin/**/allegro_dialog-5.2.dll
-          allegro/bin/**/allegro_memfile-5.2.dll
+          allegro-5.2.dll
+          allegro_primitives-5.2.dll
+          allegro_image-5.2.dll
+          allegro_audio-5.2.dll
+          allegro_dialog-5.2.dll
+          allegro_memfile-5.2.dll
 
 # ALLEGRO_LDFLAGS="-L${{ github.workspace }}/Allegro.5.2.8/build/native/ClangCL/x64" ALLEGRO_CFLAGS="-I${{ github.workspace }}/Allegro.5.2.8/build/native/include"
   # build-m2000-windows-64bit:
