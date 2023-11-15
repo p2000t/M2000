@@ -36,6 +36,7 @@ ifdef _WIN32
   LFLAGS += -mwindows
   ifndef _WIN64
     CFLAGS += -m32
+	LFLAGS += -m32
   endif
 endif
 
