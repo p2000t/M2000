@@ -64,7 +64,7 @@ jobs:
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
-        name: "$ARTIFACT_NAME-win32"
+        name: ${{ env.ARTIFACT_NAME }}-win32
         path: |
           M2000.exe
           Default.fnt
