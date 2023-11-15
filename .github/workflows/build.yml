@@ -27,7 +27,7 @@ jobs:
         choco install -y "go-msi"
         refreshenv
         cp package/wix.json .
-        go-msi set-guid
+        go-msi.exe set-guid
         go-msi.exe make --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
