@@ -29,12 +29,12 @@ jobs:
     - name: Create installer
       shell: cmd
       run: |
-        set PATH=%PATH%;%WIX%\bin
-        echo %PATH%
+        set PATH=%PATH%;%WIX%bin
+        rem echo %PATH%
         cp package/wix.json . 
-        "C:\Program Files\go-msi\go-msi.exe" set-guid
+        "%PROGRAMFILES%\go-msi\go-msi.exe" set-guid
         mkdir ${{ github.workspace }}/tmp
-        "C:\Program Files\go-msi\go-msi.exe" make --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
+        "%PROGRAMFILES%\go-msi\go-msi.exe" make --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
