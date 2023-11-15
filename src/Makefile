@@ -32,9 +32,6 @@ else # build for Linux, Windows, macOS
 
 CFLAGS  = -Wall -O2 -DALLEGRO # -DDEBUG
 LFLAGS  = -s
-ifdef _WIN32
-  LFLAGS += -mwindows
-endif
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o
 
