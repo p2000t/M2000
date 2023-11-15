@@ -22,7 +22,7 @@
       "items": [
         {
           "name": "M2000 - Philips P2000 Emulator",
-          "description": "M2000 - Philips P2000 Emulator",
+          "description": "M2000 - portable Philips P2000 Emulator",
           "target": "[INSTALLDIR]\\M2000.exe",
           "wdir": "INSTALLDIR",
           "arguments": "",
