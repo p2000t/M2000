@@ -1,10 +1,10 @@
 
 CC	= gcc	# C compiler used
 LD	= gcc	# Linker used
-AS	= gcc	# Assembler used
 
 ifdef DJGPP # build for MS-DOS
 
+AS	= gcc	# Assembler used
 CFLAGS	= -Wall -m486 -fomit-frame-pointer -O2 -DMSDOS -DX86_ASM
 ASFLAGS	= -c -Wall
 LFLAGS  = -s
@@ -32,8 +32,11 @@ else # build for Linux, Windows, macOS
 
 CFLAGS  = -Wall -fomit-frame-pointer -O2 -DALLEGRO # -DDEBUG
 LFLAGS  = -s
-ifeq ($(OS),Windows_NT)
+ifdef _WIN32
   LFLAGS += -mwindows
+  ifndef _WIN64
+    CFLAGS += -m32
+  endif
 endif
 
 OBJECTS = M2000.o P2000.o Z80.o Z80Debug.o Allegro.o
@@ -52,10 +55,10 @@ Allegro.o:  Allegro.c Allegro.h Common.h P2000.h Z80.h Z80IO.h Icon.h Menu.h All
 endif
 
 clean:
-ifeq ($(OS),Windows_NT)
+ifdef _WIN32
 	del /Q /F *.o *.MAP 2>NUL
 else
-ifneq ($(DJGPP),)
+ifdef DJGPP
 	del *.o >NUL
 	del *.map >NUL
 else
