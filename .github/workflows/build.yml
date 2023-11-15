@@ -17,7 +17,8 @@ jobs:
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         choco install -y "go-msi"
         refreshenv
-        Add-Content $env:GITHUB_PATH "$env:PATH"
+        Add-Content $env:GITHUB_PATH "$env:PATH;env:WIX\bin"
+        echo "$env:GITHUB_PATH"
     - name: Build
       shell: bash
       run: |
@@ -30,7 +31,7 @@ jobs:
     - name: Create installer
       shell: cmd
       run: |
-        set PATH=%PATH%;%WIX%bin
+        rem set PATH=%PATH%;%WIX%bin
         go-msi set-guid --path package/wix.json
         mkdir ${{ github.workspace }}/tmp
         go-msi make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
