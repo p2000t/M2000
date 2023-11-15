@@ -10,7 +10,7 @@ jobs:
     runs-on: windows-latest
     env:
       C_INCLUDE_PATH: ${{ github.workspace }}/allegro/include
-      LD_LIBRARY_PATH: ${{ github.workspace }}/allegro
+      LD_LIBRARY_PATH: ${{ github.workspace }}/allegro/lib
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
@@ -27,7 +27,14 @@ jobs:
       uses: actions/upload-artifact@v3
       with: 
         name: test
-        path: M2000.exe
+        path: |
+          M2000.exe
+          allegro/bin/allegro-5.2.dll
+          allegro/bin/allegro_primitives-5.2.dll
+          allegro/bin/allegro_image-5.2.dll
+          allegro/bin/allegro_audio-5.2.dll
+          allegro/bin/allegro_dialog-5.2.dll
+          allegro/bin/allegro_memfile-5.2.dll
 
 # ALLEGRO_LDFLAGS="-L${{ github.workspace }}/Allegro.5.2.8/build/native/ClangCL/x64" ALLEGRO_CFLAGS="-I${{ github.workspace }}/Allegro.5.2.8/build/native/include"
   # build-m2000-windows-64bit:
