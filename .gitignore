@@ -9,6 +9,7 @@
 /*.bmp
 /*.bin
 /*.cfg
+/Allegro*/*
 /M2000
 /M2000.EXE
 /CWSDPMI.SWP
