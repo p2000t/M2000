@@ -17,9 +17,7 @@ jobs:
     - name: Build
       run: |
         cd src
-        make ^
-          CFLAGS="-Wall -O2 -DALLEGRO -I ${{ github.workspace }}/allegro/include" ^
-          LFLAGS="-s -mwindows -L ${{ github.workspace }}/allegro/lib"
+        make CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Generate artifact name
@@ -53,10 +51,9 @@ jobs:
     - name: Build
       run: |
         cd src
-        make \
-          CC=i686-w64-mingw32-gcc \
-          CFLAGS="-Wall -O2 -DALLEGRO -m32 -I ${{ github.workspace }}/allegro/include" \
-          LFLAGS="-s -mwindows -m32 -L ${{ github.workspace }}/allegro/lib"
+        make CC=i686-w64-mingw32-gcc \
+          CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
+          LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
     - name: Copy allegro libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Generate artifact name
