@@ -50,13 +50,13 @@ jobs:
       run: |
         Invoke-WebRequest -Uri https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip -OutFile allegro.zip
         Expand-Archive allegro.zip -DestinationPath .
-    - name: add mingw32 to path
-      shell: bash
-      run: echo "PATH=$PATH:C:\msys64\mingw64\bin" >> $GITHUB_ENV
+    # - name: add mingw32 to path
+    #   shell: bash
+    #   run: echo "PATH=$PATH:C:\msys64\mingw64\bin" >> $GITHUB_ENV
     - name: Build
       run: |
         cd src
-        make CC=i686-w64-mingw32-gcc LD=i686-w64-mingw32-gcc CFLAGS="-Wall -O2 -DALLEGRO -m32" LFLAGS="-s -mwindows -m32"
+        make CC="C:\msys64\mingw64\bin\i686-w64-mingw32-gcc" LD="C:\msys64\mingw64\bin\i686-w64-mingw32-gcc" CFLAGS="-Wall -O2 -DALLEGRO -m32" LFLAGS="-s -mwindows -m32"
     - name: Copy libs to root
       run: cp allegro/bin/allegro*5.2.dll .
     - name: Upload package
