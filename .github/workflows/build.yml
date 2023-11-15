@@ -21,20 +21,17 @@ jobs:
       run: |
         cd src
         make CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
-    - name: Copy libs to root
+    - name: Copy allegro libs to root
       run: cp allegro/bin/allegro*5.2.dll .
-    - name: Set path for candle and light
-      run: | 
-        echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" >> $GITHUB_PATH
     - name: Create installer
       shell: cmd
       run: |
         set PATH=%PATH%;%WIX%bin
         rem echo %PATH%
         rem cp package/wix.json . 
-        go-msi set-guid --path package/wix.json
+        "%PROGRAMFILES%\go-msi\go-msi.exe" set-guid --path package/wix.json
         mkdir ${{ github.workspace }}/tmp
-        go-msi make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
+        "%PROGRAMFILES%\go-msi\go-msi.exe" make --path package/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
