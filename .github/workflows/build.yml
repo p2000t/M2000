@@ -23,7 +23,7 @@ jobs:
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
-        name: M2000-snapshot-${{ github.event.commits.id }}-win64
+        name: M2000-snapshot-${{ github.event.commits[0].id }}-win64
         path: |
           M2000.exe
           Default.fnt
