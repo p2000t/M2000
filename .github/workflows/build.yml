@@ -14,8 +14,8 @@ jobs:
       run: nuget install Allegro -version 5.2.8
     - name: Build
       run: |
-        echo C_INCLUDE_PATH
-        echo LD_LIBRARY_PATH 
+        echo "$C_INCLUDE_PATH"
+        echo "$LD_LIBRARY_PATH"
         cd src
         make ALLEGRO_LDFLAGS="-L${{ github.workspace }}/Allegro.5.2.8/build/native/ClangCL/x64" ALLEGRO_CFLAGS="-I${{ github.workspace }}/Allegro.5.2.8/build/native/include"
     - name: Upload package
