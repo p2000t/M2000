@@ -17,7 +17,7 @@ jobs:
         Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
         choco install -y "go-msi"
         refreshenv
-        Add-Content $env:GITHUB_PATH "$env:PATH;env:WIX\bin"
+        Add-Content $env:GITHUB_PATH "$env:PATH;$env:WIX\bin"
         echo "$env:GITHUB_PATH"
     - name: Build
       shell: bash
