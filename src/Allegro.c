@@ -254,7 +254,7 @@ int InitMachine(void)
 #endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
 #ifdef __linux__
-  // for Linux create smallest display, as it cannot correctly scale back
+  // for Linux create smallest display, as it does not correctly scale back
   if ((display = al_create_display(Displays[1][0], Displays[1][1])) == NULL)
 #else
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
@@ -903,12 +903,6 @@ void Keyboard(void)
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
       (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
     Z80_Running = 0;
-
-#ifdef __APPLE__
-  // for (i=ALLEGRO_KEY_F1; i<=ALLEGRO_KEY_F12; i++)
-  //   if (al_key_down(&kbdstate, i))
-  //     al_clear_keyboard_state(display);
-#endif
 
   // handle joystick
   if (joymode) {
