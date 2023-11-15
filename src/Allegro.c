@@ -576,10 +576,13 @@ void SaveScreenshot()
 
 void SaveVideoRAM() 
 {
+  int i;
   FILE *f;
   if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
     if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
-      fwrite(VRAM, 1, 0x1000, f); //write full 4K
+      // for each of the 24 lines, write 40 chars and skip 40 chars
+      for (i=0;i<24;i++)
+        fwrite(VRAM + i*80, 1, 40, f); 
       fclose(f);
     }
   }
@@ -768,7 +771,9 @@ void Keyboard(void)
         case FILE_LOAD_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
             if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
-              fread(VRAM, 1, 0x1000, f); //read full 4K
+              // for each of the 24 lines, read 40 chars and skip 40 chars
+              for (i=0;i<24;i++)
+                fread(VRAM + i*80, 1, 40, f); 
               fclose(f);
               RefreshScreen();
             } 

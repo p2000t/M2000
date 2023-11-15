@@ -41,7 +41,7 @@ Shift-F2         -  STOP key (pause/halt program in BASIC)
 F5               -  Reset P2000
 F6               -  Change options (MS-DOS version only)
 F7               -  Save screenshot to file
-F8               -  Save video RAM to file
+F8               -  Save video RAM (40x24 bytes) to file
 F9               -  Toggle pause on/off
 F10              -  Toggle sound on/off
 F11              -  Toggle fullscreen on/off (use Shift-F11 for macOS)
