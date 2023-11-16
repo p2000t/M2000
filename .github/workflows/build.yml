@@ -14,10 +14,10 @@ jobs:
       run: |
         Invoke-WebRequest -Uri https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip -OutFile allegro.zip
         Expand-Archive allegro.zip -DestinationPath .
-        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1 #allows to do refreshenv later
         choco install -y "go-msi"
-        refreshenv
-        Add-Content $env:GITHUB_PATH "$env:PATH;$env:WIX\bin"
+        refreshenv #refresh the PATH environment variable, which now contains path to go-msi binary
+        Add-Content $env:GITHUB_PATH "$env:PATH;$env:WIX\bin" #add path to WIX binaries and copy to GITHUB_PATH variable
     - name: Build
       shell: bash
       run: |
@@ -32,12 +32,12 @@ jobs:
       run: |
         go-msi set-guid --path package/WiX/wix.json
         mkdir ${{ github.workspace }}/tmp
-        go-msi make --path package/Wix/wix.json --out ${{ github.workspace }}/tmp --msi M2000.msi --arch amd64 --version 0.7.0
+        go-msi make --path package/Wix/wix.json --out ${{ github.workspace }}/tmp --msi M2000-installer.msi --arch amd64 --version 0.7.0
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
         name: M2000-snapshot-win64
-        path: M2000.msi
+        path: M2000-installer.msi
 
   build-win32:
     runs-on: ubuntu-latest
