@@ -88,7 +88,7 @@ void CreateEmulatorMenu()
     ALLEGRO_START_OF_MENU("File", 0),
       { "Insert Cassette...", FILE_INSERT_CASSETTE_ID, 0, NULL },
       { "Insert, Load and Run Cassette...", FILE_INSERTRUN_CASSETTE_ID, 0, NULL },
-      { "Remove Cassette...", FILE_REMOVE_CASSETTE_ID, 0, NULL },
+      { "Remove Cassette", FILE_REMOVE_CASSETTE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "Insert Cartridge...", FILE_INSERT_CARTRIDGE_ID, 0, NULL },
       { "Remove Cartridge...", FILE_REMOVE_CARTRIDGE_ID, 0, NULL },
