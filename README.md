@@ -26,7 +26,7 @@ allegro*.dll   (Windows version only) Allegro libraries required by M2000
 
 ## What's emulated
 
--  P2000T or P2000M model (P2000M emulation is buggy)
+-  P2000T or P2000M model (P2000M emulation is experimental)
 -  Support for 1 ROM cartridge
 -  User-definable amount of RAM
 -  One tape drive
