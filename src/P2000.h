@@ -11,12 +11,6 @@
 
 #include "Z80.h"            /* Z80 emulation declarations    */
 
-#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
-#define PATH_SEPARATOR '\\'
-#else // Linux and others
-#define PATH_SEPARATOR '/'
-#endif
-
 /******** Variables used to control emulator behavior ***********************/
 extern byte Verbose;            /* Debug messages ON/OFF                    */
 extern byte *VRAM,*RAM,*ROM;    /* Main and Video RAMs                      */

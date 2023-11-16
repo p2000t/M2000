@@ -1,5 +1,10 @@
 #pragma once
 #define FULLSCREEN_VIDEO_MODE 99
+#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
+#define PATH_SEPARATOR '\\'
+#else // Linux and others
+#define PATH_SEPARATOR '/'
+#endif
 
 #include "P2000.h"
 
@@ -16,6 +21,8 @@ ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
 ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
+ALLEGRO_PATH *screenshotPath =  NULL;
+ALLEGRO_PATH *videoRamPath =  NULL;
 
 int buf_size;
 int sample_rate;

@@ -23,6 +23,13 @@
 #include "P2000.h"
 #include "Help.h"
 
+
+#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
+#define PATH_SEPARATOR '\\'
+#else // Linux and others
+#define PATH_SEPARATOR '/'
+#endif
+
 extern char *Title;
 
 /* Maximum configuration file size in bytes */
@@ -75,6 +82,7 @@ static char *shadow_argv[256];
 static unsigned char ConfigFile[MAX_CONFIG_FILE_SIZE];
 static char _ConfigFileName[MAX_FILE_NAME];
 static char ProgramPath[MAX_FILE_NAME];
+static char DocumentPath[MAX_FILE_NAME];
 static char _CartName[MAX_FILE_NAME];
 static char _ROMName[MAX_FILE_NAME];
 static char _FontName[MAX_FILE_NAME];
@@ -320,13 +328,13 @@ static void LoadConfigFile (char *szFileName,unsigned char *ptr)
  }
 }
 
-/* Fix the main ROM file name */
-static char * MakeFullPath (char *dest, char *src)
+/* Expand to absolute path */
+static char * MakeFullPath (char *dest, char *src, char *root)
 {
   if (!src) return NULL;
   if (!strchr(src,'/') && !strchr(src,'\\')) {
-    /* If no path is given, assume file is in program path */
-    strcpy (dest,ProgramPath);
+    /* If no path is given, assume file is in root path */
+    strcpy (dest,root);
     strcat (dest,src);
   } else {
     strcpy (dest,src);
@@ -370,17 +378,28 @@ int main(int argc,char *argv[])
   // debian install check
   if (!strcmp(ProgramPath,"/usr/bin/"))
     strcpy(ProgramPath, "/usr/share/M2000/");
+
+  strcpy(DocumentPath, ProgramPath); //fallback to program path
+  ALLEGRO_PATH *docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
+  if (docPath) {
+    al_append_path_component(docPath, "M2000");
+    if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR)))
+      strcpy(DocumentPath, al_path_cstr(docPath, PATH_SEPARATOR));
+    al_destroy_path(docPath);
+  }
 #else
   GetBasePath (argv[0],ProgramPath);
+  strcpy(DocumentPath, ProgramPath);
 #endif
   if (Verbose) printf("ProgramPath=%s\n", ProgramPath);
+  if (Verbose) printf("DocumentPath=%s\n", DocumentPath);
 
   /* Load M2000.cfg */
   memset (ConfigFile,0,sizeof(ConfigFile));
   //printf("argv[0] = %s\n",argv[0]);
   shadow_argc=1;
   shadow_argv[0]=argv[0];
-  strcpy (_ConfigFileName,ProgramPath);
+  strcpy (_ConfigFileName,DocumentPath);
   strcat (_ConfigFileName,"M2000.cfg");
   LoadConfigFile (_ConfigFileName,ConfigFile);
   /* Parse the config file options */
@@ -390,11 +409,11 @@ int main(int argc,char *argv[])
   if (!ParseOptions(argc,argv))
     return 1;
 
-  TapeName = MakeFullPath(_TapeName, TapeName);
-  CartName = MakeFullPath(_CartName, CartName);
-  ROMName = MakeFullPath(_ROMName, ROMName);
-  FontName = MakeFullPath(_FontName, FontName);
-  PrnName = MakeFullPath(_PrnName, PrnName);
+  TapeName = MakeFullPath(_TapeName, TapeName, DocumentPath);
+  CartName = MakeFullPath(_CartName, CartName, ProgramPath);
+  ROMName = MakeFullPath(_ROMName, ROMName, ProgramPath);
+  FontName = MakeFullPath(_FontName, FontName, ProgramPath);
+  PrnName = MakeFullPath(_PrnName, PrnName, DocumentPath);
 
   /* Check for valid variables */
   if (IFreq<10) IFreq=10;

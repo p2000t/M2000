@@ -222,15 +222,28 @@ int InitMachine(void)
     }
   }
 
+  if ((screenshotPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH))) {
+    al_append_path_component(screenshotPath, "M2000");
+    al_append_path_component(screenshotPath, "Screenshots");
+    if (!al_make_directory(al_path_cstr(screenshotPath, PATH_SEPARATOR)))
+      al_destroy_path(screenshotPath);
+  }
+  if ((videoRamPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH))) {
+    al_append_path_component(videoRamPath, "M2000");
+    al_append_path_component(videoRamPath, "VideoRAM dumps");
+    if (!al_make_directory(al_path_cstr(videoRamPath, PATH_SEPARATOR)))
+      al_destroy_path(videoRamPath);
+  }
+
   cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  screenshotChooser = al_create_native_file_dialog(NULL,
+  screenshotChooser = al_create_native_file_dialog(screenshotPath ? al_path_cstr(screenshotPath, PATH_SEPARATOR) : NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
-  vRamLoadChooser = al_create_native_file_dialog(NULL,
+  vRamLoadChooser = al_create_native_file_dialog(videoRamPath ? al_path_cstr(videoRamPath, PATH_SEPARATOR) : NULL,
     "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  vRamSaveChooser = al_create_native_file_dialog(NULL,
+  vRamSaveChooser = al_create_native_file_dialog(videoRamPath ? al_path_cstr(videoRamPath, PATH_SEPARATOR) : NULL,
     "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
 
   if (joymode) {
@@ -568,24 +581,24 @@ int LoadFont(char *filename)
   return 1;
 }
 
-void SaveScreenshot() 
-{
-  if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
-    al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
-}
-
-void SaveVideoRAM() 
+void SaveVideoRAM(const char * filename) 
 {
   int i;
   FILE *f;
-  if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
-    if ((f = fopen(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"), "wb")) != NULL) {
-      // for each of the 24 lines, write 40 chars and skip 40 chars
-      for (i=0;i<24;i++)
-        fwrite(VRAM + i*80, 1, 40, f); 
-      fclose(f);
-    }
+  if ((f = fopen(filename, "wb")) != NULL) {
+    // for each of the 24 lines, write 40 chars and skip 40 chars
+    for (i=0;i<24;i++)
+      fwrite(VRAM + i*80, 1, 40, f); 
+    fclose(f);
   }
+}
+
+void IndicateActionDone() {
+  //show white screen to indicate action was done
+  al_clear_to_color(al_map_rgb(255, 255, 255));
+  al_flip_display();
+  Pause(20);
+  ClearScreen();
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -766,7 +779,8 @@ void Keyboard(void)
           Z80_Reset();
           break;
         case FILE_SAVE_SCREENSHOT_ID:
-          SaveScreenshot();
+          if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
+            al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
           break;
         case FILE_LOAD_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
@@ -780,7 +794,8 @@ void Keyboard(void)
           }
           break;
         case FILE_SAVE_VIDEORAM_ID:
-          SaveVideoRAM();
+          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0)
+            SaveVideoRAM(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"));
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -880,13 +895,29 @@ void Keyboard(void)
     Z80_Reset ();
 #endif
 
-  /* press F7 for screenshot */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7))
-    SaveScreenshot();
+  /* press F7 to silently save screenshot */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7)) {
+    static char filename[35];
+    if (screenshotPath) {
+      time_t now = time(NULL);
+      strftime(filename, 35, "Screenshot %Y-%m-%d %H-%M-%S.png", localtime(&now));
+      al_set_path_filename(screenshotPath, filename);
+      al_save_bitmap(al_path_cstr(screenshotPath, PATH_SEPARATOR), al_get_target_bitmap());
+      IndicateActionDone();
+    }
+  }
 
-  /* press F8 to save video RAM */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8))
-    SaveVideoRAM();
+  /* press F8 to silently save video RAM */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8)) {  
+    static char filename[34];
+    if (videoRamPath) {
+      time_t now = time(NULL);
+      strftime(filename, 34, "VideoRAM %Y-%m-%d %H-%M-%S.vram", localtime(&now));
+      al_set_path_filename(videoRamPath, filename);
+      SaveVideoRAM(al_path_cstr(videoRamPath, PATH_SEPARATOR));
+      IndicateActionDone();
+    }
+  }
   
   /* F9 = pause / unpause */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
