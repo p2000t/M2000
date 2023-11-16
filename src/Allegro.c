@@ -235,9 +235,9 @@ int InitMachine(void)
       al_destroy_path(videoRamPath);
   }
 
-  cassetteChooser = al_create_native_file_dialog(al_path_cstr(al_get_standard_path(ALLEGRO_USER_HOME_PATH), PATH_SEPARATOR), 
+  cassetteChooser = al_create_native_file_dialog(NULL, 
     "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
-  cartridgeChooser = al_create_native_file_dialog(al_path_cstr(al_get_standard_path(ALLEGRO_USER_HOME_PATH), PATH_SEPARATOR), 
+  cartridgeChooser = al_create_native_file_dialog(NULL, 
     "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(screenshotPath ? al_path_cstr(screenshotPath, PATH_SEPARATOR) : NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
