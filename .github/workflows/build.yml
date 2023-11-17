@@ -66,6 +66,7 @@ jobs:
           Default.fnt
           P2000ROM.bin
           BASIC.bin
+          README.md
           allegro-5.2.dll
           allegro_primitives-5.2.dll
           allegro_image-5.2.dll
@@ -95,6 +96,7 @@ jobs:
         cp Default.fnt package/M2000_amd64/usr/share/M2000/
         cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
         cp BASIC.bin package/M2000_amd64/usr/share/M2000/
+        cp README.md package/M2000_amd64/usr/share/M2000/
         cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000_amd64/usr/share/M2000/
         cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000_amd64/usr/share/M2000/
         cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000_amd64/usr/share/M2000/
@@ -127,6 +129,7 @@ jobs:
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
         cp BASIC.bin package/M2000.app/Contents/Resources/
+        cp README.md package/M2000.app/Contents/Resources/
         cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000.app/Contents/Resources/
         cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000.app/Contents/Resources/
         cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000.app/Contents/Resources/

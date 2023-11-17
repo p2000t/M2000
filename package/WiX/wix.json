@@ -9,6 +9,7 @@
         "Default.fnt",
         "P2000ROM.bin",
         "BASIC.bin",
+        "README.md",
         "allegro/bin/allegro-5.2.dll",
         "allegro/bin/allegro_primitives-5.2.dll",
         "allegro/bin/allegro_image-5.2.dll",

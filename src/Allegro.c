@@ -270,6 +270,8 @@ int InitMachine(void)
 
   al_append_path_component(docPath, "M2000");
   if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) {
+    CopyFile(resourcePath, "README.md", docPath);
+
     al_append_path_component((cassettePath = al_clone_path(docPath)), "Cassettes");
     if (!al_filename_exists(al_path_cstr(cassettePath, PATH_SEPARATOR)))
       for (i=0; installCassettes[i]; i++)
