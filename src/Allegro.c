@@ -193,11 +193,46 @@ void ToggleFullscreen()
   }
 }
 
+int CopyFile(ALLEGRO_PATH *sourceFolder, const char * filename, ALLEGRO_PATH *destinationFolder) 
+{
+  if (!al_make_directory(al_path_cstr(destinationFolder, PATH_SEPARATOR))) return 1;
+
+  ALLEGRO_PATH * sourcePath = al_clone_path(sourceFolder);
+  ALLEGRO_PATH * destinationPath = al_clone_path(destinationFolder);
+  al_set_path_filename(sourcePath, filename);
+  al_set_path_filename(destinationPath, filename);
+  const char * sourceFile = al_path_cstr(sourcePath, PATH_SEPARATOR);
+  const char * destFile = al_path_cstr(destinationPath, PATH_SEPARATOR);
+  al_destroy_path(sourcePath);
+  al_destroy_path(destinationPath);
+  if (!al_filename_exists(sourceFile)) return 1;
+  if (al_filename_exists(destFile)) return 0;
+
+  if (Verbose) printf("Copying %s to %s ...", sourceFile, destFile);
+  FILE *f_s;
+  FILE *f_d;
+  char buf[1024];
+  size_t size;
+  int ret = 1;
+  if ((f_s = fopen(sourceFile, "rb"))) {
+    if ((f_d = fopen(destFile, "wb"))) {
+      while ((size = fread(buf, 1, 1024, f_s)))
+        fwrite(buf, 1, size, f_d);
+      fclose(f_d);
+      ret = 0;
+    }
+    fclose(f_s);
+  }
+  if (Verbose) puts(ret ? "FAILED" : "OK");
+  return ret;
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
 int InitMachine(void)
 {
+  int i;
   int startFullScreen = (videomode == FULLSCREEN_VIDEO_MODE);
   //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
   CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
@@ -222,22 +257,37 @@ int InitMachine(void)
     }
   }
 
-  if ((screenshotPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH))) {
-    al_append_path_component(screenshotPath, "M2000");
-    al_append_path_component(screenshotPath, "Screenshots");
-    if (!al_make_directory(al_path_cstr(screenshotPath, PATH_SEPARATOR)))
-      al_destroy_path(screenshotPath);
-  }
-  if ((videoRamPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH))) {
-    al_append_path_component(videoRamPath, "M2000");
-    al_append_path_component(videoRamPath, "VideoRAM dumps");
-    if (!al_make_directory(al_path_cstr(videoRamPath, PATH_SEPARATOR)))
-      al_destroy_path(videoRamPath);
-  }
+  /* create M2000 folder inside user's Documents folder */
+  ALLEGRO_PATH *docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
+  ALLEGRO_PATH *resourcePath = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+  // debian install check
+  if (!strcmp(al_path_cstr(resourcePath, PATH_SEPARATOR), "/usr/bin/"))
+    resourcePath = al_create_path_for_directory("/usr/share/M2000/");
 
-  cassetteChooser = al_create_native_file_dialog(NULL, 
-    "Select an existing or new cassette file", "*.*", 0); //file doesn't have to exist
-  cartridgeChooser = al_create_native_file_dialog(NULL, 
+  al_append_path_component(docPath, "M2000");
+  if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) {
+    al_append_path_component((cassettePath = al_clone_path(docPath)), "Cassettes");
+    if (!al_filename_exists(al_path_cstr(cassettePath, PATH_SEPARATOR)))
+      for (i=0; installCassettes[i]; i++)
+        CopyFile(resourcePath, installCassettes[i], cassettePath);
+
+    al_append_path_component((cartridgePath = al_clone_path(docPath)), "Cartridges");
+    if (!al_filename_exists(al_path_cstr(cartridgePath, PATH_SEPARATOR)))
+      for (i=0; installCartridges[i]; i++)
+        CopyFile(resourcePath, installCartridges[i], cartridgePath);
+
+    al_append_path_component((screenshotPath = al_clone_path(docPath)), "Screenshots");
+    al_make_directory(al_path_cstr(screenshotPath, PATH_SEPARATOR));
+
+    al_append_path_component((videoRamPath = al_clone_path(docPath)), "VideoRAM dumps");
+    al_make_directory(al_path_cstr(videoRamPath, PATH_SEPARATOR));
+  }
+  al_destroy_path(resourcePath);
+  al_destroy_path(docPath);
+
+  cassetteChooser = al_create_native_file_dialog(cassettePath ? al_path_cstr(cassettePath, PATH_SEPARATOR) : NULL,
+    "Select an existing or new .cas cassette file", "*.*", 0); //file doesn't have to exist
+  cartridgeChooser = al_create_native_file_dialog(cartridgePath ? al_path_cstr(cartridgePath, PATH_SEPARATOR) : NULL,
     "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(screenshotPath ? al_path_cstr(screenshotPath, PATH_SEPARATOR) : NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);

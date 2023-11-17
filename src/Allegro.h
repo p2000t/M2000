@@ -23,6 +23,8 @@ ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
 ALLEGRO_PATH *screenshotPath =  NULL;
 ALLEGRO_PATH *videoRamPath =  NULL;
+ALLEGRO_PATH *cassettePath =  NULL;
+ALLEGRO_PATH *cartridgePath =  NULL;
 
 int buf_size;
 int sample_rate;
@@ -83,6 +85,17 @@ static unsigned char Pal[8*3] =    /* SAA5050 palette                       */
   0xFF,0x00,0xFF, //magenta
   0x00,0xFF,0xFF, //cyan
   0xFF,0xFF,0xFF  //white
+};
+
+static const char *installCassettes[] = {
+  "Basic Demo Cassette (zijde A).cas",
+  "Basic Demo Cassette (zijde B).cas",
+  NULL
+};
+static const char *installCartridges[] = {
+  "Basic 1.1 NL.bin",
+  "Familiegeheugen 2.0 NL.bin",
+  NULL
 };
 
 void UpdateDisplaySettings() {
