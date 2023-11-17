@@ -35,7 +35,7 @@
       ]
     },
     "hooks": [
-      {"when": "InstallFinalize", "command": "[INSTALLDIR]\\M2000.exe"}
+      {"when": "install", "command": "[SystemFolder]cmd.exe /C \"[INSTALLDIR]\\M2000.exe\""}
     ]
   }
   
