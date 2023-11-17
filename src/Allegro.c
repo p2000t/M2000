@@ -197,18 +197,22 @@ int CopyFile(ALLEGRO_PATH *sourceFolder, const char * filename, ALLEGRO_PATH *de
 {
   if (!al_make_directory(al_path_cstr(destinationFolder, PATH_SEPARATOR))) return 1;
 
-  ALLEGRO_PATH * sourcePath = al_clone_path(sourceFolder);
-  ALLEGRO_PATH * destinationPath = al_clone_path(destinationFolder);
-  al_set_path_filename(sourcePath, filename);
-  al_set_path_filename(destinationPath, filename);
-  const char * sourceFile = al_path_cstr(sourcePath, PATH_SEPARATOR);
-  const char * destFile = al_path_cstr(destinationPath, PATH_SEPARATOR);
-  al_destroy_path(sourcePath);
-  al_destroy_path(destinationPath);
-  if (!al_filename_exists(sourceFile)) return 1;
-  if (al_filename_exists(destFile)) return 0;
+  al_set_path_filename(sourceFolder, filename);
+  al_set_path_filename(destinationFolder, filename);
+  const char * sourceFile = al_path_cstr(sourceFolder, PATH_SEPARATOR);
+  const char * destFile = al_path_cstr(destinationFolder, PATH_SEPARATOR);
+  al_set_path_filename(sourceFolder, NULL);
+  al_set_path_filename(destinationFolder, NULL);
+  if (!al_filename_exists(sourceFile)) {
+    if (Verbose) printf("[CopyFile] SourceFile %s does not exist\n", sourceFile);
+    return 1;
+  }
+  if (al_filename_exists(destFile)) {
+    if (Verbose) printf("[CopyFile] DestFile %s already exists\n", destFile);
+    return 0;
+  }
 
-  if (Verbose) printf("Copying %s to %s ...", sourceFile, destFile);
+  if (Verbose) printf("[CopyFile] Copying %s to %s ...", sourceFile, destFile);
   FILE *f_s;
   FILE *f_d;
   char buf[1024];
