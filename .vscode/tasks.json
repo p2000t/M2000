@@ -5,7 +5,7 @@
     "tasks": [
         {
             "label": "Make",
-            "type": "process",
+            "type": "shell",
             "command": "make",
             "options": {
                 "cwd": "src"
@@ -23,8 +23,8 @@
                 //"-video", "1",
                 //"-sound", "1",
                 //"-cpuspeed",  "100",
-                // "-tape", "test/cas/SAA5050.cas",
-                // "-boot", "1"
+                //"-tape", "test/cas/SAA5050.cas",
+                //"-boot", "1"
                 //"-joymap", "1"
             ],
             "dependsOn": [

@@ -47,7 +47,7 @@ Allegro.o:  Allegro.c Allegro.h Common.h P2000.h Z80.h Z80IO.h Icon.h Menu.h All
 endif
 
 clean:
-ifdef _WIN32
+ifeq ($(OS),Windows_NT)
 	del /Q /F *.o *.MAP 2>NUL
 else
 ifdef DJGPP

@@ -152,24 +152,24 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
     ```
     sudo dnf install allegro5*
     ```
-* Go into the src directory and run make
+* Go into the M2000 directory and run make
   ```
-  cd src
+  cd M2000
   make
   ```
-  The resulting `M2000` executable will be available in the root folder.
+  The resulting `M2000` executable will be available in the M2000 folder.
 
 ### macOS
 * Make sure you have `brew` installed before you install the Allegro 5 libs:
   ```
   brew install allegro
   ```
-* Go into the src directory and run make
+* Go into the M2000 directory and run make
   ```
-  cd src
+  cd M2000
   make
   ```
-  The resulting `M2000` executable will be available in the root folder. \
+  The resulting `M2000` executable will be available in the M2000 folder. \
   Tested for macOS 10.13 (High Sierra).
 
 ### Windows
@@ -177,7 +177,7 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
 A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install MinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
 * Download the static [Allegro 5 libraries v5.2.8.0](https://github.com/liballeg/allegro5/releases/tag/5.2.8.0) and pick the version that matches your MinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your MinGW folder.
-* Open a command prompt into the src folder of your cloned M2000 repo and type: `mingw32-make`. The resulting `M2000.exe` will be copied into the root of your cloned M2000 repo, where you can now run it.
+* Open a command prompt into the (cloned) M2000 folder and type: `mingw32-make`. The resulting `M2000.exe` will be copied into the M2000 folder, where you can now run it.
 
 ### Windows (WSL Ubuntu cross-compilation)
 Alternatively, you can build the Windows version on WSL (Windows Subsystem for Linux).
