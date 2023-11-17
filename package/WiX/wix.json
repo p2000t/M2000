@@ -33,6 +33,9 @@
           "icon": "package/WiX/m2000.ico"
         }
       ]
-    }
+    },
+    "hooks": [
+      {"when": "install", "command": "[INSTALLDIR]\\M2000.exe"}
+    ]
   }
   
