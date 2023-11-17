@@ -7,18 +7,15 @@
             "label": "Make",
             "type": "shell",
             "command": "make",
-            "options": {
-                "cwd": "src"
-            },
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Build and Run",
             "type": "shell",
-            "command": "M2000",
-            "osx": {
-                "command": "./M2000"
+            "command": "./M2000",
+            "windows": {
+                "command": ".\\M2000"
             },
             "args": [
                 "-t",

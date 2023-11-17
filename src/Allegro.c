@@ -292,7 +292,7 @@ int InitMachine(void)
   al_destroy_path(docPath);
 
   cassetteChooser = al_create_native_file_dialog(cassettePath ? al_path_cstr(cassettePath, PATH_SEPARATOR) : NULL,
-    "Select an existing or new .cas cassette file", "*.*", 0); //file doesn't have to exist
+    "Select a .cas cassette file", "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(cartridgePath ? al_path_cstr(cartridgePath, PATH_SEPARATOR) : NULL,
     "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(screenshotPath ? al_path_cstr(screenshotPath, PATH_SEPARATOR) : NULL,
