@@ -33,9 +33,6 @@
           "icon": "package/WiX/m2000.ico"
         }
       ]
-    },
-    "hooks": [
-      {"when": "install", "command": "[SystemFolder]cmd.exe /C \"[INSTALLDIR]\\M2000.exe\""}
-    ]
+    }
   }
   
