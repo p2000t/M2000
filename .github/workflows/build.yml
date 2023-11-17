@@ -25,8 +25,6 @@ jobs:
         make \
           CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" \
           LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
-    - name: Copy allegro libs to root
-      run: cp allegro/bin/allegro*5.2.dll .
     - name: Create installer
       shell: cmd
       run: |
@@ -54,8 +52,11 @@ jobs:
         make CC=i686-w64-mingw32-gcc \
           CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
           LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
-    - name: Copy allegro libs to root
-      run: cp allegro/bin/allegro*5.2.dll .
+    - name: Copy allegro libs and pacakge files to root
+      run: |
+        cp allegro/bin/allegro*5.2.dll .
+        cp package/Cassettes/*.cas .
+        cp package/Cartridges/*.bin .
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
@@ -65,12 +66,17 @@ jobs:
           Default.fnt
           P2000ROM.bin
           BASIC.bin
+          README.md
           allegro-5.2.dll
           allegro_primitives-5.2.dll
           allegro_image-5.2.dll
           allegro_audio-5.2.dll
           allegro_dialog-5.2.dll
           allegro_memfile-5.2.dll
+          Basic Demo Cassette (zijde A).cas
+          Basic Demo Cassette (zijde B).cas
+          Basic 1.1 NL.bin
+          Familiegeheugen 2.0 NL.bin
 
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -90,6 +96,11 @@ jobs:
         cp Default.fnt package/M2000_amd64/usr/share/M2000/
         cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
         cp BASIC.bin package/M2000_amd64/usr/share/M2000/
+        cp README.md package/M2000_amd64/usr/share/M2000/
+        cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000_amd64/usr/share/M2000/
+        cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000_amd64/usr/share/M2000/
+        cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000_amd64/usr/share/M2000/
+        cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000_amd64/usr/share/M2000/
     - name: Create package
       run: |
         cd package
@@ -118,6 +129,11 @@ jobs:
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
         cp BASIC.bin package/M2000.app/Contents/Resources/
+        cp README.md package/M2000.app/Contents/Resources/
+        cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000.app/Contents/Resources/
+        cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000.app/Contents/Resources/
+        cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000.app/Contents/Resources/
+        cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000.app/Contents/Resources/
     - name: Zip package
       run: |
         cd package

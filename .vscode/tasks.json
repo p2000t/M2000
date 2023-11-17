@@ -17,6 +17,9 @@
             "label": "Build and Run",
             "type": "shell",
             "command": "M2000",
+            "osx": {
+                "command": "./M2000"
+            },
             "args": [
                 "-t",
                 //"-scanlines", "1",

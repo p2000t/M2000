@@ -9,12 +9,17 @@
         "Default.fnt",
         "P2000ROM.bin",
         "BASIC.bin",
-        "allegro-5.2.dll",
-        "allegro_primitives-5.2.dll",
-        "allegro_image-5.2.dll",
-        "allegro_audio-5.2.dll",
-        "allegro_dialog-5.2.dll",
-        "allegro_memfile-5.2.dll"
+        "README.md",
+        "allegro/bin/allegro-5.2.dll",
+        "allegro/bin/allegro_primitives-5.2.dll",
+        "allegro/bin/allegro_image-5.2.dll",
+        "allegro/bin/allegro_audio-5.2.dll",
+        "allegro/bin/allegro_dialog-5.2.dll",
+        "allegro/bin/allegro_memfile-5.2.dll",
+        "package/Cassettes/Basic Demo Cassette (zijde A).cas",
+        "package/Cassettes/Basic Demo Cassette (zijde B).cas",
+        "package/Cartridges/Basic 1.1 NL.bin",
+        "package/Cartridges/Familiegeheugen 2.0 NL.bin"
       ]
     },
     "shortcuts": {
