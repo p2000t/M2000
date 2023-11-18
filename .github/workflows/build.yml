@@ -28,7 +28,7 @@ jobs:
       run: |
         go-msi set-guid --path package/WiX/wix.json
         mkdir ${{ github.workspace }}/tmp
-        go-msi make --path --keep package/Wix/wix.json --out ${{ github.workspace }}/tmp --msi M2000-installer.msi --arch amd64 --version 0.7.0
+        go-msi make --path package/Wix/wix.json --out ${{ github.workspace }}/tmp --keep --msi M2000-installer.msi --arch amd64 --version 0.7.0
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
