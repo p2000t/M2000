@@ -28,110 +28,110 @@ jobs:
       run: |
         go-msi set-guid --path package/WiX/wix.json
         mkdir ${{ github.workspace }}/tmp
-        go-msi make --path package/Wix/wix.json --out ${{ github.workspace }}/tmp --msi M2000-installer.msi --arch amd64 --version 0.7.0
+        go-msi make --path --keep package/Wix/wix.json --out ${{ github.workspace }}/tmp --msi M2000-installer.msi --arch amd64 --version 0.7.0
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
-        name: M2000-snapshot-win64
-        path: M2000-installer.msi
+        name: temp
+        path: ${{ github.workspace }}/tmp/**
 
-  build-win32:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: |
-        sudo apt install -y mingw-w64
-        wget https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
-        unzip allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
-    - name: Build
-      run: make CC=i686-w64-mingw32-gcc \
-          CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
-          LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
-    - name: Copy allegro libs and pacakge files to root
-      run: |
-        cp allegro/bin/allegro*5.2.dll .
-        cp package/Cassettes/*.cas .
-        cp package/Cartridges/*.bin .
-    - name: Upload package
-      uses: actions/upload-artifact@v3
-      with:
-        name: M2000-snapshot-win32
-        path: |
-          M2000.exe
-          Default.fnt
-          P2000ROM.bin
-          BASIC.bin
-          README.md
-          allegro-5.2.dll
-          allegro_primitives-5.2.dll
-          allegro_image-5.2.dll
-          allegro_audio-5.2.dll
-          allegro_dialog-5.2.dll
-          allegro_memfile-5.2.dll
-          Basic Demo Cassette (zijde A).cas
-          Basic Demo Cassette (zijde B).cas
-          Basic 1.1 NL.bin
-          Familiegeheugen 2.0 NL.bin
+  # build-win32:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Install dependencies
+  #     run: |
+  #       sudo apt install -y mingw-w64
+  #       wget https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
+  #       unzip allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
+  #   - name: Build
+  #     run: make CC=i686-w64-mingw32-gcc \
+  #         CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
+  #         LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
+  #   - name: Copy allegro libs and pacakge files to root
+  #     run: |
+  #       cp allegro/bin/allegro*5.2.dll .
+  #       cp package/Cassettes/*.cas .
+  #       cp package/Cartridges/*.bin .
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: M2000-snapshot-win32
+  #       path: |
+  #         M2000.exe
+  #         Default.fnt
+  #         P2000ROM.bin
+  #         BASIC.bin
+  #         README.md
+  #         allegro-5.2.dll
+  #         allegro_primitives-5.2.dll
+  #         allegro_image-5.2.dll
+  #         allegro_audio-5.2.dll
+  #         allegro_dialog-5.2.dll
+  #         allegro_memfile-5.2.dll
+  #         Basic Demo Cassette (zijde A).cas
+  #         Basic Demo Cassette (zijde B).cas
+  #         Basic 1.1 NL.bin
+  #         Familiegeheugen 2.0 NL.bin
 
-  build-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
-    - uses: actions/checkout@v3
-    - name: Build
-      run: make
-    - name: Copy files
-      run: |
-        mkdir -p package/M2000_amd64/usr/bin/
-        mkdir -p package/M2000_amd64/usr/share/M2000/
-        cp M2000 package/M2000_amd64/usr/bin/
-        cp Default.fnt package/M2000_amd64/usr/share/M2000/
-        cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
-        cp BASIC.bin package/M2000_amd64/usr/share/M2000/
-        cp README.md package/M2000_amd64/usr/share/M2000/
-        cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000_amd64/usr/share/M2000/
-        cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000_amd64/usr/share/M2000/
-        cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000_amd64/usr/share/M2000/
-        cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000_amd64/usr/share/M2000/
-    - name: Create package
-      run: |
-        cd package
-        dpkg-deb --build M2000_amd64
-    - name: Upload package
-      uses: actions/upload-artifact@v3
-      with:
-        name: M2000-snapshot-ubuntu
-        path: package/M2000_amd64.deb
+  # build-ubuntu:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Install dependencies
+  #     run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
+  #   - uses: actions/checkout@v3
+  #   - name: Build
+  #     run: make
+  #   - name: Copy files
+  #     run: |
+  #       mkdir -p package/M2000_amd64/usr/bin/
+  #       mkdir -p package/M2000_amd64/usr/share/M2000/
+  #       cp M2000 package/M2000_amd64/usr/bin/
+  #       cp Default.fnt package/M2000_amd64/usr/share/M2000/
+  #       cp P2000ROM.bin package/M2000_amd64/usr/share/M2000/
+  #       cp BASIC.bin package/M2000_amd64/usr/share/M2000/
+  #       cp README.md package/M2000_amd64/usr/share/M2000/
+  #       cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000_amd64/usr/share/M2000/
+  #       cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000_amd64/usr/share/M2000/
+  #       cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000_amd64/usr/share/M2000/
+  #       cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000_amd64/usr/share/M2000/
+  #   - name: Create package
+  #     run: |
+  #       cd package
+  #       dpkg-deb --build M2000_amd64
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: M2000-snapshot-ubuntu
+  #       path: package/M2000_amd64.deb
 
-  build-macos:
-    runs-on: macos-11
-    env:
-      MACOSX_DEPLOYMENT_TARGET: 10.11
-    steps:
-    - name: Install dependencies
-      run: brew install allegro
-    - uses: actions/checkout@v3
-    - name: Build
-      run: make
-    - name: Copy files
-      run: |
-        cp M2000 package/M2000.app/Contents/MacOS/
-        cp Default.fnt package/M2000.app/Contents/Resources/
-        cp P2000ROM.bin package/M2000.app/Contents/Resources/
-        cp BASIC.bin package/M2000.app/Contents/Resources/
-        cp README.md package/M2000.app/Contents/Resources/
-        cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000.app/Contents/Resources/
-        cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000.app/Contents/Resources/
-        cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000.app/Contents/Resources/
-        cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000.app/Contents/Resources/
-    - name: Zip package
-      run: |
-        cd package
-        zip -vr M2000.zip M2000.app
-    - name: Upload package
-      uses: actions/upload-artifact@v3
-      with:
-        name: M2000-snapshot-macos
-        path: package/M2000.zip
+  # build-macos:
+  #   runs-on: macos-11
+  #   env:
+  #     MACOSX_DEPLOYMENT_TARGET: 10.11
+  #   steps:
+  #   - name: Install dependencies
+  #     run: brew install allegro
+  #   - uses: actions/checkout@v3
+  #   - name: Build
+  #     run: make
+  #   - name: Copy files
+  #     run: |
+  #       cp M2000 package/M2000.app/Contents/MacOS/
+  #       cp Default.fnt package/M2000.app/Contents/Resources/
+  #       cp P2000ROM.bin package/M2000.app/Contents/Resources/
+  #       cp BASIC.bin package/M2000.app/Contents/Resources/
+  #       cp README.md package/M2000.app/Contents/Resources/
+  #       cp "package/Cassettes/Basic Demo Cassette (zijde A).cas" package/M2000.app/Contents/Resources/
+  #       cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000.app/Contents/Resources/
+  #       cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000.app/Contents/Resources/
+  #       cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000.app/Contents/Resources/
+  #   - name: Zip package
+  #     run: |
+  #       cd package
+  #       zip -vr M2000.zip M2000.app
+  #   - name: Upload package
+  #     uses: actions/upload-artifact@v3
+  #     with:
+  #       name: M2000-snapshot-macos
+  #       path: package/M2000.zip
