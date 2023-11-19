@@ -14,7 +14,7 @@
 #include <string.h>
 
 #define SPACE 32 // space character
-#define M2000_VERSION "0.7-SNAPSHOT"
+#define M2000_VERSION "0.7.0"
 #define MAX_FILENAME_LENGTH 255
 
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);

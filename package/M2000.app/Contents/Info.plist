@@ -11,15 +11,11 @@
   <key>CFBundleName</key>
   <string>M2000</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.7</string>
+  <string>0.7.0</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
-  <key>IFMajorVersion</key>
-  <integer>0</integer>
-  <key>IFMinorVersion</key>
-  <integer>7</integer>
   <key>CFBundleIconFile</key>
   <string>M2000</string>
   <key>NSHighResolutionCapable</key>
