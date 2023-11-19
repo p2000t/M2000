@@ -15,16 +15,7 @@ Version 0.7-SNAPSHOT
 Coming soon on the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
 Until then, get the M2000 emulator and games from here: https://github.com/p2000t/software/
 
-### Files included in the release packages
-```
-M2000          The emulator
-README.md      This readme file
-Default.fnt    SAA5050 font
-P2000ROM.bin   P2000 ROM image
-BASIC.bin      BASIC cartridge ROM image (v. 1.1NL)
-CWSDPMI.EXE    (MS-DOS version only) A DPMI server required by M2000
-allegro*.dll   (Windows version only) Allegro libraries required by M2000
-```
+
 
 ## What's emulated
 
