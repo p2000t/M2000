@@ -12,7 +12,7 @@
 
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f540"
             Name="M2000"
-            Version="0.7.0"
+            Version="0.8.0"
             Manufacturer="The M2000 Team"
             Language="1033">
 
@@ -21,8 +21,8 @@
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f540">
-         <UpgradeVersion Minimum="0.7.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
-         <UpgradeVersion Minimum="0.0.0" Maximum="0.7.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+         <UpgradeVersion Minimum="0.8.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="0.8.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
       </Upgrade>
       <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 
