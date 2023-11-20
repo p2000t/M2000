@@ -551,7 +551,6 @@ int LoadFont(char *filename)
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
         x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
-        if (i < 96 * 10) x-=CHAR_PIXEL_WIDTH/2; // center alpanum characters
         if (linePixels & 0x20) // bit 6 set = pixel set
           drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
         else {
@@ -1089,7 +1088,6 @@ char *GetResourcesPath()
   if (!strcmp(ProgramPath,"/usr/bin/"))
     strcpy(ProgramPath, "/usr/share/M2000/");
 
-  printf("ProgramPath=%s\n",ProgramPath);
   return ProgramPath;
 }
 
