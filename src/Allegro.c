@@ -430,7 +430,10 @@ void FlushSound(void)
       al_set_audio_stream_fragment(stream, playbuf);
     }
   }
+}
 
+void SyncEmulation(void)
+{
   // sync emulation by waiting for timer event (fired 50/60 times a second)
   if (Sync) {
     if (al_get_next_event(timerQueue, &event)) {

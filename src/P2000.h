@@ -81,7 +81,8 @@ int InitMachine(void);
 void TrashMachine(void);
 
 /****************************************************************************/
-/*** This function is called to poll keyboard                             ***/
+/*** Poll the keyboard                                                    ***/
+/*** This function is called on every interrupt                           ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void Keyboard (void);
 
@@ -91,10 +92,16 @@ void Keyboard (void);
 void Sound(int toggle);
 
 /****************************************************************************/
-/*** Flush pipes and sync emulation                                       ***/
+/*** Flush sound pipes                                                    ***/
 /*** This function is called on every interrupt                           ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void FlushSound(void);
+
+/****************************************************************************/
+/*** Sync emulation                                       ***/
+/*** This function is called on every interrupt                           ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+void SyncEmulation(void);
 
 /****************************************************************************/
 /*** Refresh the screen                                                   ***/

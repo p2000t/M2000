@@ -488,6 +488,7 @@ int Z80_Interrupt(void)
  static int UCount=1;
  Keyboard ();
  FlushSound ();
+ SyncEmulation();
  if (!--UCount)
  {
   UCount=UPeriod;
