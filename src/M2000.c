@@ -19,10 +19,7 @@
 #ifdef ALLEGRO
 #include <allegro5/allegro.h>
 #endif
-
 #include "P2000.h"
-#include "Help.h"
-
 
 #if defined(_WIN32) || defined(MSDOS) // Windows or DOS
 #define PATH_SEPARATOR '\\'
@@ -42,29 +39,28 @@ extern char *Title;
 static char *Options[]=
 { 
   /*  0 */ "verbose",
-  /*  1 */ "help",
-  /*  2 */ "cpuspeed",
-  /*  3 */ "ifreq",
-  /*  4 */ "t",
-  /*  5 */ "m",
-  /*  6 */ "sound",
-  /*  7 */ "joystick",
-  /*  8 */ "romfile",
-  /*  9 */ "uperiod",
-  /* 10 */ "trap",
-  /* 11 */ "printertype",
-  /* 12 */ "printer",
-  /* 13 */ "font",
-  /* 14 */ "tape",
-  /* 15 */ "boot",
-  /* 16 */ "volume",
-  /* 17 */ "ram",
-  /* 18 */ "sync",
-  /* 19 */ "video",
-  /* 20 */ "cart",
-  /* 21 */ "keymap",
-  /* 22 */ "joymap",
-  /* 23 */ "scanlines",
+  /*  1 */ "cpuspeed",
+  /*  2 */ "ifreq",
+  /*  3 */ "t",
+  /*  4 */ "m",
+  /*  5 */ "sound",
+  /*  6 */ "joystick",
+  /*  7 */ "romfile",
+  /*  8 */ "uperiod",
+  /*  9 */ "trap",
+  /* 10 */ "printertype",
+  /* 11 */ "printer",
+  /* 12 */ "font",
+  /* 13 */ "tape",
+  /* 14 */ "boot",
+  /* 15 */ "volume",
+  /* 16 */ "ram",
+  /* 17 */ "sync",
+  /* 18 */ "video",
+  /* 19 */ "cart",
+  /* 20 */ "keymap",
+  /* 21 */ "joymap",
+  /* 22 */ "scanlines",
   NULL
 };
 
@@ -132,138 +128,124 @@ static int ParseOptions (int argc,char *argv[])
              else
               misparm=1;
              break;
-    case 1:  printf ("%s\nCopyright (C) Marcel de Kogel 1996,1997\n",Title);
-             for(J=0;HelpText[J];J++)
-             {
-              puts(HelpText[J]);
-              if (!strcmp(HelpText[J],""))
-              {
-               printf ("-- More --");
-               fflush (stdout);
-               fgetc (stdin);
-               fflush (stdin);
-               printf ("\n\n");
-              }
-             }
-             return 0;
-    case 2:  N++;
+    case 1:  N++;
              if(N<argc)
               CpuSpeed=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 3:  N++;
+    case 2:  N++;
              if(N<argc)
               IFreq=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 4:  P2000_Mode=0;
+    case 3:  P2000_Mode=0;
              break;
-    case 5:  P2000_Mode=1;
+    case 4:  P2000_Mode=1;
              break;
-    case 6:  N++;
+    case 5:  N++;
              if(N<argc)
               soundmode=atoi(argv[N])
              ;else
               misparm=1;
              break;
-    case 16: N++;
-             if(N<argc)
-              mastervolume=atoi(argv[N])
-             ;else
-              misparm=1;
-             break;
-    case 7:  N++;
+    case 6:  N++;
              if(N<argc)
               joymode=atoi(argv[N])
              ;else
               misparm=1;
              break;
-    case 8:  N++;
+    case 7:  N++;
              if(N<argc)
               ROMName=argv[N];
              else
               misparm=1;
              break;
-    case 9:  N++;
+    case 8:  N++;
              if(N<argc)
               UPeriod=atoi(argv[N]);
              else
               misparm=1;
              break;
 #ifdef DEBUG
-    case 10: N++;
+    case  9: N++;
              sscanf(argv[N],"%X",&Z80_Trap);
              break;
 #endif
-    case 11: N++;
+    case 10: N++;
              if(N<argc)
               PrnType=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 12: N++;
+    case 11: N++;
              if(N<argc)
               PrnName=argv[N];
              else
               misparm=1;
              break;
-    case 13: N++;
+    case 12: N++;
              if(N<argc)
               FontName=argv[N];
              else
               misparm=1;
              break;
-    case 14: N++;
+    case 13: N++;
              if(N<argc)
               TapeName=argv[N];
              else
               misparm=1;
              break;
-    case 15: N++;
+    case 14: N++;
              if(N<argc)
               TapeBootEnabled=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 17: N++;
+    case 15: N++;
+             if(N<argc)
+              mastervolume=atoi(argv[N])
+             ;else
+              misparm=1;
+             break;
+    case 16: N++;
              if(N<argc)
               RAMSize=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 18: N++;
+    case 17: N++;
              if(N<argc)
               Sync=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 19: N++;
+    case 18: N++;
              if (N<argc)
               videomode=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 20: N++; /* cart */
+    case 19: N++; /* cart */
              if (N<argc)
               CartName=argv[N];
              else
               misparm=1;
              break;
-    case 21: N++;  /* keymap */
+    case 20: N++;  /* keymap */
              if (N<argc)
               keyboardmap=atoi(argv[N]);
              else
               misparm=1;
              break;
-    case 22: N++;  /* joymap */
+    case 21: N++;  /* joymap */
              if (N<argc)
               joymap=atoi(argv[N])
              ;else
               misparm=1;
              break;
-    case 23: N++;  /* scanlines */
+    case 22: N++;  /* scanlines */
              if (N<argc)
               scanlines=atoi(argv[N]);
              else

@@ -1,4 +1,4 @@
-# M2000 - Philips P2000 home computer emulator
+# M2000 - the Philips P2000 home computer emulator
 Version 0.8-SNAPSHOT
 
 ![P2000T](/img/P2000T.png)
@@ -8,7 +8,6 @@ Version 0.8-SNAPSHOT
 * Windows
 * Linux
 * macOS
-* MS-DOS
 
 ## Downloads
 
@@ -30,7 +29,6 @@ F1               -  ZOEK key (show cassette index in BASIC)
 F2               -  START key (start loaded program in BASIC)
 Shift-F2         -  STOP key (pause/halt program in BASIC)
 F5               -  Reset P2000
-F6               -  Change options (MS-DOS version only)
 F7               -  Save screenshot to file (quietly)
 F8               -  Save visible video RAM to file (quietly)
 F9               -  Toggle pause on/off
@@ -42,11 +40,9 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 ## Command line options
 ```
 [filename]             Optional cassette (.cas) or cartridge (.bin) to preload
-                       When a cassette (.cas) is given, by default BASIC will try to boot it
+                       When a cassette (.cas) is provided, BASIC will try to boot it
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
--help                  Print a help page describing all available command
-                       line options
 -verbose <level>       Select debugging messages [1]
                        0 - Silent           1 - Startup messages
                        4 - Tape messages
@@ -61,10 +57,9 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -t / -m                Select P2000 model [-t]
 -keymap <value>        Select keyboard mapping [1]
                        0 - Positional mapping
-                       1 - Symbolic mapping (not supported in MS-DOS)
+                       1 - Symbolic mapping
 -video <mode>          Select video mode/window size [0]
                        0  - Autodetect best window size
-                            256x240 (only for MS-DOS)
                        1  - 640x480
                        2  - 800x600
                        2  - 960x720
@@ -75,7 +70,7 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        99 - Full Screen (not supported on Linux)
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
-                       1 - Show scanlines (not supported in MS-DOS)
+                       1 - Show scanlines
 -printer <filename>    Select file for printer output [Printer.out]
 -printertype <value>   Select printer type [0]
                        0 - Daisy wheel   1 - Matrix
@@ -85,11 +80,8 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
                        0 - Don't allow booting (default when no [filename] is given)
                        1 - Allow booting (default when a .cas [filename] is given)
 -font <filename>       Select font to use [Default.fnt]
--sound <mode>          Select sound mode [255]
-                       0 - No sound
-                       1 - PC Speaker (MS-DOS)
-                       2 - SoundBlaster (MS-DOS)
-                       255 - Detect
+-sound <mode>          Select sound mode [1]
+                       0 - No sound  1 - Sound on
 -volume <value>        Select initial volume
                        0 - Silent   15 - Maximum
 -joystick <mode>       Select joystick mode [1]
@@ -110,23 +102,10 @@ This is a plain text file containing optional command line options. Options can 
 ## Keyboard emulation
 
 There are two keyboard mappings available in M2000:
-- **Positional** key mapping, in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2. \
-***Positional key mapping is the default and only avialable option for the MS-DOS version of M2000.***
 
-- **Symbolic** key mapping, in which typing a key on your keyboard will - as far as possible - show the actual character/symbol written on the keycap. So that means that typing Shift-2 will show the @ symbol in the emulator. \
-***Symbolic key mapping is the default option for M2000, but can be changed to positional key mapping by passing `-keymap 0` as command line argument.***
+- **Symbolic** key mapping (default), in which typing a key on your keyboard will - as far as possible - show the actual character/symbol written on the keycap. So that means that typing Shift-2 will show the @ symbol in the emulator.
 
-### Positional key mapping overview
-
-```
-Delete        -  <
-Shift-Delete  -  >
-` ~           -  CODE
-
-For the other key mappings, see picture below.
-```
-
-![keyboard mappings](/img/toetsenbord.png)
+- **Positional** key mapping (optional), in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2.
 
 ## How to compile M2000 from the sources
 
@@ -148,10 +127,10 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   cd M2000
   make
   ```
-  The resulting `M2000` executable will be available in the M2000 folder.
 
 ### macOS
-* Make sure you have `brew` installed before you install the Allegro 5 libs:
+* Make sure you have both the `Xcode command line tools` and `brew` installed.
+* Now install the Allegro 5 libs using brew:
   ```
   brew install allegro
   ```
@@ -160,17 +139,19 @@ If you want to compile for an alternative OS or help us with fixing bugs, you'll
   cd M2000
   make
   ```
-  The resulting `M2000` executable will be available in the M2000 folder. \
-  Tested for macOS 10.13 (High Sierra).
 
 ### Windows
 * Make sure to have MinGW (the Windows port of gcc) installed on your machine. \
-A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). Select either the 32 or 64 bits version, which by default will install MinGW in either `C:\TDM-GCC-32` or `C:\TDM-GCC-64` and then automatically adds the `bin` folder to your PATH environment variable. \
+A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). If you select the 64 bits version, it will install MinGW in `C:\TDM-GCC-64` and automatically adds the `bin` folder to your PATH environment variable. \
 You can test a correct installation by opening a command prompt and typing `gcc --version`
-* Download the static [Allegro 5 libraries v5.2.8.0](https://github.com/liballeg/allegro5/releases/tag/5.2.8.0) and pick the version that matches your MinGW architecture. So `i686-w64` (dwarf-static) for 32-bits or `x86-w64` (seh-static) for 64-bits. Copy the content of the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your MinGW folder.
-* Open a command prompt into the (cloned) M2000 folder and type: `mingw32-make`. The resulting `M2000.exe` will be copied into the M2000 folder, where you can now run it.
+* Download the static 64-bits [Allegro 5 libraries v5.2.8.0](https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip) and copy the content inside the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your MinGW `C:\TDM-GCC-64` folder.
+* Open a command prompt into the M2000 directory and run MinGW's make
+  ```
+  cd M2000
+  mingw32-make
+  ```
 
-### Windows (WSL Ubuntu cross-compilation)
+### WSL (Windows Subsystem for Linux) cross-compilation
 Alternatively, you can build the Windows version on WSL (Windows Subsystem for Linux).
 * Ensure you have [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) installed 
   and have downloaded the latest Ubuntu image from the Windows store.
@@ -189,28 +170,6 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
   ```
 * The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
   the `.zip` file found in the same folder and deploy the emulator in another folder.
-
-### MS-DOS
-* Download and install [DOSBox](https://www.dosbox.com/)
-* Go to the folder which contains your cloned M2000 repo and open the subfolder `djgpp`
-* Extract all files from the 5 zips (`djdev202.zip`, `bnu281b.zip`, `gcc281b.zip`, `mak377b.zip` and `csdpmi4b.zip`) directly into `djgpp`, so this folder will get subfolders `bin`, `gnu`, `include`, etc.
-* Open the DOSBox options file and copy/paste these lines at the bottom under [autoexec]: \
-  ***note: replace "C:\path-to-your-clone-of-M2000" with the actual path***
-  ```
-  mount c "C:\path-to-your-clone-of-M2000"
-  c:
-  set PATH=C:\DJGPP\BIN;%PATH%
-  set DJGPP=C:\DJGPP\DJGPP.ENV
-  #optional: reduce sound volume to 20%
-  MIXER MASTER 20
-  MIXER SPKR 20
-  MIXER SB 20
-  MIXER FM 20
-  ```
-  Note: if you have a joystick attached, pleas make sure to set `timed=false` in the DOSBox options.
-* Now run DOSBox. When you type `dir` in the command prompt, it should show you the content of your cloned M2000 repo
-* Go into the src folder (`cd src`) and type: `make clean` and then `make dos`. Wait for the compiler to finish...
-* Go back to the parent folder (`cd ..`) and notice `m2000.exe` is there. You can now run `m2000.exe` and test it. 
 
 ## More information on the P2000
 

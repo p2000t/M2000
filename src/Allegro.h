@@ -59,7 +59,7 @@ ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
 static int CpuSpeed;
 
-int soundmode=255;                 /* Sound mode, 255=auto-detect           */
+int soundmode=1;                   /* Sound mode, 1=on                      */
 static int soundoff=0;             /* If 1, sound is turned off             */
 static int *OldCharacter;          /* Holds characters on the screen        */
 
