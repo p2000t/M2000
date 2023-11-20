@@ -15,7 +15,6 @@
 
 #define SPACE 32 // space character
 #define M2000_VERSION "0.8-SNAPSHOT"
-#define MAX_FILENAME_LENGTH 255
 
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);
 static inline void PutChar_M(int x, int y, int c, int eor, int ul);
@@ -25,8 +24,8 @@ static void PutImage(void);
 static int doblank=1;
 
 const char* AppendExtensionIfMissing(const char* filename, const char* extension) {
-  static char newFilename[MAX_FILENAME_LENGTH + 1];  // Use a static buffer for the result
-  if (strrchr(filename, '.') == NULL && (strlen(filename)+strlen(extension) <= MAX_FILENAME_LENGTH)) {
+  static char newFilename[FILENAME_MAX];  // Use a static buffer for the result
+  if (strrchr(filename, '.') == NULL && (strlen(filename)+strlen(extension) < FILENAME_MAX)) {
     // add extension to the filename
     memcpy(newFilename, filename, strlen(filename));
     memcpy(newFilename + strlen(filename), extension, strlen(extension) + 1);

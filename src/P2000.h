@@ -46,11 +46,6 @@ int StartP2000(void);
 void TrashP2000(void);
 
 /****************************************************************************/
-/*** Change tape image, font used, etc.                                   ***/
-/****************************************************************************/
-void OptionsDialogue(void);
-
-/****************************************************************************/
 /*** Insert cassette                                                      ***/
 /****************************************************************************/
 void InsertCassette(const char *filename);
@@ -98,7 +93,7 @@ void Sound(int toggle);
 void FlushSound(void);
 
 /****************************************************************************/
-/*** Sync emulation                                       ***/
+/*** Sync emulation                                                       ***/
 /*** This function is called on every interrupt                           ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void SyncEmulation(void);
@@ -119,6 +114,16 @@ void Pause (int ms);
 int LoadFont (char *filename);
 
 /****************************************************************************/
-/*** Show breaking error message (on graphical OS, shows a messagebox)    ***/
+/*** Returns the path relative to the M2000 executable                    ***/
 /************************************************** TO BE WRITTEN BY USER ***/
-int ShowErrorMessage(const char *format, ...);
+char *GetResourcesPath ();
+
+/****************************************************************************/
+/*** Returns the user's home directory                                    ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+char *GetDocumentsPath ();
+
+/****************************************************************************/
+/*** Shows breaking error message and returns error code 1                ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+int ReturnErrorMessage(const char *format, ...);

@@ -2,8 +2,7 @@
 /***                                                                      ***/
 /***                                M2000.c                               ***/
 /***                                                                      ***/
-/*** This file contains the startup code. It's compatible with both UNIX  ***/
-/*** and MSDOS implementations                                            ***/
+/*** This file contains the startup code. It is implementation agnotic.   ***/
 /***                                                                      ***/
 /*** Copyright (C) Marcel de Kogel 1996,1997                              ***/
 /***     You are not allowed to distribute this software commercially     ***/
@@ -16,25 +15,10 @@
 #include <ctype.h>
 #include <signal.h>
 #include <sys/stat.h>
-#ifdef ALLEGRO
-#include <allegro5/allegro.h>
-#endif
 #include "P2000.h"
-
-#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
-#define PATH_SEPARATOR '\\'
-#else // Linux and others
-#define PATH_SEPARATOR '/'
-#endif
-
-extern char *Title;
 
 /* Maximum configuration file size in bytes */
 #define MAX_CONFIG_FILE_SIZE    1024
-/* Maximum configuration filename length
-   MAXPATH can't be used with MSDOS/DJGPP apps
-   running in a Win95 DOS box */
-#define MAX_FILE_NAME           256
 
 static char *Options[]=
 { 
@@ -75,15 +59,15 @@ extern int scanlines;
 static int  CpuSpeed;
 static int  shadow_argc;
 static char *shadow_argv[256];
+static char * ProgramPath;
+static char * DocumentPath;
 static unsigned char ConfigFile[MAX_CONFIG_FILE_SIZE];
-static char _ConfigFileName[MAX_FILE_NAME];
-static char ProgramPath[MAX_FILE_NAME];
-static char DocumentPath[MAX_FILE_NAME];
-static char _CartName[MAX_FILE_NAME];
-static char _ROMName[MAX_FILE_NAME];
-static char _FontName[MAX_FILE_NAME];
-static char _TapeName[MAX_FILE_NAME];
-static char _PrnName[MAX_FILE_NAME];
+static char _ConfigFileName[FILENAME_MAX];
+static char _CartName[FILENAME_MAX];
+static char _ROMName[FILENAME_MAX];
+static char _FontName[FILENAME_MAX];
+static char _TapeName[FILENAME_MAX];
+static char _PrnName[FILENAME_MAX];
 
 int endsWith(const char* path, const char * suffix) {
     int path_len = strlen(path);
@@ -113,7 +97,7 @@ static int ParseOptions (int argc,char *argv[])
    {
     case 0:  /* CartName=argv[N]; */    /* Already filled in GetCartName() */
              break;
-    default: ShowErrorMessage("Excessive filename '%s'\n",argv[N]);
+    default: ReturnErrorMessage("Excessive filename '%s'\n",argv[N]);
              return 0;
    }
   else
@@ -251,14 +235,10 @@ static int ParseOptions (int argc,char *argv[])
              else
               misparm=1;
              break;
-    default: ShowErrorMessage("Wrong option '%s'\n",argv[N]);
-             return 0;
+    default: return ReturnErrorMessage("Invalid option '%s'\n",argv[N]);
    }
    if (misparm)
-   {
-    ShowErrorMessage("%s: Missing parameter\n",argv[N-1]);
-    return 0;
-   }
+     return ReturnErrorMessage("%s: Missing parameter\n",argv[N-1]);
   }
  }
  return 1;
@@ -324,22 +304,7 @@ static char * MakeFullPath (char *dest, char *src, char *root)
   return dest;
 }
 
-#ifdef MSDOS
-/* Get the path of the specified filename */
-static void GetBasePath (char *szFile,char *szPath) {
-  char *p,*q;
-  strcpy (szPath,szFile);
-  p=szPath;
-  q=strchr(p,PATH_SEPARATOR);
-  while (q) {                     /* get last '/' */
-    p=++q;
-    q=strchr(q,PATH_SEPARATOR);
-  };
-  *p='\0';                       /* remove filename */
-}
-#endif
-
-int main(int argc,char *argv[])
+int M2000_main(int argc,char *argv[])
 {
   /* Initialise some variables */
   Verbose=1;
@@ -350,35 +315,14 @@ int main(int argc,char *argv[])
   /* Get the cartridge name */
   GetCartOrTapeName (argc,argv);
 
-#ifdef ALLEGRO
-  if (!al_init()) {
-    puts("Allegro could not initialize its core.");
-    return 1;
-  }
-  strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), PATH_SEPARATOR));
-
-  // debian install check
-  if (!strcmp(ProgramPath,"/usr/bin/"))
-    strcpy(ProgramPath, "/usr/share/M2000/");
-
-  strcpy(DocumentPath, ProgramPath); //fallback to program path
-  ALLEGRO_PATH *docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
-  if (docPath) {
-    al_append_path_component(docPath, "M2000");
-    if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR)))
-      strcpy(DocumentPath, al_path_cstr(docPath, PATH_SEPARATOR));
-    al_destroy_path(docPath);
-  }
-#else
-  GetBasePath (argv[0],ProgramPath);
-  strcpy(DocumentPath, ProgramPath);
-#endif
+  ProgramPath = GetResourcesPath();
+  DocumentPath = GetDocumentsPath();
+  if (Verbose) printf("FILENAME_MAX=%i\n", FILENAME_MAX);
   if (Verbose) printf("ProgramPath=%s\n", ProgramPath);
   if (Verbose) printf("DocumentPath=%s\n", DocumentPath);
 
-  /* Load M2000.cfg */
+  /* Load M2000.cfg (if available) */
   memset (ConfigFile,0,sizeof(ConfigFile));
-  //printf("argv[0] = %s\n",argv[0]);
   shadow_argc=1;
   shadow_argv[0]=argv[0];
   strcpy (_ConfigFileName,DocumentPath);
@@ -407,14 +351,10 @@ int main(int argc,char *argv[])
   Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
 
   /* Start emulated P2000 */
-#ifndef MSDOS
   if (!InitMachine()) return 0;
-#endif
-  StartP2000();
+  StartP2000(); // P2000 loop
   /* Trash emulated P2000 */
   TrashP2000();
-#ifndef MSDOS
   TrashMachine ();
-#endif
   return 0;
 }

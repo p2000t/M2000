@@ -215,9 +215,6 @@ int GetCassetteHeaderType(const char *path) {
 /*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and ***/
 /*** the emulation. This function returns 0 in case of a failure          ***/
 /****************************************************************************/
-#if defined(MSDOS)
-int InitMachineDone=0;
-#endif
 word Exit_PC;
 int StartP2000 (void)
 {
@@ -314,18 +311,10 @@ int StartP2000 (void)
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
 
-#if defined(MSDOS)
-  if (!InitMachine())
-   return 0;
-  InitMachineDone=1;
-#else
   if (Verbose) puts ("Starting P2000 emulation...");
-#endif
   Z80_Reset ();
   Exit_PC=Z80 ();
-#if !defined(MSDOS)
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
-#endif
   return(1);
 }
 
@@ -334,13 +323,6 @@ int StartP2000 (void)
 /****************************************************************************/
 void TrashP2000 (void)
 {
-#if defined(MSDOS)
- if (InitMachineDone)
- {
-  TrashMachine ();
-  if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
- }
-#endif
  if (ROM) free (ROM);
  if (VRAM) free (VRAM);
  if (RAM) free (RAM);
@@ -363,7 +345,7 @@ void RemoveCassette()
 /****************************************************************************/
 void InsertCassette(const char *filename)
 {
-  static char _TapeName[256];
+  static char _TapeName[FILENAME_MAX];
   FILE *f;
   strcpy (_TapeName,filename);
 
@@ -403,7 +385,7 @@ void RemoveCartridge()
 /****************************************************************************/
 void InsertCartridge(const char *filename)
 {
-  static char _CartName[256];
+  static char _CartName[FILENAME_MAX];
   int success=0;
   FILE *f;
   strcpy (_CartName,filename);
@@ -417,67 +399,6 @@ void InsertCartridge(const char *filename)
     Z80_Reset ();
   }
   if(Verbose) puts (success? "OK":"FAILED");
-}
-
-/****************************************************************************/
-/*** Change tape image, font used, etc.                                   ***/
-/****************************************************************************/
-void OptionsDialogue (void)
-{
- static char _FontName[256],_PrnName[256];
- char buf[256];
- char *p;
- int tmp;
- do
- {
-  printf ("\nOptions currently in use are:\n"
-          "Tape image       - %s\n"
-          "Printer log file - %s\n"
-          "Font file name   - %s\n"
-          "Z80 CPU speed    - %u%%\n",
-          (TapeStream)? TapeName:"none",
-          (PrnName)? PrnName:"none",
-          FontName,
-          Z80_IPeriod*IFreq*100/2500000);
-  printf ("\nAvailable commands are:\n"
-          "t <filename>     - Change tape image\n"
-          "p <filename>     - Change printer log file\n"
-          "f <filename>     - Change font file name\n"
-          "c <percentage>   - Change Z80 CPU speed\n"
-          "b                - Back\n"
-          "q                - Quit emulator\n> ");
-  fflush (stdout);
-  buf[2]='\0';
-  fgets (buf,sizeof(buf),stdin);
-  p=strchr (buf,'\n');
-  if (p) *p='\0';
-  fflush (stdin);
-  switch (buf[0])
-  {
-   case 't': case 'T':
-    InsertCassette(buf+2);
-    break;
-   case 'p': case 'P':
-    strcpy (_PrnName,buf+2);
-    PrnName=_PrnName;
-    if (PrnStream) fclose (PrnStream);
-    break;
-   case 'f': case 'F':
-    strcpy (_FontName,buf+2);
-    if (LoadFont (_FontName)) FontName=_FontName;
-    break;
-   case 'c': case 'C':
-    tmp=atoi(buf+2);
-    if (tmp<10) tmp=10;
-    if (tmp>1000) tmp=1000;
-    Z80_IPeriod=(2500000*tmp)/(100*IFreq);
-    break;
-   case 'q': case 'Q':
-    Z80_Running=0;
-    break;
-  }
- }
- while (buf[0]!='q' && buf[0]!='Q' && buf[0]!='b' && buf[0]!='B');
 }
 
 /****************************************************************************/

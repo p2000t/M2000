@@ -55,6 +55,7 @@
 #include <allegro5/allegro_memfile.h>
 #include "Allegro.h"
 #include "P2000.h"
+#include "M2000.h"
 #include "Common.h"
 #include "Icon.h"
 #include "AllegroKeyboard.h"
@@ -70,18 +71,7 @@ void TrashMachine(void)
   if (OldCharacter) free (OldCharacter);
 }
 
-int InitAllegro() 
-{
-  if (Verbose) printf("Initialising Allegro addons... ");
-  if (!al_init_primitives_addon()) return ShowErrorMessage("Allegro could not initialize primitives addon.");
-  if (!al_init_image_addon()) return ShowErrorMessage("Allegro could not initialize image addon.");
-  if (!al_init_native_dialog_addon()) return ShowErrorMessage("Allegro could not initialize native dialog addon.");
-  if (!al_install_keyboard())return ShowErrorMessage("Allegro could not install keyboard.");
-  if (Verbose) puts("OK");
-  return 1;
-}
-
-int ShowErrorMessage(const char *format, ...)
+int ReturnErrorMessage(const char *format, ...)
 {
   char string[1024];
   va_list args;
@@ -89,7 +79,7 @@ int ShowErrorMessage(const char *format, ...)
   vsprintf(string, format, args);
   va_end(args);
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
-  return 0; //always return error code
+  return 0; //always returns error code
 }
 
 void ClearScreen() 
@@ -251,8 +241,6 @@ int InitMachine(void)
   //only support 50Hz and 60Hz
   IFreq = IFreq >= 55 ? 60 : 50; 
 
-  if (!InitAllegro()) return 0;
-
   /* get primary display monitor info */
   for (int i=0; i<al_get_num_video_adapters(); i++) {
     if (al_get_monitor_info(i, &monitorInfo) && monitorInfo.x1 == 0 && monitorInfo.y1 == 0) {
@@ -315,6 +303,7 @@ int InitMachine(void)
   }
 
   if (Verbose) printf("Creating the display window... ");
+  InitVideoMode();
   UpdateDisplaySettings();
 #ifdef __linux__
   al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
@@ -328,7 +317,7 @@ int InitMachine(void)
 #else
   if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
 #endif
-    return ShowErrorMessage("Could not initialize display.");
+    return ReturnErrorMessage("Could not initialize display.");
 
   if (Verbose) puts("OK");
 
@@ -337,7 +326,7 @@ int InitMachine(void)
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
   if (!eventQueue || !timerQueue || !timer)
-    return ShowErrorMessage("Could not initialize timer and event queues.");
+    return ReturnErrorMessage("Could not initialize timer and event queues.");
   if (Verbose) puts("OK");
 
   UpdateWindowTitle();
@@ -366,7 +355,7 @@ int InitMachine(void)
 
   if (Verbose) printf("  Allocating cache buffers... ");
   OldCharacter = malloc(80 * 24 * sizeof(int));
-  if (!OldCharacter) return ShowErrorMessage("Could not allocate character buffer.");
+  if (!OldCharacter) return ReturnErrorMessage("Could not allocate character buffer.");
   ClearScreen();
   if (Verbose) puts("OK");
 
@@ -495,14 +484,14 @@ int LoadFont(char *filename)
   if (!FontBuf) {
     if (Verbose) printf("  Creating font bitmap... ");
     if ((FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
-      return ShowErrorMessage("Could not create font bitmap.");
+      return ReturnErrorMessage("Could not create font bitmap.");
     if (Verbose) puts("OK");
   }
 
   if (!FontBuf_bk) {
     if (Verbose) printf("  Creating font background bitmap... ");
     if ((FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
-      return ShowErrorMessage("Could not create font background bitmap.");
+      return ReturnErrorMessage("Could not create font background bitmap.");
     if (Verbose) puts("OK");
   }
 
@@ -510,14 +499,14 @@ int LoadFont(char *filename)
     if (!FontBuf_scaled) { //double height
       if (Verbose) printf("  Creating double-height font bitmap... ");
       if ((FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
-        return ShowErrorMessage("Could not create double-height font bitmap.");
+        return ReturnErrorMessage("Could not create double-height font bitmap.");
       if (Verbose) puts("OK");
     }
 
     if (!FontBuf_bk_scaled) {
       if (Verbose) printf("  Creating double-height font background bitmap... ");
       if ((FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
-        return ShowErrorMessage("Could not create double-height font background bitmap.");
+        return ReturnErrorMessage("Could not create double-height font background bitmap.");
       if (Verbose) puts("OK");
     }
   }
@@ -530,7 +519,7 @@ int LoadFont(char *filename)
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
   TempBuf = malloc(2240);
   if (!TempBuf)
-    return ShowErrorMessage("Could not allocate temp buffer for font.");
+    return ReturnErrorMessage("Could not allocate temp buffer for font.");
   if (Verbose) puts("OK");
 
   if (Verbose) printf("  Opening font file %s... ", filename);
@@ -542,7 +531,7 @@ int LoadFont(char *filename)
     fclose(F);
   }
   if (Verbose) puts(i ? "OK" : "FAILED");
-  if (!i) return ShowErrorMessage("Could not read font file %s", filename);
+  if (!i) return ReturnErrorMessage("Could not read font file %s", filename);
 
   // Stretch 6x10 characters to 12x20, so we can do character rounding 
   // 96 alpha + 64 graphic (cont) + 64 graphic (sep)
@@ -1090,4 +1079,42 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
         DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
   if (scanlines) DrawTileScanlines(x, y);
+}
+
+char *GetResourcesPath() 
+{
+  strcpy (ProgramPath, al_path_cstr(al_get_standard_path(ALLEGRO_RESOURCES_PATH), PATH_SEPARATOR));
+
+  // debian install check
+  if (!strcmp(ProgramPath,"/usr/bin/"))
+    strcpy(ProgramPath, "/usr/share/M2000/");
+
+  printf("ProgramPath=%s\n",ProgramPath);
+  return ProgramPath;
+}
+
+char *GetDocumentsPath() 
+{
+  strcpy(DocumentPath, GetResourcesPath()); //fallback to program path
+  ALLEGRO_PATH *docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
+  if (docPath) {
+    al_append_path_component(docPath, "M2000");
+    if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR)))
+      strcpy(DocumentPath, al_path_cstr(docPath, PATH_SEPARATOR));
+    al_destroy_path(docPath);
+  }
+  return DocumentPath;
+}
+
+int main(int argc,char *argv[]) 
+{
+  if (Verbose) printf("Initialising Allegro driver... ");
+  if (!al_init()) return ReturnErrorMessage("Allegro could not initialize its core.");
+  if (!al_init_primitives_addon()) return ReturnErrorMessage("Allegro could not initialize primitives addon.");
+  if (!al_init_image_addon()) return ReturnErrorMessage("Allegro could not initialize image addon.");
+  if (!al_init_native_dialog_addon()) return ReturnErrorMessage("Allegro could not initialize native dialog addon.");
+  if (!al_install_keyboard())return ReturnErrorMessage("Allegro could not install keyboard.");
+  if (Verbose) puts("OK");
+
+  return M2000_main(argc, argv);
 }

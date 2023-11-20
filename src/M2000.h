@@ -1,0 +1,1 @@
+int M2000_main(int argc,char *argv[]);

@@ -1,6 +1,7 @@
 #pragma once
+
 #define FULLSCREEN_VIDEO_MODE 99
-#if defined(_WIN32) || defined(MSDOS) // Windows or DOS
+#if defined(_WIN32) // Windows
 #define PATH_SEPARATOR '\\'
 #else // Linux and others
 #define PATH_SEPARATOR '/'
@@ -37,6 +38,8 @@ ALLEGRO_MONITOR_INFO monitorInfo;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
+char DocumentPath[FILENAME_MAX];
+char ProgramPath[FILENAME_MAX];
 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
 
@@ -98,7 +101,8 @@ static const char *installCartridges[] = {
   NULL
 };
 
-void UpdateDisplaySettings() {
+void InitVideoMode() 
+{
   int i;
   if (videomode <= 0 || videomode >= sizeof(Displays)/sizeof(*Displays)) {
     // autodetect best videomode, which should fit within 75% of the screensize
@@ -108,8 +112,12 @@ void UpdateDisplaySettings() {
         break;
     }
     videomode = i; // 640 x 480 will be the minimum
-    if (Verbose) printf("Best display window size: %i x %i\n", Displays[videomode][0], Displays[videomode][1]);
+    if (Verbose) printf("optmimal window size: %i x %i ... ", Displays[videomode][0], Displays[videomode][1]);
   }
+}
+
+void UpdateDisplaySettings() 
+{
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
   DisplayTileWidth = DisplayWidth / 40;
