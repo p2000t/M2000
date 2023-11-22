@@ -13,6 +13,7 @@ static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayT
 static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _DisplayTileWidth, _DisplayTileHeight;
 int videomode = 0; /* autodetect */
 int scanlines = 0;
+int smoothing = 1;
 int menubarHeight = 0;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
@@ -47,6 +48,10 @@ ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
 ALLEGRO_BITMAP *FontBuf_scaled = NULL;
 ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
+ALLEGRO_BITMAP *smFontBuf = NULL;
+ALLEGRO_BITMAP *smFontBuf_bk = NULL;
+ALLEGRO_BITMAP *smFontBuf_scaled = NULL;
+ALLEGRO_BITMAP *smFontBuf_bk_scaled = NULL;
 
 static unsigned char joyKeyMapping[2][5] = {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
