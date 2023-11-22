@@ -260,7 +260,7 @@ static int GetCartOrTapeName (int argc,char *argv[]) {
     for(j=0;Options[j];j++) {
       if(!strcmp(argv[i]+1,Options[j])) break;
     }
-    if (j != 4 && j != 5) i++; // "-t" and "-m"
+    if (j != 3 && j != 4) i++; // "-t" and "-m"
   }
   return 0;
 }
