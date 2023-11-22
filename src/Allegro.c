@@ -37,8 +37,9 @@
 #define CHAR_PIXEL_WIDTH 2 //must be even
 #define CHAR_PIXEL_HEIGHT 2
 #define CHAR_TILE_WIDTH (6*CHAR_PIXEL_WIDTH)
+#define CHAR_TILE_SPACE 3
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
-#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH)
+#define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH + CHAR_TILE_SPACE)
 
 #ifdef __APPLE__
 #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
@@ -460,9 +461,13 @@ void drawFontRegion(float x1, float y1, float x2, float y2)
   /* Draw the font on an internal bitmap */
   al_set_target_bitmap(FontBuf);
   al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 255, 255));
+  al_set_target_bitmap(smFontBuf);
+  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 255, 255));
 
   /* Draw the inverted font on an internal bitmap */
   al_set_target_bitmap(FontBuf_bk);
+  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(0, 0, 0));
+  al_set_target_bitmap(smFontBuf_bk);
   al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(0, 0, 0));
 }
 
@@ -481,39 +486,29 @@ int LoadFont(char *filename)
   FILE *F;
 
   if (Verbose) printf("Loading font %s...\n", filename);
-  if (!FontBuf) {
-    if (Verbose) printf("  Creating font bitmap... ");
-    if ((FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
-      return ReturnErrorMessage("Could not create font bitmap.");
-    if (Verbose) puts("OK");
-  }
+  al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP);
+  FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
+  FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
+  FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
+  FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
 
-  if (!FontBuf_bk) {
-    if (Verbose) printf("  Creating font background bitmap... ");
-    if ((FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT)) == NULL)
-      return ReturnErrorMessage("Could not create font background bitmap.");
-    if (Verbose) puts("OK");
-  }
-
-  if (!P2000_Mode) {
-    if (!FontBuf_scaled) { //double height
-      if (Verbose) printf("  Creating double-height font bitmap... ");
-      if ((FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
-        return ReturnErrorMessage("Could not create double-height font bitmap.");
-      if (Verbose) puts("OK");
-    }
-
-    if (!FontBuf_bk_scaled) {
-      if (Verbose) printf("  Creating double-height font background bitmap... ");
-      if ((FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT)) == NULL)
-        return ReturnErrorMessage("Could not create double-height font background bitmap.");
-      if (Verbose) puts("OK");
-    }
-  }
+  al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+  smFontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
+  smFontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
+  smFontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
+  smFontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
+  
+  if (!FontBuf || !FontBuf_bk || !FontBuf_scaled || !FontBuf_bk_scaled ||
+      !smFontBuf || !smFontBuf_bk || !smFontBuf_scaled || !smFontBuf_bk_scaled)
+    return ReturnErrorMessage("Could not create font bitmap.");
 
   al_set_target_bitmap(FontBuf);
   al_clear_to_color(al_map_rgb(0, 0, 0));
   al_set_target_bitmap(FontBuf_bk);
+  al_clear_to_color(al_map_rgb(255, 255, 255));
+  al_set_target_bitmap(smFontBuf);
+  al_clear_to_color(al_map_rgb(0, 0, 0));
+  al_set_target_bitmap(smFontBuf_bk);
   al_clear_to_color(al_map_rgb(255, 255, 255));
 
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
@@ -550,9 +545,13 @@ int LoadFont(char *filename)
       linePixelsNextNext = line < 8 ? TempBuf[i + line + 2] : 0;
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
-        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH;
+        x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH + i / 10 * CHAR_TILE_SPACE;
         if (linePixels & 0x20) // bit 6 set = pixel set
-          drawFontRegion(x, y, x + CHAR_PIXEL_WIDTH, y + CHAR_PIXEL_HEIGHT);
+          drawFontRegion(
+            x - (pixelPos ? 0 : 1), 
+            y - (line ? 0 : 1), 
+            x + CHAR_PIXEL_WIDTH + (pixelPos == 5 ? 1 : 0), 
+            y + CHAR_PIXEL_HEIGHT+ (line == 9 ? 1 : 0));
         else {
           /* character rounding */
           if (i < 96 * 10) { // check if within alpanum character range
@@ -612,17 +611,14 @@ int LoadFont(char *filename)
   }
   free(TempBuf);
 
-  if (!P2000_Mode) {
-    al_set_target_bitmap(FontBuf_scaled);
-    al_draw_scaled_bitmap(FontBuf, 
-      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
-      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
-      
-    al_set_target_bitmap(FontBuf_bk_scaled);
-    al_draw_scaled_bitmap(FontBuf_bk, 
-      0.0, 0.0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 
-      0.0, 0.0, FONT_BITMAP_WIDTH, 2.0*CHAR_TILE_HEIGHT, 0);
-  }
+  al_set_target_bitmap(FontBuf_scaled);
+  al_draw_scaled_bitmap(FontBuf, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
+  al_set_target_bitmap(FontBuf_bk_scaled);
+  al_draw_scaled_bitmap(FontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
+  al_set_target_bitmap(smFontBuf_scaled);
+  al_draw_scaled_bitmap(smFontBuf, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
+  al_set_target_bitmap(smFontBuf_bk_scaled);
+  al_draw_scaled_bitmap(smFontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
 
   //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
@@ -919,6 +915,10 @@ void Keyboard(void)
           scanlines = !scanlines;
           ClearScreen();
           break;
+        case DISPLAY_SMOOTHING:
+          smoothing = !smoothing;
+          ClearScreen();
+          break;
         case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
           break;
@@ -1043,8 +1043,10 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
-      (eor ? FontBuf_bk : FontBuf), c * CHAR_TILE_WIDTH, 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 0.5 * DisplayTileWidth, DisplayTileHeight, 0);
+      eor ? (smoothing ? smFontBuf_bk : FontBuf_bk) : (smoothing ? smFontBuf : FontBuf), 
+      c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 
+      0.5 * DisplayTileWidth, DisplayTileHeight, 0);
   if (ul)
     al_draw_filled_rectangle(
         DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
@@ -1065,16 +1067,16 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
-      (si ? FontBuf_scaled : FontBuf),
+      si ? (smoothing ? smFontBuf_scaled : FontBuf_scaled) : (smoothing ? smFontBuf : FontBuf),
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
-      c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
+      c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
       DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
       DisplayTileWidth, DisplayTileHeight, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
-        (si ? FontBuf_bk_scaled : FontBuf_bk),
+        si ? (smoothing ? smFontBuf_bk_scaled : FontBuf_bk_scaled) : (smoothing ? smFontBuf_bk : FontBuf_bk),
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * CHAR_TILE_WIDTH, (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
         DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
   if (scanlines) DrawTileScanlines(x, y);

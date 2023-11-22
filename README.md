@@ -44,18 +44,20 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -trap <address>        Trap execution when PC reaches specified address [-1]
                        (Debugging version only)
 -verbose <level>       Select debugging messages [1]
-                       0 - Silent           1 - Startup messages
+                       0 - Silent           
+                       1 - Startup messages
                        4 - Tape messages
 -ifreq <frequency>     Select interrupt frequency [50] Hz
 -cpuspeed <speed>      Set Z80 CPU speed [100]%
 -sync <mode>           Sync/Do not sync emulation [1]
-                       0 - Do not sync   1 - Sync
-                       Emulation is faster if sync is turned off
+                       0 - Do not sync   
+                       1 - Sync
+                       Emulation will be too fast if sync is turned off
 -ram <value>           Select amount of RAM installed [32KB]
 -uperiod <period>      Number of interrupts per screen update [1]
                        Try -uperiod 2 or -uperiod 3 if emulation is a bit slow
 -t / -m                Select P2000 model [-t]
--keymap <value>        Select keyboard mapping [1]
+-keymap <mode>         Select keyboard mapping [1]
                        0 - Positional mapping
                        1 - Symbolic mapping
 -video <mode>          Select video mode/window size [0]
@@ -71,19 +73,26 @@ Alt-F4 / Ctrl-Q  -  Quit emulator
 -scanlines <mode>      Show/Do not show scanlines [0]
                        0 - Do not show scanlines
                        1 - Show scanlines
+-smoothing <mode>      Use display smoothing [1]
+                       0 - Do not use smoothing  
+                       1 - Use smoothing
 -printer <filename>    Select file for printer output [Printer.out]
--printertype <value>   Select printer type [0]
-                       0 - Daisy wheel   1 - Matrix
+-printertype <mode>    Select printer type [0]
+                       0 - Daisy wheel   
+                       1 - Matrix
 -romfile <file>        Select P2000 ROM dump file [P2000ROM.bin]
 -tape <filename>       Select tape image to use [Default.cas]
--boot <value>          Allow/Don't allow BASIC to boot from tape
+-boot <mode>           Allow/Don't allow BASIC to boot from tape
                        0 - Don't allow booting (default when no [filename] is given)
                        1 - Allow booting (default when a .cas [filename] is given)
 -font <filename>       Select font to use [Default.fnt]
 -sound <mode>          Select sound mode [1]
-                       0 - No sound  1 - Sound on
+                       0 - No sound  
+                       1 - Sound on
 -volume <value>        Select initial volume
-                       0 - Silent   15 - Maximum
+                       0 - Silent
+                       ...
+                       15 - Maximum
 -joystick <mode>       Select joystick mode [1]
                        0 - No joystick support
                        1 - Joystick support

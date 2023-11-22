@@ -45,6 +45,7 @@ static char *Options[]=
   /* 20 */ "keymap",
   /* 21 */ "joymap",
   /* 22 */ "scanlines",
+  /* 23 */ "smoothing",
   NULL
 };
 
@@ -55,6 +56,7 @@ extern int joymode;
 extern int joymap;
 extern int videomode;
 extern int scanlines;
+extern int smoothing;
 
 static int  CpuSpeed;
 static int  shadow_argc;
@@ -232,6 +234,12 @@ static int ParseOptions (int argc,char *argv[])
     case 22: N++;  /* scanlines */
              if (N<argc)
               scanlines=atoi(argv[N]);
+             else
+              misparm=1;
+             break;
+    case 23: N++;  /* smoothing */
+             if (N<argc)
+              smoothing=atoi(argv[N]);
              else
               misparm=1;
              break;
