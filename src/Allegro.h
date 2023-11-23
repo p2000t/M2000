@@ -23,6 +23,7 @@ ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
 ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
+ALLEGRO_PATH *docPath = NULL;
 ALLEGRO_PATH *screenshotPath =  NULL;
 ALLEGRO_PATH *videoRamPath =  NULL;
 ALLEGRO_PATH *cassettePath =  NULL;

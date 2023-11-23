@@ -251,7 +251,7 @@ int InitMachine(void)
   }
 
   /* create M2000 folder inside user's Documents folder */
-  ALLEGRO_PATH *docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
+  docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
   ALLEGRO_PATH *resourcePath = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
   // debian install check
   if (!strcmp(al_path_cstr(resourcePath, PATH_SEPARATOR), "/usr/bin/"))
@@ -278,7 +278,6 @@ int InitMachine(void)
     al_make_directory(al_path_cstr(videoRamPath, PATH_SEPARATOR));
   }
   al_destroy_path(resourcePath);
-  al_destroy_path(docPath);
 
   cassetteChooser = al_create_native_file_dialog(cassettePath ? al_path_cstr(cassettePath, PATH_SEPARATOR) : NULL,
     "Select a .cas cassette file", "*.*", 0); //file doesn't have to exist
@@ -941,6 +940,35 @@ void Keyboard(void)
 #else
     Z80_Reset ();
 #endif
+
+  // F6 = save state. Shift-F6 = restore state
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {    
+    static Z80_Regs regs;
+    FILE *f;
+
+    al_set_path_filename(docPath, "state.sav");
+    const char *stateFile = al_path_cstr(docPath, PATH_SEPARATOR);
+
+    if (al_shift_down) {
+      if ((f = fopen(stateFile, "rb"))) {
+        fread(&regs, sizeof(regs), 1, f); //read Z80 registers
+        fread(ROM, 1, 0x5000, f); //read ROM
+        fread(VRAM, 1, 0x1000, f); //read VRAM
+        fread(RAM, 1, RAMSize, f); //read RAM
+        fclose(f);
+        Z80_SetRegs(&regs);
+      }
+    } else {
+      Z80_GetRegs(&regs);      
+      if ((f = fopen(stateFile, "wb"))) {
+        fwrite(&regs, sizeof(regs), 1, f); //write Z80 registers
+        fwrite(ROM, 1, 0x5000, f); //write ROM
+        fwrite(VRAM, 1, 0x1000, f); //write VRAM
+        fwrite(RAM, 1, RAMSize, f); //write RAM
+        fclose(f);
+      }
+    }
+  }
 
   /* press F7 to silently save screenshot */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F7)) {
