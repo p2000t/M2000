@@ -631,7 +631,7 @@ void SaveVideoRAM(const char * filename)
   if ((f = fopen(filename, "wb")) != NULL) {
     // for each of the 24 lines, write 40 chars and skip 40 chars
     for (i=0;i<24;i++)
-      fwrite(VRAM + i*80, 1, 40, f); 
+      fwrite(VRAM + ScrollReg + i*80, 1, 40, f); 
     fclose(f);
   }
 }
@@ -830,7 +830,7 @@ void Keyboard(void)
             if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
               // for each of the 24 lines, read 40 chars and skip 40 chars
               for (i=0;i<24;i++)
-                fread(VRAM + i*80, 1, 40, f); 
+                fread(VRAM + ScrollReg + i*80, 1, 40, f); 
               fclose(f);
               RefreshScreen();
             } 
