@@ -1,11 +1,6 @@
 #pragma once
 
 #define FULLSCREEN_VIDEO_MODE 99
-#if defined(_WIN32) // Windows
-#define PATH_SEPARATOR '\\'
-#else // Linux and others
-#define PATH_SEPARATOR '/'
-#endif
 
 #include "P2000.h"
 
@@ -23,11 +18,16 @@ ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
 ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
 ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
+ALLEGRO_FILECHOOSER *stateLoadChooser = NULL;
+ALLEGRO_FILECHOOSER *stateSaveChooser = NULL;
+
 ALLEGRO_PATH *docPath = NULL;
-ALLEGRO_PATH *screenshotPath =  NULL;
-ALLEGRO_PATH *videoRamPath =  NULL;
-ALLEGRO_PATH *cassettePath =  NULL;
-ALLEGRO_PATH *cartridgePath =  NULL;
+ALLEGRO_PATH *userScreenshotsPath = NULL;
+ALLEGRO_PATH *userVideoRamDumpsPath = NULL;
+ALLEGRO_PATH *userCassettesPath = NULL;
+ALLEGRO_PATH *userCartridgesPath = NULL;
+ALLEGRO_PATH *userStateSnapshotsPath = NULL;
+ALLEGRO_PATH *currentTapePath = NULL;
 
 int buf_size;
 int sample_rate;
@@ -42,17 +42,14 @@ ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 char DocumentPath[FILENAME_MAX];
 char ProgramPath[FILENAME_MAX];
+const char *lastStateFile = NULL;
 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
-ALLEGRO_BITMAP *FontBuf_scaled = NULL;
-ALLEGRO_BITMAP *FontBuf_bk_scaled = NULL;
 ALLEGRO_BITMAP *smFontBuf = NULL;
 ALLEGRO_BITMAP *smFontBuf_bk = NULL;
-ALLEGRO_BITMAP *smFontBuf_scaled = NULL;
-ALLEGRO_BITMAP *smFontBuf_bk_scaled = NULL;
 
 static unsigned char joyKeyMapping[2][5] = {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */

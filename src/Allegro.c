@@ -2,16 +2,16 @@
 /*   Allegro.c                                                                */
 /*   This file contains the Allegro 5 drivers.                                */
 /*                                                                            */
-/*                             M2000, the Philips                             */
-/*               ||||||||||||||||||||||||||||||||||||||||||||||               */
-/*               |████████|████████|████████|████████|████████|               */
-/*               |███||███|███||███|███||███|███||███|███||███|               */
-/*               |███||███||||||███|███||███|███||███|███||███|               */
-/*               |████████|||||███||███||███|███||███|███||███|               */
-/*               |███|||||||||███|||███||███|███||███|███||███|               */
-/*               |███|||||||███|||||███||███|███||███|███||███|               */
-/*               |███||||||████████|████████|████████|████████|               */
-/*               ||||||||||||||||||||||||||||||||||||||||||||||               */
+/*                             M2000 - the Philips                            */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                ████████|████████|████████|████████|████████                */
+/*                ███||███|███||███|███||███|███||███|███||███                */
+/*                ███||███||||||███|███||███|███||███|███||███                */
+/*                ████████|||||███||███||███|███||███|███||███                */
+/*                ███|||||||||███|||███||███|███||███|███||███                */
+/*                ███|||||||███|||||███||███|███||███|███||███                */
+/*                ███||||||████████|████████|████████|████████                */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
 /*                                  emulator                                  */
 /*                                                                            */
 /*   Author(s): Stefano Bodrato                                               */
@@ -61,6 +61,7 @@
 #include "Icon.h"
 #include "AllegroKeyboard.h"
 #include "Menu.h"
+#include "State.h"
 
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
@@ -122,17 +123,7 @@ void ResetAudioStream()
 void UpdateWindowTitle() 
 {
   static char windowTitle[ALLEGRO_NEW_WINDOW_TITLE_MAX_SIZE];
-  static char tapeFileName[50];
-  if (TapeName) {
-    const char * lastSeparator = strrchr(TapeName, PATH_SEPARATOR);
-    if (lastSeparator)
-      strcpy(tapeFileName, lastSeparator + 1);
-    else
-      strcpy(tapeFileName, TapeName);
-  } else {
-    strcpy(tapeFileName, "empty");
-  }
-  sprintf(windowTitle, "%s [%s]", Title, tapeFileName);
+  sprintf(windowTitle, "%s [%s]", Title, currentTapePath ? al_get_path_filename(currentTapePath) : "empty");
   al_set_window_title(display, windowTitle);
 }
 
@@ -242,6 +233,9 @@ int InitMachine(void)
   //only support 50Hz and 60Hz
   IFreq = IFreq >= 55 ? 60 : 50; 
 
+  if (TapeName) 
+    currentTapePath = al_create_path(TapeName);
+
   /* get primary display monitor info */
   for (int i=0; i<al_get_num_video_adapters(); i++) {
     if (al_get_monitor_info(i, &monitorInfo) && monitorInfo.x1 == 0 && monitorInfo.y1 == 0) {
@@ -261,34 +255,41 @@ int InitMachine(void)
   if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) {
     CopyFile(resourcePath, "README.md", docPath);
 
-    al_append_path_component((cassettePath = al_clone_path(docPath)), "Cassettes");
-    if (!al_filename_exists(al_path_cstr(cassettePath, PATH_SEPARATOR)))
+    al_append_path_component((userCassettesPath = al_clone_path(docPath)), "Cassettes");
+    if (!al_filename_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
       for (i=0; installCassettes[i]; i++)
-        CopyFile(resourcePath, installCassettes[i], cassettePath);
+        CopyFile(resourcePath, installCassettes[i], userCassettesPath);
 
-    al_append_path_component((cartridgePath = al_clone_path(docPath)), "Cartridges");
-    if (!al_filename_exists(al_path_cstr(cartridgePath, PATH_SEPARATOR)))
+    al_append_path_component((userCartridgesPath = al_clone_path(docPath)), "Cartridges");
+    if (!al_filename_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
       for (i=0; installCartridges[i]; i++)
-        CopyFile(resourcePath, installCartridges[i], cartridgePath);
+        CopyFile(resourcePath, installCartridges[i], userCartridgesPath);
 
-    al_append_path_component((screenshotPath = al_clone_path(docPath)), "Screenshots");
-    al_make_directory(al_path_cstr(screenshotPath, PATH_SEPARATOR));
+    al_append_path_component((userScreenshotsPath = al_clone_path(docPath)), "Screenshots");
+    al_make_directory(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
 
-    al_append_path_component((videoRamPath = al_clone_path(docPath)), "VideoRAM dumps");
-    al_make_directory(al_path_cstr(videoRamPath, PATH_SEPARATOR));
+    al_append_path_component((userVideoRamDumpsPath = al_clone_path(docPath)), "VideoRAM dumps");
+    al_make_directory(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
+
+    al_append_path_component((userStateSnapshotsPath= al_clone_path(docPath)), "State snapshots");
+    al_make_directory(al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR));
   }
   al_destroy_path(resourcePath);
 
-  cassetteChooser = al_create_native_file_dialog(cassettePath ? al_path_cstr(cassettePath, PATH_SEPARATOR) : NULL,
+  cassetteChooser = al_create_native_file_dialog(userCassettesPath ? al_path_cstr(userCassettesPath, PATH_SEPARATOR) : NULL,
     "Select a .cas cassette file", "*.*", 0); //file doesn't have to exist
-  cartridgeChooser = al_create_native_file_dialog(cartridgePath ? al_path_cstr(cartridgePath, PATH_SEPARATOR) : NULL,
+  cartridgeChooser = al_create_native_file_dialog(userCartridgesPath ? al_path_cstr(userCartridgesPath, PATH_SEPARATOR) : NULL,
     "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  screenshotChooser = al_create_native_file_dialog(screenshotPath ? al_path_cstr(screenshotPath, PATH_SEPARATOR) : NULL,
+  screenshotChooser = al_create_native_file_dialog(userScreenshotsPath ? al_path_cstr(userScreenshotsPath, PATH_SEPARATOR) : NULL,
     "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
-  vRamLoadChooser = al_create_native_file_dialog(videoRamPath ? al_path_cstr(videoRamPath, PATH_SEPARATOR) : NULL,
+  vRamLoadChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
     "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  vRamSaveChooser = al_create_native_file_dialog(videoRamPath ? al_path_cstr(videoRamPath, PATH_SEPARATOR) : NULL,
+  vRamSaveChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
     "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
+  stateLoadChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
+    "Select a .state file",  "*.state", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+  stateSaveChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
+    "Save as .state file",  "*.state", ALLEGRO_FILECHOOSER_SAVE);
 
   if (joymode) {
     if (Verbose) printf("Initialising and detecting joystick... ");
@@ -460,13 +461,9 @@ void drawFontRegion(float x1, float y1, float x2, float y2)
   /* Draw the font on an internal bitmap */
   al_set_target_bitmap(FontBuf);
   al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 255, 255));
-  al_set_target_bitmap(smFontBuf);
-  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(255, 255, 255));
 
   /* Draw the inverted font on an internal bitmap */
   al_set_target_bitmap(FontBuf_bk);
-  al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(0, 0, 0));
-  al_set_target_bitmap(smFontBuf_bk);
   al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(0, 0, 0));
 }
 
@@ -488,26 +485,17 @@ int LoadFont(char *filename)
   al_set_new_bitmap_flags(ALLEGRO_CONVERT_BITMAP);
   FontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
   FontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
-  FontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
-  FontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
 
   al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
   smFontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
   smFontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
-  smFontBuf_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
-  smFontBuf_bk_scaled = al_create_bitmap(FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT);
   
-  if (!FontBuf || !FontBuf_bk || !FontBuf_scaled || !FontBuf_bk_scaled ||
-      !smFontBuf || !smFontBuf_bk || !smFontBuf_scaled || !smFontBuf_bk_scaled)
-    return ReturnErrorMessage("Could not create font bitmap.");
+  if (!FontBuf || !FontBuf_bk || !smFontBuf || !smFontBuf_bk )
+    return ReturnErrorMessage("Could not create font bitmaps.");
 
   al_set_target_bitmap(FontBuf);
   al_clear_to_color(al_map_rgb(0, 0, 0));
   al_set_target_bitmap(FontBuf_bk);
-  al_clear_to_color(al_map_rgb(255, 255, 255));
-  al_set_target_bitmap(smFontBuf);
-  al_clear_to_color(al_map_rgb(0, 0, 0));
-  al_set_target_bitmap(smFontBuf_bk);
   al_clear_to_color(al_map_rgb(255, 255, 255));
 
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
@@ -610,14 +598,11 @@ int LoadFont(char *filename)
   }
   free(TempBuf);
 
-  al_set_target_bitmap(FontBuf_scaled);
-  al_draw_scaled_bitmap(FontBuf, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
-  al_set_target_bitmap(FontBuf_bk_scaled);
-  al_draw_scaled_bitmap(FontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
-  al_set_target_bitmap(smFontBuf_scaled);
-  al_draw_scaled_bitmap(smFontBuf, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
-  al_set_target_bitmap(smFontBuf_bk_scaled);
-  al_draw_scaled_bitmap(smFontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, 2*CHAR_TILE_HEIGHT, 0);
+  // copy the font bitmaps to smoothened bitmaps
+  al_set_target_bitmap(smFontBuf);
+  al_draw_scaled_bitmap(FontBuf, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0);
+  al_set_target_bitmap(smFontBuf_bk);
+  al_draw_scaled_bitmap(FontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0); 
 
   //al_save_bitmap("FontBuf.png", FontBuf);
   return 1;
@@ -800,6 +785,8 @@ void Keyboard(void)
         case FILE_INSERTRUN_CASSETTE_ID:
           if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
             InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
+            al_destroy_path(currentTapePath);
+            currentTapePath = al_create_path(TapeName);
             UpdateWindowTitle();
             if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
               Z80_Reset();
@@ -807,6 +794,8 @@ void Keyboard(void)
           }
           break;
         case FILE_REMOVE_CASSETTE_ID:
+          al_destroy_path(currentTapePath);
+          currentTapePath = NULL;
           RemoveCassette();
           UpdateWindowTitle();
           break;
@@ -838,6 +827,14 @@ void Keyboard(void)
         case FILE_SAVE_VIDEORAM_ID:
           if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0)
             SaveVideoRAM(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"));
+          break;
+        case FILE_LOAD_STATE_ID:
+          if (al_show_native_file_dialog(display, stateLoadChooser) && al_get_native_file_dialog_count(stateLoadChooser) > 0)
+            LoadState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateLoadChooser, 0), ".state"));
+          break;
+        case FILE_SAVE_STATE_ID:
+          if (al_show_native_file_dialog(display, stateSaveChooser) && al_get_native_file_dialog_count(stateSaveChooser) > 0)
+            lastStateFile = SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".state"), NULL, NULL);
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -942,54 +939,39 @@ void Keyboard(void)
 #endif
 
   // F6 = save state. Shift-F6 = restore state
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {    
-    static Z80_Regs regs;
-    FILE *f;
-
-    al_set_path_filename(docPath, "state.sav");
-    const char *stateFile = al_path_cstr(docPath, PATH_SEPARATOR);
-
-    if (al_shift_down) {
-      if ((f = fopen(stateFile, "rb"))) {
-        fread(&regs, sizeof(regs), 1, f); //read Z80 registers
-        fread(ROM, 1, 0x5000, f); //read ROM
-        fread(VRAM, 1, 0x1000, f); //read VRAM
-        fread(RAM, 1, RAMSize, f); //read RAM
-        fclose(f);
-        Z80_SetRegs(&regs);
-      }
-    } else {
-      Z80_GetRegs(&regs);      
-      if ((f = fopen(stateFile, "wb"))) {
-        fwrite(&regs, sizeof(regs), 1, f); //write Z80 registers
-        fwrite(ROM, 1, 0x5000, f); //write ROM
-        fwrite(VRAM, 1, 0x1000, f); //write VRAM
-        fwrite(RAM, 1, RAMSize, f); //write RAM
-        fclose(f);
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {
+    if (userStateSnapshotsPath) { 
+      if (al_shift_down) {
+        LoadState(lastStateFile);
+      } else {
+        lastStateFile = SaveState(NULL, userStateSnapshotsPath, currentTapePath);
+        IndicateActionDone();
       }
     }
   }
 
   /* press F7 to silently save screenshot */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F7)) {
-    static char filename[35];
-    if (screenshotPath) {
+    static char extension[25];
+    if (userScreenshotsPath) {
       time_t now = time(NULL);
-      strftime(filename, 35, "Screenshot %Y-%m-%d %H-%M-%S.png", localtime(&now));
-      al_set_path_filename(screenshotPath, filename);
-      al_save_bitmap(al_path_cstr(screenshotPath, PATH_SEPARATOR), al_get_target_bitmap());
+      strftime(extension, 25, " %Y-%m-%d %H-%M-%S.png", localtime(&now));
+      al_set_path_filename(userScreenshotsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "Screenshot");
+      al_set_path_extension(userScreenshotsPath, extension);
+      al_save_bitmap(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), al_get_target_bitmap());
       IndicateActionDone();
     }
   }
 
   /* press F8 to silently save video RAM */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F8)) {  
-    static char filename[34];
-    if (videoRamPath) {
+    static char extension[26];
+    if (userVideoRamDumpsPath) {
       time_t now = time(NULL);
-      strftime(filename, 34, "VideoRAM %Y-%m-%d %H-%M-%S.vram", localtime(&now));
-      al_set_path_filename(videoRamPath, filename);
-      SaveVideoRAM(al_path_cstr(videoRamPath, PATH_SEPARATOR));
+      strftime(extension, 26, " %Y-%m-%d %H-%M-%S.vram", localtime(&now));
+      al_set_path_filename(userVideoRamDumpsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "VideoRAM");
+      al_set_path_extension(userVideoRamDumpsPath, extension);
+      SaveVideoRAM(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
       IndicateActionDone();
     }
   }
@@ -1095,16 +1077,18 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
-      si ? (smoothing ? smFontBuf_scaled : FontBuf_scaled) : (smoothing ? smFontBuf : FontBuf),
+      smoothing ? smFontBuf : FontBuf,
       al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
-      c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT,
+      c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT/2, 
+      CHAR_TILE_WIDTH, si ? CHAR_TILE_HEIGHT/2 : CHAR_TILE_HEIGHT,
       DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
       DisplayTileWidth, DisplayTileHeight, 0);
   if (bg)
     al_draw_tinted_scaled_bitmap(
-        si ? (smoothing ? smFontBuf_bk_scaled : FontBuf_bk_scaled) : (smoothing ? smFontBuf_bk : FontBuf_bk),
+        smoothing ? smFontBuf_bk : FontBuf_bk,
         al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+        c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT/2, 
+        CHAR_TILE_WIDTH, si ? CHAR_TILE_HEIGHT/2 : CHAR_TILE_HEIGHT,
         DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
         DisplayTileWidth, DisplayTileHeight, 0);
   if (scanlines) DrawTileScanlines(x, y);
