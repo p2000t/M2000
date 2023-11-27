@@ -106,12 +106,15 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.8
     steps:
     - name: Install dependencies
-      run: brew install allegro
+      run: |
+        brew install allegro
+        brew install dylibbundler
     - uses: actions/checkout@v3
     - name: Build
       run: make
     - name: Copy files
       run: |
+        mkdir package/M2000.app/Contents/MacOS
         cp M2000 package/M2000.app/Contents/MacOS/
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
@@ -121,6 +124,10 @@ jobs:
         cp "package/Cassettes/Basic Demo Cassette (zijde B).cas" package/M2000.app/Contents/Resources/
         cp "package/Cartridges/Basic 1.1 NL.bin" package/M2000.app/Contents/Resources/
         cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000.app/Contents/Resources/
+    - name: Run dylibbundler
+      run: |
+        export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
+        dylibbundler -x package/App.app/Contents/MacOS/app -b -d package/App.app/Contents/MacOS -p @executable_path
     - name: Zip package
       run: |
         cd package
