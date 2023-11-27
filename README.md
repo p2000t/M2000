@@ -12,7 +12,19 @@ Version 0.8-SNAPSHOT
 ## Downloads
 
 For downloading the latest release, please see the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
-Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/
+Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/\
+
+### Installation
+
+Installation of M2000 depends on your platform:
+* Windows - Unzip the downloaded release package and double click the `M2000-installer.exe`, which guides you through installation. After installation, "M2000 - Philips P2000 Emulator" will be added to your Windows apps.
+* macOS - Unzip the downloaded release package (usually this is done by just double-clicking it) and drag the resulting "M2000" app into the Applications folder. Now you can start M2000 from your applications - probably after allowing M2000 to run in the security settings.
+* Linux (Debian/Ubuntu/Linux Mint) - Unzip the downloaded release package and double-click `M2000_0.7_amd64.deb` to start the package installer. After installing, type `M2000` in a terminal to start the emulator. \
+  If double-clicking doesn't open a package installer, then open a terminal to the unzipped .deb file and do:
+  ```
+  sudo apt-get -f install M2000_0.7_amd64.deb
+  ```
+  
 
 ## What's emulated
 
