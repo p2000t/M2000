@@ -126,7 +126,7 @@ jobs:
     - name: Run dylibbundler
       run: |
         export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
-        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -p @executable_path
+        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path
     - name: Zip package
       run: |
         cd package
