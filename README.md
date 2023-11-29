@@ -27,7 +27,6 @@ Installation of M2000 depends on your platform:
   ```
   sudo apt-get -f install M2000_0.7_amd64.deb
   ```
-  
 
 ## What's emulated
 
@@ -184,7 +183,7 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
   sudo apt install mingw-w64 build-essential cmake zip curl
   ```
 * Clone this repository, create a `build` folder in its root directory, go to the `build` folder and compile
-  a Makefile using `cmake` passing the `USE_WIN64` variable (or `USE_WIN32` if you want to build for 32-bit Windows):
+  a Makefile using `cmake` passing the `USE_WIN64` variable (or `USE_WIN32` if you want to build for 32-bit Windows)
   ```bash
   mkdir build && cd build && cmake -DUSE_WIN64=1 ../src
   ```
@@ -192,8 +191,7 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
   ```bash
   make -j
   ```
-* The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
-  the `.zip` file found in the same folder and deploy the emulator in another folder.
+* The `M2000.exe` executable is placed in the `build` folder, including its dependencies.
 
 ## More information on the P2000
 
