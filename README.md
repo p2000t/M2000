@@ -184,9 +184,9 @@ Alternatively, you can build the Windows version on WSL (Windows Subsystem for L
   sudo apt install mingw-w64 build-essential cmake zip curl
   ```
 * Clone this repository, create a `build` folder in its root directory, go to the `build` folder and compile
-  a Makefile using `cmake`
+  a Makefile using `cmake` passing the `USE_WIN64` variable (or `USE_WIN32` if you want to build for 32-bit Windows):
   ```bash
-  mkdir build && cd build && cmake ../src
+  mkdir build && cd build && cmake -DUSE_WIN64=1 ../src
   ```
 * Compile the program by running
   ```bash
