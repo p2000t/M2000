@@ -133,14 +133,14 @@ There are two keyboard mappings available in M2000:
 
 ## How to compile M2000 from the sources
 
-If you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
+If you want to compile for an alternative OS, or add features or fix bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
 `git clone https://github.com/p2000t/M2000.git`
 
 ### Linux
 * Install the Allegro 5 libs, depending on your Linux distro
   * For Debian/Ubuntu/Linux Mint:
     ```
-    sudo apt install -y build-essential liballegro5-dev
+    sudo apt install build-essential liballegro5-dev
     ```
   * For Fedora:
     ```
