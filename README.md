@@ -1,4 +1,4 @@
-# M2000 - the Philips P2000 home computer emulator
+# M2000 - Philips P2000 home computer emulator
 Version 0.8-SNAPSHOT
 
 ![P2000T](/img/P2000T.png)
