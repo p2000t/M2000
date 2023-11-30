@@ -23,7 +23,7 @@ jobs:
       shell: cmd
       run: |
         cd package/WiX
-        build.bat
+        build64.bat
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
@@ -49,51 +49,12 @@ jobs:
       shell: cmd
       run: |
         cd package/WiX
-        build.bat
+        build32.bat
     - name: Upload package
       uses: actions/upload-artifact@v3
       with: 
         name: M2000-snapshot-win32
         path: package/WiX/M2000-installer.msi
-
-  # build-win32:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Install dependencies
-  #     run: |
-  #       sudo apt install -y mingw-w64
-  #       wget https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
-  #       unzip allegro-i686-w64-mingw32-gcc-12.1.0-posix-dwarf-static-5.2.8.0.zip
-  #   - name: Build
-  #     run: make CC=i686-w64-mingw32-gcc \
-  #         CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
-  #         LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
-  #   - name: Copy allegro libs and pacakge files to root
-  #     run: |
-  #       cp allegro/bin/allegro*5.2.dll .
-  #       cp package/Cassettes/*.cas .
-  #       cp package/Cartridges/*.bin .
-  #   - name: Upload package
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: M2000-snapshot-win32
-  #       path: |
-  #         M2000.exe
-  #         Default.fnt
-  #         P2000ROM.bin
-  #         BASIC.bin
-  #         README.md
-  #         allegro-5.2.dll
-  #         allegro_primitives-5.2.dll
-  #         allegro_image-5.2.dll
-  #         allegro_audio-5.2.dll
-  #         allegro_dialog-5.2.dll
-  #         allegro_memfile-5.2.dll
-  #         Basic Demo Cassette (zijde A).cas
-  #         Basic Demo Cassette (zijde B).cas
-  #         Basic 1.1 NL.bin
-  #         Familiegeheugen 2.0 NL.bin
 
   build-ubuntu:
     runs-on: ubuntu-latest
