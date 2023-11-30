@@ -18,7 +18,7 @@ jobs:
       shell: bash
       run: make \
           CFLAGS="-Wall -O2 -DALLEGRO -I${{ github.workspace }}/allegro/include" \
-          LFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
+          LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib"
     - name: Create installer
       shell: cmd
       run: |
@@ -44,7 +44,7 @@ jobs:
       run: make \
           CC=C:/ProgramData/chocolatey/lib/winlibs/tools/mingw32/bin/gcc \
           CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
-          LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
+          LDFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
     - name: Create installer
       shell: cmd
       run: |
