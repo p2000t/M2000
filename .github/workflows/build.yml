@@ -41,6 +41,7 @@ jobs:
     - name: Build
       shell: bash
       run: make \
+          CC=i686-w64-mingw32-gcc \
           CFLAGS="-Wall -O2 -DALLEGRO -m32 -I${{ github.workspace }}/allegro/include" \
           LFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib"
     - name: Create installer
