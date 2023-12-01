@@ -12,7 +12,7 @@ Version 0.8-SNAPSHOT
 ## Downloads
 
 For downloading the latest release, please see the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
-Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/\
+Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/
 
 ### Installation
 
