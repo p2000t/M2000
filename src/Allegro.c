@@ -1110,6 +1110,8 @@ int main(int argc,char *argv[])
 {
   if (Verbose) printf("Initialising Allegro driver... ");
   if (!al_init()) return ReturnErrorMessage("Allegro could not initialize its core.");
+  uint32_t version = al_get_allegro_version();
+  printf("(version %i.%i.%i)... ",version >> 24, (version >> 16) & 255, (version >> 8) & 255);
   if (!al_init_primitives_addon()) return ReturnErrorMessage("Allegro could not initialize primitives addon.");
   if (!al_init_image_addon()) return ReturnErrorMessage("Allegro could not initialize image addon.");
   if (!al_init_native_dialog_addon()) return ReturnErrorMessage("Allegro could not initialize native dialog addon.");
