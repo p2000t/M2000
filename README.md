@@ -138,7 +138,7 @@ If you want to compile the M2000 sources yourself, then below are the instructio
 * Using your Linux disto's package manager, install the essential build tools and Allegro 5 libs.
   * Debian/Ubuntu/Linux Mint:
     ```
-    $ sudo apt install git build-essential liballegro5-dev
+    $ sudo apt update && sudo apt install git build-essential liballegro5-dev
     ```
   * Fedora:
     ```
