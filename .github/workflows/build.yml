@@ -19,7 +19,6 @@ jobs:
         msystem: MINGW64
         update: true
         install: base-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
-    - run: where allegro-5.2.dll
     - name: Build
       run: make \
         LDFLAGS="-s -mwindows"
