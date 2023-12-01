@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+
+<?if $(sys.BUILDARCH)="x86"?>
+    <?define Program_Files="ProgramFilesFolder"?>
+<?elseif $(sys.BUILDARCH)="x64"?>
+    <?define Program_Files="ProgramFiles64Folder"?>
+<?else?>
+    <?error Unsupported value of sys.BUILDARCH=$(sys.BUILDARCH)?>
+<?endif?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+   <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f541"
+            Name="M2000"
+            Version="0.8.0"
+            Manufacturer="The M2000 Team"
+            Language="1033">
+
+      <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package" InstallScope="perMachine"/>
+
+      <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
+
+      <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f541">
+         <UpgradeVersion Minimum="0.8.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="0.8.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+      </Upgrade>
+      <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+
+      <Directory Id="TARGETDIR" Name="SourceDir">
+         <Directory Id="$(var.Program_Files)">
+            <Directory Id="INSTALLDIR" Name="M2000">
+               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855de">
+                    <File Id="ApplicationFileM2000" Source="..\..\M2000.exe" />
+                    <File Id="ApplicationFile1"     Source="..\..\Default.fnt"/>
+                    <File Id="ApplicationFile2"     Source="..\..\P2000ROM.bin"/>
+                    <File Id="ApplicationFile3"     Source="..\..\BASIC.bin"/>
+                    <File Id="ApplicationFile4"     Source="..\..\README.md"/>
+                    <File Id="ApplicationFile5"     Source="C:\msys64\mingw64\bin\allegro-5.2.dll"/>
+                    <File Id="ApplicationFile6"     Source="C:\msys64\mingw64\bin\allegro_primitives-5.2.dll"/>
+                    <File Id="ApplicationFile7"     Source="C:\msys64\mingw64\bin\allegro_image-5.2.dll"/>
+                    <File Id="ApplicationFile8"     Source="C:\msys64\mingw64\bin\allegro_audio-5.2.dll"/>
+                    <File Id="ApplicationFile9"     Source="C:\msys64\mingw64\bin\allegro_dialog-5.2.dll"/>
+                    <File Id="ApplicationFile10"    Source="C:\msys64\mingw64\bin\allegro_memfile-5.2.dll"/>
+                    <File Id="ApplicationFile11"    Source="..\Cassettes\Basic Demo Cassette (zijde A).cas"/>
+                    <File Id="ApplicationFile12"    Source="..\Cassettes\Basic Demo Cassette (zijde B).cas"/>
+                    <File Id="ApplicationFile13"    Source="..\Cartridges\Basic 1.1 NL.bin"/>
+                    <File Id="ApplicationFile14"    Source="..\Cartridges\Familiegeheugen 2.0 NL.bin"/>
+               </Component>
+            </Directory>
+         </Directory>
+         <Directory Id="ProgramMenuFolder">
+            <Directory Id="ProgramMenuSubfolder" Name="M2000">
+               <Component Id="ApplicationShortcuts" Guid="973ec9a1-1d88-4c2c-bce5-413742fcf780">
+                  <Shortcut Id="ApplicationShortcut0"
+                        Name="M2000 - Philips P2000 Emulator"
+                        Description="M2000 - portable Philips P2000 Emulator"
+                        Target="[INSTALLDIR]\M2000.exe"
+                        WorkingDirectory="INSTALLDIR">
+                        <Icon Id="Icon0" SourceFile="m2000.ico" />
+                  </Shortcut>
+                  <RegistryValue Root="HKCU"
+                    Key="Software\The M2000 Team\M2000"
+                    Name="installed0"
+                    Type="integer" Value="1" KeyPath="yes"/>
+                <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+               </Component>
+            </Directory>
+         </Directory>
+      </Directory>
+
+      <InstallExecuteSequence>
+         <RemoveExistingProducts After="InstallValidate"/>
+      </InstallExecuteSequence>
+
+      <Feature Id="DefaultFeature" Level="1">
+         <ComponentRef Id="ApplicationFiles"/>
+         <ComponentRef Id="ApplicationShortcuts"/>
+      </Feature>
+
+      <UI>
+         <!-- Define the installer UI -->
+         <UIRef Id="WixUI_InstallDir" />
+         <!-- Skip license dialog -->
+         <Publish Dialog="WelcomeDlg"
+                  Control="Next"
+                  Event="NewDialog"
+                  Value="InstallDirDlg"
+                  Order="2">1</Publish>
+         <Publish Dialog="InstallDirDlg"
+                  Control="Back"
+                  Event="NewDialog"
+                  Value="WelcomeDlg"
+                  Order="2">1</Publish>
+
+         <Publish Dialog="ExitDialog"
+            Control="Finish" 
+            Event="DoAction" 
+            Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+      </UI>
+
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch M2000" />
+      <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
+      <Property Id="WixShellExecTarget" Value="[#ApplicationFileM2000]" />
+      <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
+   </Product>
+</Wix>

@@ -16,8 +16,4 @@ Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
 Allegro.o:  Allegro.c Allegro.h Common.h P2000.h Z80.h Z80IO.h Icon.h Menu.h AllegroKeyboard.h
 
 clean:
-ifeq ($(OS),Windows_NT)
-	del /Q /F *.o 2>NUL
-else
 	rm -f *.o
-endif

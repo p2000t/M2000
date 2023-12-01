@@ -10,7 +10,7 @@
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
-   <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f541"
+   <Product Id="*" UpgradeCode="60c2a4d4-747d-4ee1-8aa5-cca780d1f541"
             Name="M2000"
             Version="0.8.0"
             Manufacturer="The M2000 Team"
@@ -20,7 +20,7 @@
 
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
-      <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f541">
+      <Upgrade Id="60c2a4d4-747d-4ee1-8aa5-cca780d1f541">
          <UpgradeVersion Minimum="0.8.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
          <UpgradeVersion Minimum="0.0.0" Maximum="0.8.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
       </Upgrade>
@@ -29,18 +29,18 @@
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="$(var.Program_Files)">
             <Directory Id="INSTALLDIR" Name="M2000">
-               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855de">
+               <Component Id="ApplicationFiles" Guid="f5d50ebc-5354-45a1-8438-f0f51d5855de">
                     <File Id="ApplicationFileM2000" Source="..\..\M2000.exe" />
                     <File Id="ApplicationFile1"     Source="..\..\Default.fnt"/>
                     <File Id="ApplicationFile2"     Source="..\..\P2000ROM.bin"/>
                     <File Id="ApplicationFile3"     Source="..\..\BASIC.bin"/>
                     <File Id="ApplicationFile4"     Source="..\..\README.md"/>
-                    <File Id="ApplicationFile5"     Source="..\..\allegro\bin\allegro-5.2.dll"/>
-                    <File Id="ApplicationFile6"     Source="..\..\allegro\bin\allegro_primitives-5.2.dll"/>
-                    <File Id="ApplicationFile7"     Source="..\..\allegro\bin\allegro_image-5.2.dll"/>
-                    <File Id="ApplicationFile8"     Source="..\..\allegro\bin\allegro_audio-5.2.dll"/>
-                    <File Id="ApplicationFile9"     Source="..\..\allegro\bin\allegro_dialog-5.2.dll"/>
-                    <File Id="ApplicationFile10"    Source="..\..\allegro\bin\allegro_memfile-5.2.dll"/>
+                    <File Id="ApplicationFile5"     Source="C:\msys64\mingw32\bin\allegro-5.2.dll"/>
+                    <File Id="ApplicationFile6"     Source="C:\msys64\mingw32\bin\allegro_primitives-5.2.dll"/>
+                    <File Id="ApplicationFile7"     Source="C:\msys64\mingw32\bin\allegro_image-5.2.dll"/>
+                    <File Id="ApplicationFile8"     Source="C:\msys64\mingw32\bin\allegro_audio-5.2.dll"/>
+                    <File Id="ApplicationFile9"     Source="C:\msys64\mingw32\bin\allegro_dialog-5.2.dll"/>
+                    <File Id="ApplicationFile10"    Source="C:\msys64\mingw32\bin\allegro_memfile-5.2.dll"/>
                     <File Id="ApplicationFile11"    Source="..\Cassettes\Basic Demo Cassette (zijde A).cas"/>
                     <File Id="ApplicationFile12"    Source="..\Cassettes\Basic Demo Cassette (zijde B).cas"/>
                     <File Id="ApplicationFile13"    Source="..\Cartridges\Basic 1.1 NL.bin"/>
@@ -50,7 +50,7 @@
          </Directory>
          <Directory Id="ProgramMenuFolder">
             <Directory Id="ProgramMenuSubfolder" Name="M2000">
-               <Component Id="ApplicationShortcuts" Guid="973ec9a1-1d88-4c2c-bce5-413742fcf780">
+               <Component Id="ApplicationShortcuts" Guid="a73ec9a1-1d88-4c2c-bce5-413742fcf780">
                   <Shortcut Id="ApplicationShortcut0"
                         Name="M2000 - Philips P2000 Emulator"
                         Description="M2000 - portable Philips P2000 Emulator"

@@ -33,6 +33,34 @@ jobs:
         name: M2000-snapshot-win64
         path: package/WiX/M2000-installer.msi
 
+  build-win32:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW32
+        update: true
+        install: base-devel mingw-w64-i686-gcc mingw-w64-i686-allegro
+    - name: Build
+      run: make \
+        CFLAGS="-Wall -O2 -DALLEGRO -m32"
+        LDFLAGS="-s -mwindows -m32"
+    - name: Create installer
+      shell: cmd
+      run: |
+        cd package/WiX
+        build32.bat
+    - name: Upload package
+      uses: actions/upload-artifact@v3
+      with: 
+        name: M2000-snapshot-win32
+        path: package/WiX/M2000-installer.msi
+
   # build-win32:
   #   runs-on: windows-latest
   #   steps:
