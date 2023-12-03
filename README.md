@@ -132,22 +132,13 @@ There are two keyboard mappings available in M2000:
 
 ## How to compile M2000 from the sources
 
-If you want to compile the M2000 sources yourself, then below are the instructions to get you on your way. Note that M2000 is depending on the Allegro 5 library, which might not be available as pre-compiled package on every platform.
+If you want to compile the M2000 sources yourself, then the instructions below will get you on your way. Note that M2000 is depending on the Allegro 5 library, which might not be available as pre-compiled package on every platform.
 
 ### Linux
-* Using your Linux disto's package manager, install the essential build tools and Allegro 5 libs.
-  * Debian/Ubuntu/Linux Mint:
-    ```
-    $ sudo apt update && sudo apt install git build-essential liballegro5-dev
-    ```
-  * Fedora:
-    ```
-    $ sudo dnf install git make gcc allegro5*
-    ```
-  * Arch Linux:
-    ```
-    $ pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
-    ```
+* Using your Linux disto's package manager, install the essential build tools and Allegro 5 libs. For Debian/Ubuntu/Linux Mint you can use the `apt` package manager:
+  ```
+  $ sudo apt update && sudo apt install git build-essential liballegro5-dev
+  ```
 * Clone the M2000 repo:
   ```
   $ git clone https://github.com/p2000t/M2000.git
