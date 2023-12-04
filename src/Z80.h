@@ -16,7 +16,6 @@
 /*** Machine dependent definitions                                        ***/
 /****************************************************************************/
 /* #define DEBUG      */              /* Compile debugging version          */
-/* #define X86_ASM    */              /* Compile optimised GCC/x86 version  */
 
 /****************************************************************************/
 /* If your compiler doesn't know about inlined functions, uncomment this    */

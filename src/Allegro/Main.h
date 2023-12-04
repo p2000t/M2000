@@ -2,7 +2,7 @@
 
 #define FULLSCREEN_VIDEO_MODE 99
 
-#include "P2000.h"
+#include "../P2000.h"
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _DisplayTileWidth, _DisplayTileHeight;

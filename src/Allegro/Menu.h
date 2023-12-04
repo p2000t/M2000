@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <allegro5/allegro_native_dialog.h>
-#include "Allegro.h"
+#include "Main.h"
 
 #define FILE_EXIT_ID 1
 #define FILE_INSERT_CASSETTE_ID 2

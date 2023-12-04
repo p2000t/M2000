@@ -125,11 +125,7 @@ INLINE void M_WR_XIY(byte a)
  M_WRMEM(i,a);
 }
 
-#ifdef X86_ASM
-#include "Z80CDx86.h"
-#else
 #include "Z80Codes.h"
-#endif
 
 static void adc_a_xhl(void) { byte i=M_RD_XHL; M_ADC(i); }
 static void adc_a_xix(void) { byte i=M_RD_XIX(); M_ADC(i); }
