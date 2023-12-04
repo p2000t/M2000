@@ -12,7 +12,7 @@
 
 #ifdef DEBUG
 
-#include "Z80.h"
+#include "../Z80.h"
 #include <stdio.h>
 #include <string.h>
 #include "Z80Dasm.h"

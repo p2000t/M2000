@@ -54,12 +54,12 @@
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_native_dialog.h> 
 #include <allegro5/allegro_memfile.h>
-#include "Allegro.h"
-#include "P2000.h"
-#include "M2000.h"
-#include "Common.h"
+#include "../P2000.h"
+#include "../M2000.h"
+#include "../Common.h"
+#include "Main.h"
 #include "Icon.h"
-#include "AllegroKeyboard.h"
+#include "Keyboard.h"
 #include "Menu.h"
 #include "State.h"
 

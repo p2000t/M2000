@@ -4,7 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <allegro5/allegro.h>
-#include "P2000.h"
+#include "../P2000.h"
 
 static Z80_Regs regs;
 
