@@ -11,17 +11,32 @@ static Z80_Regs regs;
 const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder, ALLEGRO_PATH *tapePath)
 {
   static char stateFilePath[FILENAME_MAX];
-  static char extension[27];
+  static char stateFilePath2[FILENAME_MAX];
+  static char extension[7];
   FILE *f;
+  int i;
 
   if (chosenFilePath) {
     strcpy(stateFilePath, chosenFilePath);
   } else {
-    time_t now = time(NULL);
-    strftime(extension, 27, " %Y-%m-%d %H-%M-%S.state", localtime(&now));
-    al_set_path_filename(stateFolder, tapePath ? al_get_path_filename(tapePath) : "State"); 
-    al_set_path_extension(stateFolder, extension);
-    strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
+    //bump old state dump files down
+    for (i=1; i<=10; i++) {
+      if (i==10)
+        strcpy(extension, ".dmp");
+      else
+        sprintf(extension, "-%i.dmp", i);
+
+      al_set_path_filename(stateFolder, tapePath ? al_get_path_filename(tapePath) : "State");
+      al_set_path_extension(stateFolder, extension);
+      strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
+
+      if (i==1) 
+        al_remove_filename(stateFilePath);
+      else
+        rename(stateFilePath, stateFilePath2);
+
+      strcpy(stateFilePath2, stateFilePath);
+    }
   }
 
   if ((f = fopen(stateFilePath, "wb"))) {
@@ -36,11 +51,19 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder, AL
   return NULL;
 }
 
-void LoadState(const char * stateFilePath)
+void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder, ALLEGRO_PATH *tapePath)
 {
-  if (!stateFilePath) return;
-
+  static char stateFilePath[FILENAME_MAX];
   FILE *f;
+
+  if (chosenFilePath) {
+    strcpy(stateFilePath, chosenFilePath);
+  } else {
+    al_set_path_filename(stateFolder, tapePath ? al_get_path_filename(tapePath) : "State"); 
+    al_set_path_extension(stateFolder, ".dmp");
+    strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
+  }
+
   if ((f = fopen(stateFilePath , "rb"))) {
     fread(&regs, sizeof(regs), 1, f); //read Z80 registers
     fread(ROM, 1, 0x5000, f); //read ROM

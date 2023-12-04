@@ -287,9 +287,9 @@ int InitMachine(void)
   vRamSaveChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
     "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
   stateLoadChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Select a .state file",  "*.state", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    "Select a .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   stateSaveChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Save as .state file",  "*.state", ALLEGRO_FILECHOOSER_SAVE);
+    "Save as .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
 
   if (joymode) {
     if (Verbose) printf("Initialising and detecting joystick... ");
@@ -830,11 +830,11 @@ void Keyboard(void)
           break;
         case FILE_LOAD_STATE_ID:
           if (al_show_native_file_dialog(display, stateLoadChooser) && al_get_native_file_dialog_count(stateLoadChooser) > 0)
-            LoadState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateLoadChooser, 0), ".state"));
+            LoadState(al_get_native_file_dialog_path(stateLoadChooser, 0), NULL, NULL);
           break;
         case FILE_SAVE_STATE_ID:
           if (al_show_native_file_dialog(display, stateSaveChooser) && al_get_native_file_dialog_count(stateSaveChooser) > 0)
-            lastStateFile = SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".state"), NULL, NULL);
+            SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".dmp"), NULL, NULL);
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -942,9 +942,9 @@ void Keyboard(void)
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {
     if (userStateSnapshotsPath) { 
       if (al_shift_down) {
-        LoadState(lastStateFile);
+        LoadState(NULL, userStateSnapshotsPath, currentTapePath);
       } else {
-        lastStateFile = SaveState(NULL, userStateSnapshotsPath, currentTapePath);
+        SaveState(NULL, userStateSnapshotsPath, currentTapePath);
         IndicateActionDone();
       }
     }

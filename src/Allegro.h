@@ -42,7 +42,6 @@ ALLEGRO_KEYBOARD_STATE kbdstate;
 char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 char DocumentPath[FILENAME_MAX];
 char ProgramPath[FILENAME_MAX];
-const char *lastStateFile = NULL;
 
 int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
 
