@@ -1,4 +1,4 @@
-# M2000 - the Philips P2000 home computer emulator
+# M2000 - Philips P2000 home computer emulator
 Version 0.8-SNAPSHOT
 
 ![P2000T](/img/P2000T.png)
@@ -13,6 +13,20 @@ Version 0.8-SNAPSHOT
 
 For downloading the latest release, please see the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
 Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/
+
+### Installation
+
+Installation of M2000 depends on your platform:
+* **Windows** (64 bit) \
+  Unzip the downloaded release package and double click the `M2000-installer.exe`, which guides you through installation. After installation, "M2000 - Philips P2000 Emulator" will be added to your Windows apps.
+* **macOS** (version 10.13 or higher) \
+  Unzip the downloaded release package (usually this is done by just double-clicking it) and drag the resulting "M2000" app into the Applications folder. Now you can start M2000 from your applications - probably after allowing M2000 to run in the security settings.
+* **Linux** (Debian/Ubuntu/Linux Mint) \
+  Unzip the downloaded release package and double-click `M2000_0.7_amd64.deb` to start the package installer. After installation is done, type `M2000` in a terminal to start the emulator. \
+  If double-clicking doesn't open a package installer, then open a terminal to the unzipped .deb file and do:
+  ```
+  sudo apt-get -f install M2000_0.7_amd64.deb
+  ```
 
 ## What's emulated
 
@@ -120,67 +134,74 @@ There are two keyboard mappings available in M2000:
 
 ## How to compile M2000 from the sources
 
-If you want to compile for an alternative OS or help us with fixing bugs, you'll first need to open a terminal (or command prompt) and clone this M2000 repo (or your fork!) into a local folder: \
-`git clone https://github.com/p2000t/M2000.git`
+If you want to compile the M2000 sources yourself, then below are the instructions to get you on your way. Note that M2000 is depending on the Allegro 5 library, which might not be available as pre-compiled package on every platform.
 
 ### Linux
-* Install the Allegro 5 libs, depending on your Linux distro
-  * For Debian/Ubuntu/Linux Mint:
+* Using your Linux disto's package manager, install the essential build tools and Allegro 5 libs.
+  * Debian/Ubuntu/Linux Mint:
     ```
-    sudo apt install -y build-essential liballegro5-dev
+    $ sudo apt update && sudo apt install git build-essential liballegro5-dev
     ```
-  * For Fedora:
+  * Fedora:
     ```
-    sudo dnf install allegro5*
+    $ sudo dnf install git make gcc allegro5*
     ```
+  * Arch Linux:
+    ```
+    $ pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
+    ```
+* Clone the M2000 repo:
+  ```
+  $ git clone https://github.com/p2000t/M2000.git
+  ```
 * Go into the M2000 directory and run make
   ```
-  cd M2000
-  make
+  $ cd M2000 && make
+  ```
+* After successfull building, you can run M2000:
+  ```
+  $ ./M2000
   ```
 
 ### macOS
-* Make sure you have both the `Xcode command line tools` and `brew` installed.
+Make sure you have both the `Xcode command line tools` and `brew` installed.
 * Now install the Allegro 5 libs using brew:
   ```
-  brew install allegro
+  $ brew install allegro
+  ```
+* Clone the M2000 repo:
+  ```
+  $ git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
   ```
-  cd M2000
-  make
+  $ cd M2000 && make
+  ```
+* After successfull building, you can run M2000:
+  ```
+  $ ./M2000
   ```
 
 ### Windows
-* Make sure to have MinGW (the Windows port of gcc) installed on your machine. \
-A good distribution is [TDM-GCC](https://jmeubank.github.io/tdm-gcc/download/). If you select the 64 bits version, it will install MinGW in `C:\TDM-GCC-64` and automatically adds the `bin` folder to your PATH environment variable. \
-You can test a correct installation by opening a command prompt and typing `gcc --version`
-* Download the static 64-bits [Allegro 5 libraries v5.2.8.0](https://github.com/liballeg/allegro5/releases/download/5.2.8.0/allegro-x86_64-w64-mingw32-gcc-12.1.0-posix-seh-static-5.2.8.0.zip) and copy the content inside the downloaded zip (i.e., folders `bin`, `include` and `lib`) into the root of your MinGW `C:\TDM-GCC-64` folder.
-* Open a command prompt into the M2000 directory and run MinGW's make
-  ```
-  cd M2000
-  mingw32-make
-  ```
+The easiest way to build M2000 on a Windows machine is by using the [MSYS2](https://www.msys2.org/) toolkit.
 
-### WSL (Windows Subsystem for Linux) cross-compilation
-Alternatively, you can build the Windows version on WSL (Windows Subsystem for Linux).
-* Ensure you have [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install) installed 
-  and have downloaded the latest Ubuntu image from the Windows store.
-* Install the required following packages in Ubuntu
-  ```bash
-  sudo apt install mingw-w64 build-essential cmake zip curl
+
+* After you've installed MSYS2, open its MINGW64 shell environment and install the required tools and libraries:
   ```
-* Clone this repository, create a `build` folder in its root directory, go to the `build` folder and compile
-  a Makefile using `cmake`
-  ```bash
-  mkdir build && cd build && cmake ../src
+  $ pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
   ```
-* Compile the program by running
-  ```bash
-  make -j
+* Clone the M2000 repo:
   ```
-* The executable is placed in the `build` folder, including its dependencies. You can either directly use this executable, or use
-  the `.zip` file found in the same folder and deploy the emulator in another folder.
+  $ git clone https://github.com/p2000t/M2000.git
+  ```
+* Go into the M2000 directory and run make:
+  ```
+  $ cd M2000 && make
+  ```
+* After successfull building, you can run M2000:
+  ```
+  $ ./M2000
+  ```
 
 ## More information on the P2000
 
