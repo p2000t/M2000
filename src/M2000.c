@@ -338,10 +338,10 @@ int M2000_main(int argc,char *argv[])
   LoadConfigFile (_ConfigFileName,ConfigFile);
   /* Parse the config file options */
   if (!ParseOptions(shadow_argc,shadow_argv))
-    return 1;
+    return EXIT_FAILURE;
   /* Parse the command line options */
   if (!ParseOptions(argc,argv))
-    return 1;
+    return EXIT_FAILURE;
 
   TapeName = MakeFullPath(_TapeName, TapeName, DocumentPath);
   CartName = MakeFullPath(_CartName, CartName, ProgramPath);
@@ -364,5 +364,5 @@ int M2000_main(int argc,char *argv[])
   /* Trash emulated P2000 */
   TrashP2000();
   TrashMachine ();
-  return 0;
+  return EXIT_SUCCESS;
 }

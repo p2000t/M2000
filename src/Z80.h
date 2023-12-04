@@ -17,8 +17,6 @@
 /****************************************************************************/
 /* #define DEBUG      */              /* Compile debugging version          */
 /* #define X86_ASM    */              /* Compile optimised GCC/x86 version  */
-/* #define __64BIT__  */              /* Compile for 64 bit machines        */
-/* #define __128BIT__ */              /* Compile for 128 bit machines       */
 
 /****************************************************************************/
 /* If your compiler doesn't know about inlined functions, uncomment this    */
@@ -41,20 +39,9 @@ typedef signed char    offset;
 /****************************************************************************/
 typedef union
 {
-#ifdef __128BIT__
-   struct { byte l,h,h2,h3,h4,h5,h6,h7,
-                 h8,h9,h10,h11,h12,h13,h14,h15; } B;
-   struct { word l,h,h2,h3,h4,h5,h6,h7; } W;
+   struct { byte l,h; } B;
+   struct { word l; } W;
    dword D;
-#elif __64BIT__
-   struct { byte l,h,h2,h3,h4,h5,h6,h7; } B;
-   struct { word l,h,h2,h3; } W;
-   dword D;
-#else
-   struct { byte l,h,h2,h3; } B;
-   struct { word l,h; } W;
-   dword D;
-#endif
 } pair;
 
 #endif /* EMU_TYPES */

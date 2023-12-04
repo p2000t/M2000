@@ -14,6 +14,8 @@
 #define FILE_SAVE_SCREENSHOT_ID 8
 #define FILE_LOAD_VIDEORAM_ID 9
 #define FILE_SAVE_VIDEORAM_ID 10
+#define FILE_SAVE_STATE_ID 11
+#define FILE_LOAD_STATE_ID 12
 
 #define DISPLAY_WINDOW_MENU 20
 #define DISPLAY_WINDOW_640x480 21
@@ -95,6 +97,9 @@ void CreateEmulatorMenu()
       { "Remove Cartridge...", FILE_REMOVE_CARTRIDGE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "Reset (F5)", FILE_RESET_ID, 0, NULL },
+      ALLEGRO_MENU_SEPARATOR,
+      { "Save State... (F6)", FILE_SAVE_STATE_ID, 0, NULL },
+      { "Load State... (Shift-F6)", FILE_LOAD_STATE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "Save Screenshot... (F7)", FILE_SAVE_SCREENSHOT_ID, 0, NULL },
       { "Load Video RAM...", FILE_LOAD_VIDEORAM_ID, 0, NULL },

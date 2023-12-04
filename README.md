@@ -43,6 +43,8 @@ F1               -  ZOEK key (show cassette index in BASIC)
 F2               -  START key (start loaded program in BASIC)
 Shift-F2         -  STOP key (pause/halt program in BASIC)
 F5               -  Reset P2000
+F6               -  Save state to file (quietly)
+Shift-F6         -  Load last saved state (quietly)
 F7               -  Save screenshot to file (quietly)
 F8               -  Save visible video RAM to file (quietly)
 F9               -  Toggle pause on/off
