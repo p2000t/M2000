@@ -34,30 +34,15 @@ static char _FontName[FILENAME_MAX];
 static char _TapeName[FILENAME_MAX];
 static char _PrnName[FILENAME_MAX];
 
-int endsWith(const char* path, const char * suffix) 
-{
-    int path_len = strlen(path);
-    int suffix_len = strlen(suffix);
-    int i, result;
-    char * path_lower = NULL;
-
-    if (path_len < suffix_len) return 0; // The path can't end with the suffix
-    path_lower = strdup(path);
-    for (i = 0; path_lower[i]; i++)
-      path_lower[i] = tolower(path_lower[i]);
-    result = strcmp(path_lower + path_len - suffix_len, suffix);
-    free(path_lower);
-    return result == 0;
-}
-
 /* Check the command line argument looking for the cartridge or tape file name */
 static void ProcessArgument (int argc,char *argv[]) 
 {
   if (argc != 2) return;
-  if (endsWith(argv[1], ".bin"))
+  char *dot = strrchr(argv[1], '.');
+  if (dot && !strcmp(dot, ".bin"))
     CartName=argv[1];
   else 
-    TapeName=argv[1]; //asume tape filename
+    TapeName=argv[1]; // else asume tape filename
 }
 
 /* Expand to absolute path */
@@ -76,15 +61,14 @@ static char * MakeFullPath (char *dest, const char *src, char *root)
 
 int M2000_main(int argc,char *argv[])
 {
-  /* Optionally the cartridge or tape name passed as first argument */
+  /* Optionally a cartridge or tape filename can be passed as first argument */
   ProcessArgument (argc,argv);
-  // don't boot from default tape
+  // don't boot from the default tape
   if (!strcmp(TapeName, "Default.cas")) 
     TapeBootEnabled = 0;
 
   ProgramPath = GetResourcesPath();
   DocumentPath = GetDocumentsPath();
-  if (Verbose) printf("FILENAME_MAX=%i\n", FILENAME_MAX);
   if (Verbose) printf("ProgramPath=%s\n", ProgramPath);
   if (Verbose) printf("DocumentPath=%s\n", DocumentPath);
 
