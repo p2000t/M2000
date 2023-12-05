@@ -58,7 +58,8 @@ static unsigned char joyKeyMapping[2][5] = {
 };
 int joymode;
 int joyDetected;               
-int joymap;                      
+int joymap;
+int uilanguage;                   
 ALLEGRO_JOYSTICK *joystick = NULL;
 ALLEGRO_JOYSTICK_STATE joyState;
 bool lastJoyState[5];

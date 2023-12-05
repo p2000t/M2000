@@ -3,6 +3,7 @@
 #include <string.h>
 #include <allegro5/allegro_native_dialog.h>
 #include "Main.h"
+#include "UIstrings.h"
 
 #define FILE_EXIT_ID 1
 #define FILE_INSERT_CASSETTE_ID 2
@@ -41,11 +42,13 @@
 #define OPTIONS_VOLUME_HIGH_ID (10 + OPTIONS_VOLUME_OFFSET)
 #define OPTIONS_VOLUME_MEDIUM_ID (4 + OPTIONS_VOLUME_OFFSET)
 #define OPTIONS_VOLUME_LOW_ID (1 + OPTIONS_VOLUME_OFFSET)
-#define OPTIONS_JOYSTICK_ID 44
-#define OPTIONS_JOYSTICK_MAP_0_ID 45
-#define OPTIONS_JOYSTICK_MAP_1_ID 46
-#define OPTIONS_JOYSTICK_MAP 47
-#define OPTIONS_SAVE_PREFERENCES 48
+#define OPTIONS_JOYSTICK_ID 41
+#define OPTIONS_JOYSTICK_MAP_0_ID 42
+#define OPTIONS_JOYSTICK_MAP_1_ID 43
+#define OPTIONS_JOYSTICK_MAP 44
+#define OPTIONS_SAVE_PREFERENCES 45
+#define OPTIONS_ENGLISH_ID 46
+#define OPTIONS_NEDERLANDS_ID 47
 
 #define SPEED_SYNC 50
 #define SPEED_PAUSE 51
@@ -89,30 +92,30 @@ void UpdateCpuSpeedMenu () {
 void CreateEmulatorMenu() 
 {
   ALLEGRO_MENU_INFO menu_info[] = {
-    ALLEGRO_START_OF_MENU("File", 0),
-      { "Insert Cassette...", FILE_INSERT_CASSETTE_ID, 0, NULL },
-      { "Insert, Load and Run Cassette...", FILE_INSERTRUN_CASSETTE_ID, 0, NULL },
-      { "Remove Cassette", FILE_REMOVE_CASSETTE_ID, 0, NULL },
+    { _("File->"), 0, 0, NULL },
+      { _("Insert Cassette..."), FILE_INSERT_CASSETTE_ID, 0, NULL },
+      { _("Insert, Load and Run Cassette..."), FILE_INSERTRUN_CASSETTE_ID, 0, NULL },
+      { _("Remove Cassette"), FILE_REMOVE_CASSETTE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Insert Cartridge...", FILE_INSERT_CARTRIDGE_ID, 0, NULL },
-      { "Remove Cartridge...", FILE_REMOVE_CARTRIDGE_ID, 0, NULL },
+      { _("Insert Cartridge..."), FILE_INSERT_CARTRIDGE_ID, 0, NULL },
+      { _("Remove Cartridge..."), FILE_REMOVE_CARTRIDGE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "Reset (F5)", FILE_RESET_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Save State... (F6)", FILE_SAVE_STATE_ID, 0, NULL },
-      { "Load State... (Shift-F6)", FILE_LOAD_STATE_ID, 0, NULL },
+      { _("Save State... (F6)"), FILE_SAVE_STATE_ID, 0, NULL },
+      { _("Load State... (Shift-F6)"), FILE_LOAD_STATE_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Save Screenshot... (F7)", FILE_SAVE_SCREENSHOT_ID, 0, NULL },
-      { "Load Video RAM...", FILE_LOAD_VIDEORAM_ID, 0, NULL },
-      { "Save Video RAM... (F8)", FILE_SAVE_VIDEORAM_ID, 0, NULL },
+      { _("Save Screenshot... (F7)"), FILE_SAVE_SCREENSHOT_ID, 0, NULL },
+      { _("Load Video RAM..."), FILE_LOAD_VIDEORAM_ID, 0, NULL },
+      { _("Save Video RAM... (F8)"), FILE_SAVE_VIDEORAM_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Exit (Alt-F4 / Ctrl-Q)", FILE_EXIT_ID, 0, NULL },
+      { _("Exit (Alt-F4 / Ctrl-Q)"), FILE_EXIT_ID, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("Display", DISPLAY_WINDOW_MENU),
-      { "Scanlines On/Off", DISPLAY_SCANLINES, scanlines ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+    { _("Display->"), DISPLAY_WINDOW_MENU, 0, NULL },
+      { _("Scanlines On/Off"), DISPLAY_SCANLINES, scanlines ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Smoothing On/Off", DISPLAY_SMOOTHING, smoothing ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { _("Smoothing On/Off"), DISPLAY_SMOOTHING, smoothing ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { "640 x 480", DISPLAY_WINDOW_640x480, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "800 x 600", DISPLAY_WINDOW_800x600, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
@@ -125,15 +128,15 @@ void CreateEmulatorMenu()
       ALLEGRO_MENU_SEPARATOR,
 #endif
 #ifdef _WIN32
-      { "Full Screen (F11)", DISPLAY_FULLSCREEN, 0, NULL },
+      { _("Full Screen (F11)"), DISPLAY_FULLSCREEN, 0, NULL },
 #endif
 #ifdef __APPLE__
-      { "Full Screen (Shift-F11)", DISPLAY_FULLSCREEN, 0, NULL },
+      { _("Full Screen (Shift-F11)"), DISPLAY_FULLSCREEN, 0, NULL },
 #endif
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("Speed", 0),
-      ALLEGRO_START_OF_MENU("CPU Speed", 0),
+    { _("Speed->"), 0, 0, NULL },
+      { _("CPU Speed->"), 0, 0, NULL },
         { "500%", SPEED_500_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "200%", SPEED_200_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "120%", SPEED_120_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
@@ -146,40 +149,45 @@ void CreateEmulatorMenu()
       { "50 Hz", FPS_50_ID, IFreq == 50 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { "60 Hz", FPS_60_ID, IFreq == 60 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Sync On/Off", SPEED_SYNC, Sync ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { _("Sync On/Off"), SPEED_SYNC, Sync ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      { "Pause Emulation (F9)", SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { _("Pause Emulation (F9)"), SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("Keyboard", 0),
-      {"[ZOEK] - Show Cassette Index in BASIC (F1)", KEYBOARD_ZOEK_ID, 0, NULL },
-      {"[START] - Start Loaded Program in BASIC (F2)", KEYBOARD_START_ID, 0, NULL },
-      {"[STOP] - Pause/Halt Program in BASIC (Shift-F2)", KEYBOARD_STOP_ID, 0, NULL },
-      {"[WIS] - Clear Cassette in BASIC", KEYBOARD_CLEARCAS_ID, 0, NULL },
+    { _("Keyboard->"), 0, 0, NULL },
+      {_("[ZOEK] - Show Cassette Index in BASIC (F1)"), KEYBOARD_ZOEK_ID, 0, NULL },
+      {_("[START] - Start Loaded Program in BASIC (F2)"), KEYBOARD_START_ID, 0, NULL },
+      {_("[STOP] - Pause/Halt Program in BASIC (Shift-F2)"), KEYBOARD_STOP_ID, 0, NULL },
+      {_("[WIS] - Clear Cassette in BASIC"), KEYBOARD_CLEARCAS_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
-      {"Symbolic Key Mapping", KEYBOARD_SYMBOLIC_ID, keyboardmap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-      {"Positional Key Mapping", KEYBOARD_POSITIONAL_ID, keyboardmap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      {_("Symbolic Key Mapping"), KEYBOARD_SYMBOLIC_ID, keyboardmap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      {_("Positional Key Mapping"), KEYBOARD_POSITIONAL_ID, keyboardmap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("Options", 0),
-      {soundDetected ? "Sound On/Off (F10)" : "Sound Card Not Detected", OPTIONS_SOUND_ID, soundDetected ? (soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
-      ALLEGRO_START_OF_MENU("Sound Volume", 0),
-        { "High", OPTIONS_VOLUME_HIGH_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "Medium", OPTIONS_VOLUME_MEDIUM_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "Low", OPTIONS_VOLUME_LOW_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+    { _("Options->"), 0, 0, NULL },
+      {soundDetected ? _("Sound On/Off (F10)") : _("Sound Card Not Detected"), OPTIONS_SOUND_ID, soundDetected ? (soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+      { _("Sound Volume->"), 0, 0, NULL },
+        { _("High"), OPTIONS_VOLUME_HIGH_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { _("Medium"), OPTIONS_VOLUME_MEDIUM_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { _("Low"), OPTIONS_VOLUME_LOW_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_MENU_SEPARATOR,
-      {joyDetected ? "Joystick On/Off" : "Joystick Not Detected", OPTIONS_JOYSTICK_ID, joyDetected ? (joymode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
-      ALLEGRO_START_OF_MENU("Joystick Mapping", OPTIONS_JOYSTICK_MAP),
-        { "Emulate Cursorkeys + Spacebar", OPTIONS_JOYSTICK_MAP_0_ID, joymode ? (joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
-        { "Fraxxon Mode (Left/Up/Spacebar)", OPTIONS_JOYSTICK_MAP_1_ID, joymode ? (joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+      {joyDetected ? _("Joystick On/Off") : _("Joystick Not Detected"), OPTIONS_JOYSTICK_ID, joyDetected ? (joymode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+      { _("Joystick Mapping->"), OPTIONS_JOYSTICK_MAP, 0, NULL },
+        { _("Emulate Cursorkeys + Spacebar"), OPTIONS_JOYSTICK_MAP_0_ID, joymode ? (joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+        { _("Fraxxon Mode (Left/Up/Spacebar)"), OPTIONS_JOYSTICK_MAP_1_ID, joymode ? (joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_MENU_SEPARATOR,
-      {"Save Preferences", OPTIONS_SAVE_PREFERENCES, 0, NULL },
+      { _("UI Language->"), 0, 0, NULL },
+        { "English", OPTIONS_ENGLISH_ID, uilanguage ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED, NULL },
+        { "Nederlands", OPTIONS_NEDERLANDS_ID, uilanguage ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        ALLEGRO_END_OF_MENU,
+      ALLEGRO_MENU_SEPARATOR,
+      { _("Save Preferences"), OPTIONS_SAVE_PREFERENCES, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
-    ALLEGRO_START_OF_MENU("Help", 0),
-      {"About M2000", HELP_ABOUT_ID, 0, NULL },
+    { _("Help->"), 0, 0, NULL },
+      { _("About M2000"), HELP_ABOUT_ID, 0, NULL },
       ALLEGRO_END_OF_MENU,
     ALLEGRO_END_OF_MENU
   };

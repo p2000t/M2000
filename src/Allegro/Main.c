@@ -829,7 +829,7 @@ void Keyboard(void)
         case SPEED_PAUSE:
           pausePressed = !pausePressed;
           break;
-        case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_200_ID: case SPEED_500_ID:
+        case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_120_ID: case SPEED_200_ID: case SPEED_500_ID:
           CpuSpeed = event.user.data1 - SPEED_OFFSET;
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
           UpdateCpuSpeedMenu();
@@ -885,13 +885,22 @@ void Keyboard(void)
           al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_0_ID, joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_1_ID, joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           break;
+        case OPTIONS_ENGLISH_ID:
+        case OPTIONS_NEDERLANDS_ID:
+          uilanguage = event.user.data1 - OPTIONS_ENGLISH_ID;
+          al_set_menu_item_flags(menu, OPTIONS_ENGLISH_ID, uilanguage==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, OPTIONS_NEDERLANDS_ID, uilanguage==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_destroy_menu(menu);
+          CreateEmulatorMenu();
+          ClearScreen();
+          break;
         case OPTIONS_SAVE_PREFERENCES:
           SaveConfig(docPath);
           break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
             "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
-            "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
+            _("Thanks to Marcel de Kogel for creating the core of this emulator back in 1996."),
             NULL, 0);
           break;
         case DISPLAY_SCANLINES:
