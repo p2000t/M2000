@@ -21,11 +21,11 @@
 extern byte Verbose;            /* Debug messages ON/OFF                    */
 extern byte *VRAM,*RAM,*ROM;    /* Main and Video RAMs                      */
 extern int RAMSize;             /* Amount of RAM installed                  */
-extern char *FontName;          /* Font file                                */
-extern char *CartName;          /* Cartridge ROM file                       */
-extern char *ROMName;           /* Main ROM file                            */
-extern char *TapeName;          /* Tape image                               */
-extern char *PrnName;           /* Printer log file                         */
+extern const char *FontName;          /* Font file                                */
+extern const char *CartName;          /* Cartridge ROM file                       */
+extern const char *ROMName;           /* Main ROM file                            */
+extern const char *TapeName;          /* Tape image                               */
+extern const char *PrnName;           /* Printer log file                         */
 extern int PrnType;             /* Printer type                             */
 extern byte DISAReg;            /* Reg #0x70                                */
 extern byte SoundReg;           /* Reg #0x50                                */
@@ -38,6 +38,7 @@ extern int TapeProtect;         /* 1 if tape is write-protected             */
 extern int UPeriod;             /* Number of interrupts/screen update       */
 extern int IFreq;               /* Number of interrupts/second              */
 extern int Sync;                /* 1 if emulation should be synced          */
+extern int CpuSpeed;            /* default 100                              */
 /****************************************************************************/
 
 /****************************************************************************/
@@ -117,7 +118,7 @@ void Pause (int ms);
 /****************************************************************************/
 /*** Load the specified font                                              ***/
 /************************************************** TO BE WRITTEN BY USER ***/
-int LoadFont (char *filename);
+int LoadFont (const char *filename);
 
 /****************************************************************************/
 /*** Returns the path relative to the M2000 executable                    ***/

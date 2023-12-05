@@ -11,9 +11,5 @@
             "CHERE_INVOKING": "1"
           }
         }
-  },
-  "files.associations": {
-    "allegro_native_dialog.h": "c",
-    "common.h": "c"
   }
 }

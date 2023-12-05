@@ -45,6 +45,7 @@
 #define OPTIONS_JOYSTICK_MAP_0_ID 45
 #define OPTIONS_JOYSTICK_MAP_1_ID 46
 #define OPTIONS_JOYSTICK_MAP 47
+#define OPTIONS_SAVE_PREFERENCES 48
 
 #define SPEED_SYNC 50
 #define SPEED_PAUSE 51
@@ -161,18 +162,20 @@ void CreateEmulatorMenu()
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Options", 0),
-      {soundmode ? "Sound On/Off (F10)" : "Sound Card Not Detected", OPTIONS_SOUND_ID, soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+      {soundDetected ? "Sound On/Off (F10)" : "Sound Card Not Detected", OPTIONS_SOUND_ID, soundDetected ? (soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
       ALLEGRO_START_OF_MENU("Sound Volume", 0),
         { "High", OPTIONS_VOLUME_HIGH_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "Medium", OPTIONS_VOLUME_MEDIUM_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "Low", OPTIONS_VOLUME_LOW_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_MENU_SEPARATOR,
-      {joymode ? "Joystick On/Off" : "Joystick Not Detected", OPTIONS_JOYSTICK_ID, joymode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_DISABLED, NULL },
+      {joyDetected ? "Joystick On/Off" : "Joystick Not Detected", OPTIONS_JOYSTICK_ID, joyDetected ? (joymode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
       ALLEGRO_START_OF_MENU("Joystick Mapping", OPTIONS_JOYSTICK_MAP),
         { "Emulate Cursorkeys + Spacebar", OPTIONS_JOYSTICK_MAP_0_ID, joymode ? (joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
         { "Fraxxon Mode (Left/Up/Spacebar)", OPTIONS_JOYSTICK_MAP_1_ID, joymode ? (joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX) : ALLEGRO_MENU_ITEM_DISABLED, NULL },
         ALLEGRO_END_OF_MENU,
+      ALLEGRO_MENU_SEPARATOR,
+      {"Save Preferences", OPTIONS_SAVE_PREFERENCES, 0, NULL },
       ALLEGRO_END_OF_MENU,
 
     ALLEGRO_START_OF_MENU("Help", 0),
@@ -182,7 +185,7 @@ void CreateEmulatorMenu()
   };
 
   menu = al_build_menu(menu_info);
-  if (!joymode) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
+  if (!joyDetected) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
   UpdateViewMenu();
