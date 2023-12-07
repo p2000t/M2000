@@ -6,10 +6,12 @@
 
 static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayTileWidth, DisplayTileHeight;
 static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _DisplayTileWidth, _DisplayTileHeight;
-int videomode = 0; /* autodetect */
-int scanlines = 0;
-int smoothing = 1;
+int videomode, optimalVideomode;
+int scanlines;
+int smoothing;
 int menubarHeight = 0;
+
+ALLEGRO_CONFIG *config = NULL;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
@@ -32,7 +34,7 @@ ALLEGRO_PATH *currentTapePath = NULL;
 int buf_size;
 int sample_rate;
 signed char *soundbuf = NULL;      /* Pointer to sound buffer               */
-int mastervolume=4;               /* Master volume setting                 */
+int mastervolume;                  /* Master volume setting                 */
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
@@ -43,7 +45,7 @@ char *Title="M2000 - Philips P2000 emulator"; /* Title for Window  */
 char DocumentPath[FILENAME_MAX];
 char ProgramPath[FILENAME_MAX];
 
-int keyboardmap = 1;               /* 1 = symbolic keyboard mapping         */
+int keyboardmap;
 
 ALLEGRO_BITMAP *FontBuf = NULL;
 ALLEGRO_BITMAP *FontBuf_bk = NULL;
@@ -54,18 +56,19 @@ static unsigned char joyKeyMapping[2][5] = {
   { 23, 21,  0,  2, 17 }, /* right, down, left, up, fire-button */
   {  2, -1,  0, -1, 17 }  /* Fraxxon mode, using keys left/up for moving */ 
 };
-int joymode=1;                     /* If 0, do not use joystick             */
-int joymap=0;                      /* 0 = default joystick-key mapping      */
+int joymode;
+int joyDetected;               
+int joymap;
+int uilanguage;                   
 ALLEGRO_JOYSTICK *joystick = NULL;
 ALLEGRO_JOYSTICK_STATE joyState;
 bool lastJoyState[5];
 
 ALLEGRO_EVENT_QUEUE *timerQueue = NULL;
 ALLEGRO_TIMER *timer;
-static int CpuSpeed;
 
-int soundmode=1;                   /* Sound mode, 1=on                      */
-static int soundoff=0;             /* If 1, sound is turned off             */
+int soundmode;                     /* Sound mode, 1=on                      */
+int soundDetected;
 static int *OldCharacter;          /* Holds characters on the screen        */
 
 static int Displays[][2] = { 
@@ -113,7 +116,7 @@ void InitVideoMode()
           (Displays[i][1] / 24 * 25) <= 0.8*(monitorInfo.y2 - monitorInfo.y1))
         break;
     }
-    videomode = i; // 640 x 480 will be the minimum
+    optimalVideomode = videomode = i; // 640 x 480 will be the minimum
     if (Verbose) printf("optmimal window size: %i x %i ... ", Displays[videomode][0], Displays[videomode][1]);
   }
 }

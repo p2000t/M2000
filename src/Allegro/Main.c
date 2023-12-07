@@ -62,6 +62,7 @@
 #include "Keyboard.h"
 #include "Menu.h"
 #include "State.h"
+#include "Config.h"
 
 /****************************************************************************/
 /*** Deallocate resources taken by InitMachine()                          ***/
@@ -106,7 +107,7 @@ void ResetAudioStream()
     stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
     if (!stream || !soundbuf) {
       if (Verbose) puts("FAILED");
-      soundmode = 0;
+      soundDetected = 0;
     }
     else if (Verbose) puts("OK");
 
@@ -115,7 +116,7 @@ void ResetAudioStream()
     if (!al_attach_audio_stream_to_mixer(stream, mixer))
     {
       if (Verbose) puts("FAILED");
-      soundmode = 0;
+      soundDetected = 0;
     }
     else if (Verbose) puts("OK");
 }
@@ -149,13 +150,10 @@ void ToggleFullscreen()
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
 #endif
-    al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
   } else {
-    //go fullscreen: hide menu and mouse
+    //go fullscreen and hide menu
     al_remove_display_menu(display);
-    al_hide_mouse_cursor(display);
-
     _DisplayWidth = DisplayWidth;
     _DisplayHeight = DisplayHeight;
     _DisplayTileWidth = DisplayTileWidth;
@@ -213,25 +211,45 @@ int CopyFile(ALLEGRO_PATH *sourceFolder, const char * filename, ALLEGRO_PATH *de
   return ret;
 }
 
+void InitDocumentFolders() 
+{
+  int i;
+  ALLEGRO_PATH *resourcePath = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+  // debian install check
+  if (!strcmp(al_path_cstr(resourcePath, PATH_SEPARATOR), "/usr/bin/"))
+    resourcePath = al_create_path_for_directory("/usr/share/M2000/");
+
+  CopyFile(resourcePath, "README.md", docPath);
+  al_set_path_filename(docPath, NULL);
+
+  al_append_path_component((userCassettesPath = al_clone_path(docPath)), "Cassettes");
+  if (!al_filename_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
+    for (i=0; installCassettes[i]; i++)
+      CopyFile(resourcePath, installCassettes[i], userCassettesPath);
+
+  al_append_path_component((userCartridgesPath = al_clone_path(docPath)), "Cartridges");
+  if (!al_filename_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
+    for (i=0; installCartridges[i]; i++)
+      CopyFile(resourcePath, installCartridges[i], userCartridgesPath);
+
+  al_append_path_component((userScreenshotsPath = al_clone_path(docPath)), "Screenshots");
+  al_make_directory(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
+
+  al_append_path_component((userVideoRamDumpsPath = al_clone_path(docPath)), "VideoRAM dumps");
+  al_make_directory(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
+
+  al_append_path_component((userStateSnapshotsPath= al_clone_path(docPath)), "State snapshots");
+  al_make_directory(al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR));
+
+  al_destroy_path(resourcePath);
+}
+
 /****************************************************************************/
 /*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
 /****************************************************************************/
 int InitMachine(void)
 {
-  int i;
   int startFullScreen = (videomode == FULLSCREEN_VIDEO_MODE);
-  //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
-  CpuSpeed = Z80_IPeriod*IFreq*100/2500000;
-  if (CpuSpeed > 350) CpuSpeed = 500;
-  else if (CpuSpeed > 160) CpuSpeed = 200;
-  else if (CpuSpeed > 110) CpuSpeed = 120;
-  else if (CpuSpeed > 75) CpuSpeed = 100;
-  else if (CpuSpeed > 35) CpuSpeed = 50;
-  else if (CpuSpeed > 15) CpuSpeed = 20;
-  else CpuSpeed = 10;
-
-  //only support 50Hz and 60Hz
-  IFreq = IFreq >= 55 ? 60 : 50; 
 
   if (TapeName) 
     currentTapePath = al_create_path(TapeName);
@@ -244,64 +262,32 @@ int InitMachine(void)
     }
   }
 
-  /* create M2000 folder inside user's Documents folder */
-  docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
-  ALLEGRO_PATH *resourcePath = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
-  // debian install check
-  if (!strcmp(al_path_cstr(resourcePath, PATH_SEPARATOR), "/usr/bin/"))
-    resourcePath = al_create_path_for_directory("/usr/share/M2000/");
-
-  al_append_path_component(docPath, "M2000");
-  if (al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) {
-    CopyFile(resourcePath, "README.md", docPath);
-
-    al_append_path_component((userCassettesPath = al_clone_path(docPath)), "Cassettes");
-    if (!al_filename_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
-      for (i=0; installCassettes[i]; i++)
-        CopyFile(resourcePath, installCassettes[i], userCassettesPath);
-
-    al_append_path_component((userCartridgesPath = al_clone_path(docPath)), "Cartridges");
-    if (!al_filename_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
-      for (i=0; installCartridges[i]; i++)
-        CopyFile(resourcePath, installCartridges[i], userCartridgesPath);
-
-    al_append_path_component((userScreenshotsPath = al_clone_path(docPath)), "Screenshots");
-    al_make_directory(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
-
-    al_append_path_component((userVideoRamDumpsPath = al_clone_path(docPath)), "VideoRAM dumps");
-    al_make_directory(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
-
-    al_append_path_component((userStateSnapshotsPath= al_clone_path(docPath)), "State snapshots");
-    al_make_directory(al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR));
-  }
-  al_destroy_path(resourcePath);
+  InitDocumentFolders();
 
   cassetteChooser = al_create_native_file_dialog(userCassettesPath ? al_path_cstr(userCassettesPath, PATH_SEPARATOR) : NULL,
-    "Select a .cas cassette file", "*.*", 0); //file doesn't have to exist
+    _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(userCartridgesPath ? al_path_cstr(userCartridgesPath, PATH_SEPARATOR) : NULL,
-    "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_CARTRIDGE), "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(userScreenshotsPath ? al_path_cstr(userScreenshotsPath, PATH_SEPARATOR) : NULL,
-    "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
   vRamLoadChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   vRamSaveChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
   stateLoadChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Select a .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   stateSaveChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Save as .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
 
-  if (joymode) {
-    if (Verbose) printf("Initialising and detecting joystick... ");
-    joymode=0; //assume not found
-    if (al_install_joystick()) {
-      if ((joystick = al_get_joystick(0)) != NULL) {
-        joymode = 1;
-        if (Verbose) puts("OK");
-      }
+  if (Verbose) printf("Initialising and detecting joystick... ");
+  joyDetected=0; //assume not found
+  if (al_install_joystick()) {
+    if ((joystick = al_get_joystick(0)) != NULL) {
+      joyDetected = 1;
+      if (Verbose) puts("OK");
     }
-    if (!joymode && Verbose) puts("FAILED");
   }
+  if (!joyDetected && Verbose) puts("FAILED");
 
   if (Verbose) printf("Creating the display window... ");
   InitVideoMode();
@@ -360,14 +346,11 @@ int InitMachine(void)
   ClearScreen();
   if (Verbose) puts("OK");
 
-  if (soundmode) {
-    /* sound init */
-    if (Verbose) printf("Initializing sound...");
-    if (!al_install_audio()) soundmode = 0;
-    if (!al_reserve_samples(0)) soundmode = 0;
-    if (Verbose) puts(soundmode ? "OK" :"FAILED");
-    ResetAudioStream();
-  }
+  /* sound init */
+  if (Verbose) printf("Initializing sound...");
+  soundDetected = al_install_audio() && al_reserve_samples(0);
+  if (Verbose) puts(soundDetected ? "OK" :"FAILED");
+  ResetAudioStream();
 
   // create menu
   if (Verbose) printf("Creating menu...");
@@ -401,7 +384,7 @@ void FlushSound(void)
   static int soundstate = 0;
   static int sample_count = 1;
 
-  if (!soundoff && soundmode) {
+  if (soundmode && soundDetected) {
     int8_t *playbuf = al_get_audio_stream_fragment(stream);
     if (playbuf) {
       for (i=0;i<buf_size;++i) {
@@ -445,7 +428,7 @@ void Sound(int toggle)
   static int last=-1;
   int pos,val;
 
-  if (soundoff || !soundmode) 
+  if (!soundmode || !soundDetected) 
     return;
 
   if (toggle!=last) {
@@ -470,7 +453,7 @@ void drawFontRegion(float x1, float y1, float x2, float y2)
 /****************************************************************************/
 /*** This function loads a font and converts it if necessary              ***/
 /****************************************************************************/
-int LoadFont(char *filename)
+int LoadFont(const char *filename)
 {
   int i, line, x, y, pixelPos;
   int linePixels, linePixelsPrev, linePixelsNext;
@@ -668,12 +651,6 @@ void Keyboard(void)
     return; //stop handling rest of keys
   }
 
-#ifdef __APPLE__
-  //workaround to show mouse cursor coming back from fullscreen mode
-  if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
-    al_show_mouse_cursor(display);
-#endif
-
   int i,j,k;
   byte keyPressed;
   bool isCombiKey, isNormalKey, isShiftKey;
@@ -753,7 +730,7 @@ void Keyboard(void)
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
-    //printf("event.type=%i\n", event.type);
+    if (Verbose) printf("Allegro display/menu event.type: %i\n", event.type);
 #ifdef __APPLE__
     al_clear_keyboard_state(display); //event? -> reset keyboard state
 #endif
@@ -777,6 +754,13 @@ void Keyboard(void)
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
       break;
+    }
+
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+      if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
+        al_hide_mouse_cursor(display);
+      else
+        al_show_mouse_cursor(display);
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
@@ -845,8 +829,14 @@ void Keyboard(void)
         case SPEED_PAUSE:
           pausePressed = !pausePressed;
           break;
-        case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_200_ID: case SPEED_500_ID:
-          CpuSpeed = event.user.data1 - SPEED_OFFSET;
+        case SPEED_10_ID: CpuSpeed=10; goto setSpeed;
+        case SPEED_20_ID: CpuSpeed=20; goto setSpeed;
+        case SPEED_50_ID: CpuSpeed=50; goto setSpeed;
+        case SPEED_100_ID: CpuSpeed=100; goto setSpeed;
+        case SPEED_120_ID: CpuSpeed=120; goto setSpeed;
+        case SPEED_200_ID: CpuSpeed=200; goto setSpeed;
+        case SPEED_500_ID: CpuSpeed=500;
+          setSpeed:
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
           UpdateCpuSpeedMenu();
           break;
@@ -886,10 +876,12 @@ void Keyboard(void)
           delayedShiftedKeyPress = 51;
           break;
         case OPTIONS_SOUND_ID:
-          soundoff = (!soundoff);
+          soundmode = !soundmode;
           break;
-        case OPTIONS_VOLUME_HIGH_ID: case OPTIONS_VOLUME_MEDIUM_ID: case OPTIONS_VOLUME_LOW_ID:
-          mastervolume = event.user.data1 - OPTIONS_VOLUME_OFFSET;
+        case OPTIONS_VOLUME_HIGH_ID: mastervolume=10; goto updateVol;
+        case OPTIONS_VOLUME_MEDIUM_ID: mastervolume=4; goto updateVol;
+        case OPTIONS_VOLUME_LOW_ID: mastervolume=1; 
+          updateVol:
           UpdateVolumeMenu();
           break;
         case OPTIONS_JOYSTICK_ID:
@@ -901,10 +893,22 @@ void Keyboard(void)
           al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_0_ID, joymap==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           al_set_menu_item_flags(menu, OPTIONS_JOYSTICK_MAP_1_ID, joymap==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           break;
+        case OPTIONS_ENGLISH_ID:
+        case OPTIONS_NEDERLANDS_ID:
+          uilanguage = event.user.data1 - OPTIONS_ENGLISH_ID;
+          al_set_menu_item_flags(menu, OPTIONS_ENGLISH_ID, uilanguage==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_set_menu_item_flags(menu, OPTIONS_NEDERLANDS_ID, uilanguage==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+          al_destroy_menu(menu);
+          CreateEmulatorMenu();
+          ClearScreen();
+          break;
+        case OPTIONS_SAVE_PREFERENCES:
+          SaveConfig(docPath);
+          break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
             "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
-            "Thanks to Marcel de Kogel for creating this awesome emulator back in 1996.",
+            _(HELP_ABOUT_MSG_ID),
             NULL, 0);
           break;
         case DISPLAY_SCANLINES:
@@ -984,8 +988,8 @@ void Keyboard(void)
 
   /* F10 = toggle sound on/off */
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F10)) {
-    soundoff = (!soundoff);
-    al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundoff ? ALLEGRO_MENU_ITEM_CHECKBOX : ALLEGRO_MENU_ITEM_CHECKED);
+    soundmode = !soundmode;
+    al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   }
 
   /* F11 toggle fullscreen */
@@ -998,7 +1002,7 @@ void Keyboard(void)
     Z80_Running = 0;
 
   // handle joystick
-  if (joymode) {
+  if (joymode && joyDetected) {
     al_get_joystick_state(joystick, &joyState);
     for (i = 0; i < 5; i++) { // 4 directions and 1 button
       if ((i < 4 && joyState.stick[0].axis[i%2] == -2*(i/2)+1) ||
@@ -1120,15 +1124,21 @@ char *GetDocumentsPath()
 
 int main(int argc,char *argv[]) 
 {
-  if (Verbose) printf("Initialising Allegro driver... ");
   if (!al_init()) return ReturnErrorMessage("Allegro could not initialize its core.");
-  uint32_t version = al_get_allegro_version();
-  printf("(version %i.%i.%i)... ",version >> 24, (version >> 16) & 255, (version >> 8) & 255);
   if (!al_init_primitives_addon()) return ReturnErrorMessage("Allegro could not initialize primitives addon.");
   if (!al_init_image_addon()) return ReturnErrorMessage("Allegro could not initialize image addon.");
   if (!al_init_native_dialog_addon()) return ReturnErrorMessage("Allegro could not initialize native dialog addon.");
   if (!al_install_keyboard())return ReturnErrorMessage("Allegro could not install keyboard.");
-  if (Verbose) puts("OK");
 
+  /* create M2000 folder inside user's Documents folder */
+  docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
+  al_append_path_component(docPath, "M2000");
+  if (!al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) return ReturnErrorMessage("Can't create documents folder %s.", al_path_cstr(docPath, PATH_SEPARATOR));
+
+  InitConfig(docPath);
+  if (Verbose) {
+    uint32_t version = al_get_allegro_version();
+    printf("Using Allegro libs version %i.%i.%i\n",version >> 24, (version >> 16) & 255, (version >> 8) & 255);
+  }
   return M2000_main(argc, argv);
 }

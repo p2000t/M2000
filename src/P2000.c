@@ -23,13 +23,13 @@
 #define TAPE_32_BYTE_HEADER_OFFSET 0
 
 byte Verbose     = 1;
-char *ROMName    = "P2000ROM.bin";
-char *CartName   = "BASIC.bin";
-char *FontName   = "Default.fnt";
-char *TapeName   = "Default.cas";
+const char *ROMName    = "P2000ROM.bin";
+const char *CartName   = "BASIC.bin";
+const char *FontName   = "Default.fnt";
+const char *TapeName   = "Default.cas";
+const char *PrnName    = "Printer.out";
 int TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
 int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
-char *PrnName    = "Printer.out";
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
@@ -37,6 +37,7 @@ int P2000_Mode   = 0;
 int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
+int CpuSpeed     = 100;
 int TapeBootEnabled = 0;
 int PrnType      = 0;
 int RAMSize      = 32;
@@ -353,10 +354,8 @@ void InsertCassette(const char *filename)
     fclose(f);
     if (Verbose) printf ("Reading tape image %s... ",_TapeName);
   }
-  else 
-  {
-    if (Verbose) printf ("Creating tape image %s... ",_TapeName);
-  }
+  else if (Verbose) printf ("Creating tape image %s... ",_TapeName);
+
   TapeName=_TapeName;
   if (GetCassetteHeaderType(TapeName)) {
     TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;

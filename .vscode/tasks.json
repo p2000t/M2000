@@ -15,14 +15,7 @@
             "type": "shell",
             "command": "./M2000",
             "args": [
-                "-t",
-                //"-scanlines", "1",
-                //"-video", "1",
-                //"-sound", "1",
-                //"-cpuspeed",  "100",
-                //"-tape", "test/SAA5050.cas",
-                //"-boot", "1"
-                //"-joymap", "1"
+                //"test/SAA5050.cas"
             ],
             "dependsOn": [
                 "Make"
