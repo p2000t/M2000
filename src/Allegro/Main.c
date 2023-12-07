@@ -265,19 +265,19 @@ int InitMachine(void)
   InitDocumentFolders();
 
   cassetteChooser = al_create_native_file_dialog(userCassettesPath ? al_path_cstr(userCassettesPath, PATH_SEPARATOR) : NULL,
-    "Select a .cas cassette file", "*.*", 0); //file doesn't have to exist
+    _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   cartridgeChooser = al_create_native_file_dialog(userCartridgesPath ? al_path_cstr(userCartridgesPath, PATH_SEPARATOR) : NULL,
-    "Select a .bin cartridge file", "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_CARTRIDGE), "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   screenshotChooser = al_create_native_file_dialog(userScreenshotsPath ? al_path_cstr(userScreenshotsPath, PATH_SEPARATOR) : NULL,
-    "Save as .png or .bmp file",  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
   vRamLoadChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    "Select a .vram file",  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   vRamSaveChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    "Save as .vram file",  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
   stateLoadChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Select a .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+    _(DIALOG_LOAD_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
   stateSaveChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    "Save as .dmp file",  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
+    _(DIALOG_SAVE_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
 
   if (Verbose) printf("Initialising and detecting joystick... ");
   joyDetected=0; //assume not found
