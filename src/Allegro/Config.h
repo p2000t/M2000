@@ -133,7 +133,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "Options",    "volume", "4");
     al_set_config_value  (config, "Options",    "joystick", "on");
     al_set_config_value  (config, "Options",    "joymap", "0");
-    al_set_config_value  (config, "Options",    "language", "EN");
+    al_set_config_value  (config, "Options",    "language", "NL");
     al_add_config_comment(config, "Options",    NULL);
 
     /* Debug */

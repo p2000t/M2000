@@ -8,7 +8,7 @@
 
 static Z80_Regs regs;
 
-const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder, ALLEGRO_PATH *tapePath)
+const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
 {
   static char stateFilePath[FILENAME_MAX];
   static char stateFilePath2[FILENAME_MAX];
@@ -26,7 +26,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder, AL
       else
         sprintf(extension, "-%i.dmp", i);
 
-      al_set_path_filename(stateFolder, tapePath ? al_get_path_filename(tapePath) : "State");
+      al_set_path_filename(stateFolder, "quicksave");
       al_set_path_extension(stateFolder, extension);
       strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
 
@@ -51,7 +51,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder, AL
   return NULL;
 }
 
-void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder, ALLEGRO_PATH *tapePath)
+void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder)
 {
   static char stateFilePath[FILENAME_MAX];
   FILE *f;
@@ -59,7 +59,7 @@ void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder, ALLEGRO_P
   if (chosenFilePath) {
     strcpy(stateFilePath, chosenFilePath);
   } else {
-    al_set_path_filename(stateFolder, tapePath ? al_get_path_filename(tapePath) : "State"); 
+    al_set_path_filename(stateFolder, "quicksave"); 
     al_set_path_extension(stateFolder, ".dmp");
     strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
   }

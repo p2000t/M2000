@@ -814,11 +814,11 @@ void Keyboard(void)
           break;
         case FILE_LOAD_STATE_ID:
           if (al_show_native_file_dialog(display, stateLoadChooser) && al_get_native_file_dialog_count(stateLoadChooser) > 0)
-            LoadState(al_get_native_file_dialog_path(stateLoadChooser, 0), NULL, NULL);
+            LoadState(al_get_native_file_dialog_path(stateLoadChooser, 0), NULL);
           break;
         case FILE_SAVE_STATE_ID:
           if (al_show_native_file_dialog(display, stateSaveChooser) && al_get_native_file_dialog_count(stateSaveChooser) > 0)
-            SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".dmp"), NULL, NULL);
+            SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".dmp"), NULL);
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -946,9 +946,9 @@ void Keyboard(void)
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {
     if (userStateSnapshotsPath) { 
       if (al_shift_down) {
-        LoadState(NULL, userStateSnapshotsPath, currentTapePath);
+        LoadState(NULL, userStateSnapshotsPath);
       } else {
-        SaveState(NULL, userStateSnapshotsPath, currentTapePath);
+        SaveState(NULL, userStateSnapshotsPath);
         IndicateActionDone();
       }
     }
