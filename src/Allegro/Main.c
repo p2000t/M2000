@@ -829,8 +829,14 @@ void Keyboard(void)
         case SPEED_PAUSE:
           pausePressed = !pausePressed;
           break;
-        case SPEED_10_ID: case SPEED_20_ID: case SPEED_50_ID: case SPEED_100_ID: case SPEED_120_ID: case SPEED_200_ID: case SPEED_500_ID:
-          CpuSpeed = event.user.data1 - SPEED_OFFSET;
+        case SPEED_10_ID: CpuSpeed=10; goto setSpeed;
+        case SPEED_20_ID: CpuSpeed=20; goto setSpeed;
+        case SPEED_50_ID: CpuSpeed=50; goto setSpeed;
+        case SPEED_100_ID: CpuSpeed=100; goto setSpeed;
+        case SPEED_120_ID: CpuSpeed=120; goto setSpeed;
+        case SPEED_200_ID: CpuSpeed=200; goto setSpeed;
+        case SPEED_500_ID: CpuSpeed=500;
+          setSpeed:
           Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
           UpdateCpuSpeedMenu();
           break;
@@ -872,8 +878,10 @@ void Keyboard(void)
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;
           break;
-        case OPTIONS_VOLUME_HIGH_ID: case OPTIONS_VOLUME_MEDIUM_ID: case OPTIONS_VOLUME_LOW_ID:
-          mastervolume = event.user.data1 - OPTIONS_VOLUME_OFFSET;
+        case OPTIONS_VOLUME_HIGH_ID: mastervolume=10; goto updateVol;
+        case OPTIONS_VOLUME_MEDIUM_ID: mastervolume=4; goto updateVol;
+        case OPTIONS_VOLUME_LOW_ID: mastervolume=1; 
+          updateVol:
           UpdateVolumeMenu();
           break;
         case OPTIONS_JOYSTICK_ID:
@@ -900,7 +908,7 @@ void Keyboard(void)
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
             "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
-            _("Thanks to Marcel de Kogel for creating the core of this emulator back in 1996."),
+            _(HELP_ABOUT_MSG_ID),
             NULL, 0);
           break;
         case DISPLAY_SCANLINES:
