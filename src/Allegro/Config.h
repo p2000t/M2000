@@ -114,12 +114,10 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_add_config_comment(config, "Display",    "video=<mode>          Select video mode/window size [0]");
     al_add_config_comment(config, "Display",    "                      0  - Autodetect best window size");
     al_add_config_comment(config, "Display",    "                      1  - 640x480");
-    al_add_config_comment(config, "Display",    "                      2  - 800x600");
-    al_add_config_comment(config, "Display",    "                      3  - 960x720");
-    al_add_config_comment(config, "Display",    "                      4  - 1280x960");
-    al_add_config_comment(config, "Display",    "                      5  - 1440x1080");
-    al_add_config_comment(config, "Display",    "                      6  - 1600x1200");
-    al_add_config_comment(config, "Display",    "                      7  - 1920x1440");
+    al_add_config_comment(config, "Display",    "                      2  - 960x720");
+    al_add_config_comment(config, "Display",    "                      3  - 1280x960");
+    al_add_config_comment(config, "Display",    "                      4  - 1600x1200");
+    al_add_config_comment(config, "Display",    "                      5  - 1920x1440");
     al_add_config_comment(config, "Display",    "                      99 - Full Screen (not supported on Linux)");
     al_add_config_comment(config, "Display",    "scanlines=on|off      Show/Do not show scanlines [off]");
     al_add_config_comment(config, "Display",    "smoothing=on|off      Use display smoothing [on]");

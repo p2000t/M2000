@@ -856,7 +856,6 @@ void Keyboard(void)
           uilanguage = event.user.data1 - OPTIONS_ENGLISH_ID;
           al_set_menu_item_flags(menu, OPTIONS_ENGLISH_ID, uilanguage==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           al_set_menu_item_flags(menu, OPTIONS_NEDERLANDS_ID, uilanguage==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-          al_destroy_menu(menu);
           CreateEmulatorMenu();
           ClearScreen();
           break;

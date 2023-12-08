@@ -149,6 +149,10 @@ void CreateEmulatorMenu()
     ALLEGRO_END_OF_MENU
   };
 
+  if (menu) { 
+    al_remove_display_menu(display);
+    al_destroy_menu(menu);
+  }
   menu = al_build_menu(menu_info);
   if (!joyDetected) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
