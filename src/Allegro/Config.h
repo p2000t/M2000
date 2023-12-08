@@ -86,7 +86,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "Hardware",   "printertype", "0");
     al_set_config_value  (config, "Hardware",   "romfile", "P2000ROM.bin");
     al_set_config_value  (config, "Hardware",   "font", "Default.fnt");
-    al_add_config_comment(config, "Hardware",   NULL);
+    al_add_config_comment(config, "Hardware",   "");
 
     /* File */
     al_add_config_comment(config, "File",       "tape=<filename>       Select tape image to use [Default.cas]");
@@ -95,7 +95,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "File",       "tape", "Default.cas");
     al_set_config_value  (config, "File",       "cart", "BASIC.bin");
     al_set_config_value  (config, "File",       "printer", "Printer.out");
-    al_add_config_comment(config, "File",       NULL);
+    al_add_config_comment(config, "File",       "");
 
     /* Speed */
     al_add_config_comment(config, "Speed",      "ifreq=<frequency>     Select interrupt frequency [50] Hz");
@@ -108,7 +108,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "Speed",      "cpuspeed", "100");
     al_set_config_value  (config, "Speed",      "sync", "on");
     al_set_config_value  (config, "Speed",      "uperiod", "1");
-    al_add_config_comment(config, "Speed",      NULL);
+    al_add_config_comment(config, "Speed",      "");
     
     /* Display */
     al_add_config_comment(config, "Display",    "video=<mode>          Select video mode/window size [0]");
@@ -126,14 +126,14 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "Display",    "video", "0");
     al_set_config_value  (config, "Display",    "scanlines", "off");
     al_set_config_value  (config, "Display",    "smoothing", "on");
-    al_add_config_comment(config, "Display",    NULL);
+    al_add_config_comment(config, "Display",    "");
 
     /* Keyboard */
     al_add_config_comment(config, "Keyboard",   "keymap <mode>         Select keyboard mapping [1]");
     al_add_config_comment(config, "Keyboard",   "                      0 - Positional mapping");
     al_add_config_comment(config, "Keyboard",   "                      1 - Symbolic mapping");
     al_set_config_value  (config, "Keyboard",   "keymap", "1");
-    al_add_config_comment(config, "Keyboard",   NULL);
+    al_add_config_comment(config, "Keyboard",   "");
 
     /* Options */
     al_add_config_comment(config, "Options",    "sound=on|off          Select sound mode [on]");
@@ -153,7 +153,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_set_config_value  (config, "Options",    "joystick", "on");
     al_set_config_value  (config, "Options",    "joymap", "0");
     al_set_config_value  (config, "Options",    "language", "EN");
-    al_add_config_comment(config, "Options",    NULL);
+    al_add_config_comment(config, "Options",    "");
 
     /* Debug */
     al_add_config_comment(config, "Debug",      "verbose=<level>       Select debugging messages [0]");

@@ -992,8 +992,8 @@ void DrawTileScanlines(int tileX, int tileY)
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
   for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3.0*vpixel)
   {
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, scanlineColor, vpixel);
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2.0*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2*vpixel, evenLineColor, vpixel);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+0.1*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+0.1*vpixel, scanlineColor, vpixel);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2.0*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2.0*vpixel, evenLineColor, vpixel);
   }
 }
 
