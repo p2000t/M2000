@@ -153,5 +153,5 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 ## License
 
-M2000 is distributed under the terms of the GNU General Public License v3 as described in [LICENSE](LINCESE).
+M2000 is distributed under the terms of the GNU General Public License v3 as described in [LICENSE](LICENSE).
 
