@@ -43,8 +43,8 @@ F1               -  ZOEK key (show cassette index in BASIC)
 F2               -  START key (start loaded program in BASIC)
 Shift-F2         -  STOP key (pause/halt program in BASIC)
 F5               -  Reset P2000
-F6               -  Save state to file (without dialog)
-Shift-F6         -  Load last saved state (without dialog)
+F6               -  Save current state to file (without dialog)
+Shift-F6         -  Load previously saved state (without dialog)
 F7               -  Save screenshot to file (without dialog)
 F8               -  Save visible video RAM to file (without dialog)
 F9               -  Toggle pause on/off
@@ -145,14 +145,13 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 ## Credits
 
-- Marcel de Kogel for creating the M2000 emulator, as found on his [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html)
-- Stafano Bodrato (@zx70) for creating the initial Allegro version for M2000
+* Thanks to Marcel de Kogel for originally creating M2000 back in 1996-1997. His [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html) is still up and running.
+
+* Thanks to Stafano Bodrato for creating the initial Allegro driver for M2000 in 2013.
+
+* Thanks to the M2000 maintainers and contributors for its continued development: Ivo Filot, Martijn Koch and Dion Olsthoorn.
 
 ## License
 
-Unknown, but probably GNU GPLv3, as most of the original source files contain the following header:
-```
-Copyright (C) Marcel de Kogel 1996,1997
-You are not allowed to distribute this software commercially
-Please, notify me, if you make any changes to this file
-```
+M2000 is distributed under the terms of the GNU General Public License v3 as described in [LICENSE](LINCESE).
+

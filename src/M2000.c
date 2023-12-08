@@ -1,13 +1,23 @@
-/*** M2000: Portable P2000 emulator *****************************************/
-/***                                                                      ***/
-/***                                M2000.c                               ***/
-/***                                                                      ***/
-/*** This file contains the startup code. It is implementation agnotic.   ***/
-/***                                                                      ***/
-/*** Copyright (C) Marcel de Kogel 1996,1997                              ***/
-/***     You are not allowed to distribute this software commercially     ***/
-/***     Please, notify me, if you make any changes to this file          ***/
-/****************************************************************************/
+/******************************************************************************/
+/*                             M2000 - the Philips                            */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                ████████|████████|████████|████████|████████                */
+/*                ███||███|███||███|███||███|███||███|███||███                */
+/*                ███||███||||||███|███||███|███||███|███||███                */
+/*                ████████|||||███||███||███|███||███|███||███                */
+/*                ███|||||||||███|||███||███|███||███|███||███                */
+/*                ███|||||||███|||||███||███|███||███|███||███                */
+/*                ███||||||████████|████████|████████|████████                */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                                  emulator                                  */
+/*                                                                            */
+/*   Copyright (C) 1996-2023 by Marcel de Kogel and the M2000 team.           */
+/*                                                                            */
+/*   See the file "LICENSE" for information on usage and redistribution of    */
+/*   this file, and for a DISCLAIMER OF ALL WARRANTIES.                       */
+/******************************************************************************/
+
+// This file contains the startup code. It is implementation agnotic.
 
 #include <stdio.h>
 #include <stdlib.h>
