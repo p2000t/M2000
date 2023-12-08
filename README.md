@@ -78,38 +78,38 @@ If you want to compile the M2000 sources yourself, then the instructions below w
 ### Linux
 * Using your Linux disto's package manager, install the essential build tools and Allegro 5 libs. For Debian/Ubuntu/Linux Mint you can use the `apt` package manager:
   ```
-  $ sudo apt update && sudo apt install git build-essential liballegro5-dev
+  sudo apt update && sudo apt install git build-essential liballegro5-dev
   ```
 * Clone the M2000 repo:
   ```
-  $ git clone https://github.com/p2000t/M2000.git
+  git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
   ```
-  $ cd M2000 && make
+  cd M2000 && make
   ```
 * After successfull building, you can run M2000:
   ```
-  $ ./M2000
+  ./M2000
   ```
 
 ### macOS
 Make sure you have both the `Xcode command line tools` and `brew` installed.
 * Now install the Allegro 5 libs using brew:
   ```
-  $ brew install allegro
+  brew install allegro
   ```
 * Clone the M2000 repo:
   ```
-  $ git clone https://github.com/p2000t/M2000.git
+  git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
   ```
-  $ cd M2000 && make
+  cd M2000 && make
   ```
 * After successfull building, you can run M2000:
   ```
-  $ ./M2000
+  ./M2000
   ```
 
 ### Windows
@@ -118,19 +118,19 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 * After you've installed MSYS2, open its MINGW64 shell environment and install the required tools and libraries:
   ```
-  $ pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
+  pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
   ```
 * Clone the M2000 repo:
   ```
-  $ git clone https://github.com/p2000t/M2000.git
+  git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make:
   ```
-  $ cd M2000 && make
+  cd M2000 && make
   ```
 * After successfull building, you can run M2000:
   ```
-  $ ./M2000
+  ./M2000
   ```
 
 ## More information on the P2000
