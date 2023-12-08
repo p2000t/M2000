@@ -148,4 +148,5 @@ void UpdateDisplaySettings()
   DisplayTileHeight = DisplayHeight / 24;
   DisplayHBorder = DisplayTileWidth;
   DisplayVBorder = DisplayTileHeight / 2;
+  if (Verbose) printf("DisplayTileWidth: %i, DisplayTileHeight: %i\n", DisplayTileWidth, DisplayTileHeight);
 }

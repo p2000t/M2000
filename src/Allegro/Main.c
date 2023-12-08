@@ -1004,18 +1004,20 @@ void Keyboard(void)
 /****************************************************************************/
 /*** Pause specified ammount of time                                      ***/
 /****************************************************************************/
-void Pause(int ms) {
+void Pause(int ms) 
+{
   al_rest((double)ms / 1000.0);
 }
 
-void DrawTileScanlines(int tileX, int tileY) {
+void DrawTileScanlines(int tileX, int tileY) 
+{
   int i; 
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
-  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 150);
+  ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
   for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3)
   {
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, evenLineColor, 1);
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2, scanlineColor, 1);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, scanlineColor, 1);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2, evenLineColor, 1);
   }
 }
 
