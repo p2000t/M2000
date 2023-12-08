@@ -880,8 +880,8 @@ void Keyboard(void)
         case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
           break;
-        case DISPLAY_WINDOW_640x480: case DISPLAY_WINDOW_800x600: case DISPLAY_WINDOW_960x720: case DISPLAY_WINDOW_1280x960: 
-        case DISPLAY_WINDOW_1440x1080: case DISPLAY_WINDOW_1600x1200: case DISPLAY_WINDOW_1920x1440:
+        case DISPLAY_WINDOW_640x480: case DISPLAY_WINDOW_960x720: case DISPLAY_WINDOW_1280x960: 
+        case DISPLAY_WINDOW_1600x1200: case DISPLAY_WINDOW_1920x1440:
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
           UpdateViewMenu();
@@ -986,13 +986,14 @@ void Pause(int ms)
 
 void DrawTileScanlines(int tileX, int tileY) 
 {
-  int i; 
+  float i;
+  float vpixel = DisplayTileHeight/30.0;
   ALLEGRO_COLOR evenLineColor = al_map_rgba(0, 0, 0, 50);
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
-  for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3)
+  for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3.0*vpixel)
   {
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, scanlineColor, 1);
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2, evenLineColor, 1);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i, DisplayHBorder + (tileX+1)*DisplayTileWidth, i, scanlineColor, vpixel);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2.0*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2*vpixel, evenLineColor, vpixel);
   }
 }
 
@@ -1017,15 +1018,15 @@ static inline void PutChar_M(int x, int y, int c, int eor, int ul)
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_scaled_bitmap(
-      eor ? (smoothing ? smFontBuf_bk : FontBuf_bk) : (smoothing ? smFontBuf : FontBuf), 
-      c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 
-      0.5 * DisplayTileWidth, DisplayTileHeight, 0);
+    eor ? (smoothing ? smFontBuf_bk : FontBuf_bk) : (smoothing ? smFontBuf : FontBuf), 
+    c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
+    DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 
+    0.5 * DisplayTileWidth, DisplayTileHeight, 0);
   if (ul)
     al_draw_filled_rectangle(
-        DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
-        DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
-        al_map_rgb(255, 255, 255));
+      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
+      DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
+      al_map_rgb(255, 255, 255));
   if (scanlines) DrawTileScanlines(x, y);
 }
 
@@ -1041,20 +1042,20 @@ static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(
-      smoothing ? smFontBuf : FontBuf,
-      al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
+    smoothing ? smFontBuf : FontBuf,
+    al_map_rgba(Pal[fg * 3], Pal[fg * 3 + 1], Pal[fg * 3 + 2], 255), 
+    c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT/2, 
+    CHAR_TILE_WIDTH, si ? CHAR_TILE_HEIGHT/2 : CHAR_TILE_HEIGHT,
+    DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
+    DisplayTileWidth, DisplayTileHeight, 0);
+  if (bg)
+    al_draw_tinted_scaled_bitmap(
+      smoothing ? smFontBuf_bk : FontBuf_bk,
+      al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
       c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT/2, 
       CHAR_TILE_WIDTH, si ? CHAR_TILE_HEIGHT/2 : CHAR_TILE_HEIGHT,
       DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
       DisplayTileWidth, DisplayTileHeight, 0);
-  if (bg)
-    al_draw_tinted_scaled_bitmap(
-        smoothing ? smFontBuf_bk : FontBuf_bk,
-        al_map_rgba(Pal[bg * 3], Pal[bg * 3 + 1], Pal[bg * 3 + 2], 0), 
-        c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), (si >> 1) * CHAR_TILE_HEIGHT/2, 
-        CHAR_TILE_WIDTH, si ? CHAR_TILE_HEIGHT/2 : CHAR_TILE_HEIGHT,
-        DisplayHBorder + x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight,
-        DisplayTileWidth, DisplayTileHeight, 0);
   if (scanlines) DrawTileScanlines(x, y);
 }
 

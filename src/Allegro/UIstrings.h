@@ -39,12 +39,10 @@ typedef struct {
 #define FILE_LOAD_STATE_ID                12
 #define DISPLAY_WINDOW_MENU               20
 #define DISPLAY_WINDOW_640x480            21
-#define DISPLAY_WINDOW_800x600            22
-#define DISPLAY_WINDOW_960x720            23
-#define DISPLAY_WINDOW_1280x960           24
-#define DISPLAY_WINDOW_1440x1080          25
-#define DISPLAY_WINDOW_1600x1200          26
-#define DISPLAY_WINDOW_1920x1440          27
+#define DISPLAY_WINDOW_960x720            22
+#define DISPLAY_WINDOW_1280x960           23
+#define DISPLAY_WINDOW_1600x1200          24
+#define DISPLAY_WINDOW_1920x1440          25
 #define DISPLAY_SCANLINES                 28
 #define DISPLAY_FULLSCREEN                29
 #define DISPLAY_FULLSCREEN_APPLE          107
