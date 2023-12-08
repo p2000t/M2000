@@ -440,10 +440,8 @@ int LoadFont(const char *filename)
 {
   int i, line, x, y, pixelPos;
   int linePixels, linePixelsPrev, linePixelsNext;
-  int linePixelsPrevPrev, linePixelsNextNext;
   int pixelN, pixelE, pixelS, pixelW;
-  int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN;
-  int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW;
+  int pixelSW, pixelSE, pixelNW, pixelNE;
   char *TempBuf;
   FILE *F;
 
@@ -484,18 +482,14 @@ int LoadFont(const char *filename)
   // Stretch 6x10 characters to 12x20, so we can do character rounding 
   // 96 alpha + 64 graphic (cont) + 64 graphic (sep)
   for (i = 0; i < (96 + 64 + 64) * 10; i += 10) { 
-    linePixelsPrevPrev = 0;
     linePixelsPrev = 0;
     linePixels = 0;
     linePixelsNext = TempBuf[i] << 6;
-    linePixelsNextNext = TempBuf[i+1] << 6;
     for (line = 0; line < 10; ++line) {
       y = line * CHAR_PIXEL_HEIGHT;
-      linePixelsPrevPrev = linePixelsPrev >> 6;
       linePixelsPrev = linePixels >> 6;
       linePixels = linePixelsNext >> 6;
-      linePixelsNext = linePixelsNextNext >> 6;
-      linePixelsNextNext = line < 8 ? TempBuf[i + line + 2] : 0;
+      linePixelsNext = line < 9 ? TempBuf[i + line + 1] : 0;
 
       for (pixelPos = 0; pixelPos < 6; ++pixelPos) {
         x = (i * 6 / 10 + pixelPos) * CHAR_PIXEL_WIDTH + i / 10 * CHAR_TILE_SPACE;
@@ -508,8 +502,7 @@ int LoadFont(const char *filename)
         else {
           /* character rounding */
           if (i < 96 * 10) { // check if within alpanum character range
-            // for character rounding, look at 18 pixel around current pixel
-            // using 16-wind compass notation + NN and SS
+            // for character rounding, look at 8 pixels around current pixel
             pixelN = linePixelsPrev & 0x20;
             pixelE = linePixels & 0x10;
             pixelS = linePixelsNext & 0x20;
@@ -518,45 +511,29 @@ int LoadFont(const char *filename)
             pixelSE = linePixelsNext & 0x10;
             pixelSW = linePixelsNext & 0x40;
             pixelNW = linePixelsPrev & 0x40;
-            pixelSSW = linePixelsNextNext & 0x40;
-            pixelSSE = linePixelsNextNext & 0x10;
-            pixelWNW = linePixelsPrev & 0x80;
-            pixelENE = linePixelsPrev & 0x08;
-            pixelESE = linePixelsNext & 0x08;
-            pixelWSW = linePixelsNext & 0x80;
-            pixelNN = linePixelsPrevPrev & 0x20;
             
-            // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
-            if (pixelN && pixelW && (!pixelNW || (!pixelSW && pixelWSW))) {
-              if (pixelSW && pixelNN) //alternative rounding for outer side of V
-                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT);
-              else
-                drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT/2);
+            if (pixelN && pixelW && !pixelNW) {
+              drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in NE direction
-            if (pixelN && pixelE && (!pixelNE || (!pixelSE && pixelESE))) {
-              if (pixelSE && pixelNN) //alternative rounding for outer side of V
-                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT);
-              else
-                drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT/2);
+            if (pixelN && pixelE && !pixelNE) {
+              drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in SE direction
-            if (pixelS && pixelE && (!pixelSE || (!pixelSW && pixelSSW) || (!pixelNE && pixelENE))) {
+            if (pixelS && pixelE && !pixelSE) {
               drawFontRegion(x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH, y+CHAR_PIXEL_HEIGHT);
             }
             // rounding in SW direction
-            if (pixelS && pixelW && (!pixelSW || (!pixelSE && pixelSSE) || (!pixelNW && pixelWNW))) {
+            if (pixelS && pixelW && !pixelSW) {
               drawFontRegion(x, y+CHAR_PIXEL_HEIGHT/2, x+CHAR_PIXEL_WIDTH/2, y+CHAR_PIXEL_HEIGHT);
             }
           }
         }
         //process next pixel to the right
-        linePixelsPrevPrev<<=1;
         linePixelsPrev<<=1;
         linePixels<<=1;
         linePixelsNext<<=1;
-        linePixelsNextNext<<=1;
       }
     }
   }
