@@ -1,7 +1,4 @@
 /******************************************************************************/
-/*   Allegro.c                                                                */
-/*   This file contains the Allegro 5 drivers.                                */
-/*                                                                            */
 /*                             M2000 - the Philips                            */
 /*                ||||||||||||||||||||||||||||||||||||||||||||                */
 /*                ████████|████████|████████|████████|████████                */
@@ -14,24 +11,10 @@
 /*                ||||||||||||||||||||||||||||||||||||||||||||                */
 /*                                  emulator                                  */
 /*                                                                            */
-/*   Author(s): Stefano Bodrato                                               */
-/*              Dion Olsthoorn                                                */
+/*   Copyright (C) 2013-2023 by the M2000 team.                               */
 /*                                                                            */
-/*   Copyright (C) 1996-2023 by Marcel de Kogel and the M2000 team            */
-/*                                                                            */
-/*   This program is free software: you can redistribute it and/or modify     */
-/*   it under the terms of the GNU General Public License as published by     */
-/*   the Free Software Foundation, either version 3 of the License, or        */
-/*   (at your option) any later version.                                      */
-/*                                                                            */
-/*   This program is distributed in the hope that it will be useful,          */
-/*   but WITHOUT ANY WARRANTY; without even the implied warranty of           */
-/*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            */
-/*   GNU General Public License for more details.                             */
-/*                                                                            */
-/*   You should have received a copy of the GNU General Public License        */
-/*   along with this program. If not, see <http://www.gnu.org/licenses/>.     */
-/*                                                                            */
+/*   See the file "LICENSE" for information on usage and redistribution of    */
+/*   this file, and for a DISCLAIMER OF ALL WARRANTIES.                       */
 /******************************************************************************/
 
 #define CHAR_PIXEL_WIDTH 2 //must be even

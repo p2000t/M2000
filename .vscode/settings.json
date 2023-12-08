@@ -11,5 +11,8 @@
             "CHERE_INVOKING": "1"
           }
         }
+  },
+  "files.associations": {
+    "p2000.h": "c"
   }
 }
