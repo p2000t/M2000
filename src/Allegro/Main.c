@@ -443,7 +443,7 @@ int LoadFont(const char *filename)
   int linePixelsPrevPrev, linePixelsNextNext;
   int pixelN, pixelE, pixelS, pixelW;
   int pixelSW, pixelSE, pixelNW, pixelNE, pixelNN;
-  int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW, pixelNNW, pixelNNE;
+  int pixelSSW, pixelSSE, pixelWNW, pixelENE, pixelESE, pixelWSW;
   char *TempBuf;
   FILE *F;
 
@@ -524,20 +524,18 @@ int LoadFont(const char *filename)
             pixelENE = linePixelsPrev & 0x08;
             pixelESE = linePixelsNext & 0x08;
             pixelWSW = linePixelsNext & 0x80;
-            pixelNNW = linePixelsPrevPrev & 0x40;
-            pixelNNE = linePixelsPrevPrev & 0x10;
             pixelNN = linePixelsPrevPrev & 0x20;
             
             // the extra rounding pixels are in the shape of a (rotated) L
             // rounding in NW direction
-            if (pixelN && pixelW && (!pixelNW || (!pixelNE && pixelNNE) || (!pixelSW && pixelWSW))) {
+            if (pixelN && pixelW && (!pixelNW || (!pixelSW && pixelWSW))) {
               if (pixelSW && pixelNN) //alternative rounding for outer side of V
                 drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT);
               else
                 drawFontRegion(x,y,x+CHAR_PIXEL_WIDTH/2,y+CHAR_PIXEL_HEIGHT/2);
             }
             // rounding in NE direction
-            if (pixelN && pixelE && (!pixelNE || (!pixelNW && pixelNNW) || (!pixelSE && pixelESE))) {
+            if (pixelN && pixelE && (!pixelNE || (!pixelSE && pixelESE))) {
               if (pixelSE && pixelNN) //alternative rounding for outer side of V
                 drawFontRegion(x+CHAR_PIXEL_WIDTH/2,y,x+CHAR_PIXEL_WIDTH,y+CHAR_PIXEL_HEIGHT);
               else
