@@ -146,9 +146,9 @@ void ToggleFullscreen()
     _DisplayHBorder = DisplayHBorder;
     _DisplayVBorder = DisplayVBorder;
 
-    DisplayHeight = monitorInfo.y2 - monitorInfo.y1;
+    DisplayHeight = ((monitorInfo.y2 - monitorInfo.y1) / 240) * 240;
     DisplayWidth = DisplayHeight * 4 / 3;
-    DisplayVBorder = 0;
+    DisplayVBorder = (monitorInfo.y2 - monitorInfo.y1 - DisplayHeight) / 2;
     DisplayHBorder = (monitorInfo.x2 - monitorInfo.x1 - DisplayWidth) / 2;
     DisplayTileWidth = DisplayWidth / 40;
     DisplayTileHeight = DisplayHeight / 24;
@@ -474,7 +474,7 @@ int LoadFont(const char *filename)
   i = 0;
   F = fopen(filename, "rb");
   if (F) {
-    printf("Reading... ");
+    if (Verbose) printf("Reading... ");
     if (fread(TempBuf, 2240, 1, F)) i = 1;
     fclose(F);
   }
@@ -992,8 +992,8 @@ void DrawTileScanlines(int tileX, int tileY)
   ALLEGRO_COLOR scanlineColor = al_map_rgba(0, 0, 0, 120);
   for (i=DisplayVBorder+tileY*DisplayTileHeight; i<DisplayVBorder+(tileY+1)*DisplayTileHeight; i+=3.0*vpixel)
   {
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+0.1*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+0.1*vpixel, scanlineColor, vpixel);
-    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2.0*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2.0*vpixel, evenLineColor, vpixel);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+0.45*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+0.45*vpixel, scanlineColor, vpixel);
+    al_draw_line(DisplayHBorder + tileX*DisplayTileWidth, i+2.45*vpixel, DisplayHBorder + (tileX+1)*DisplayTileWidth, i+2.45*vpixel, evenLineColor, vpixel);
   }
 }
 

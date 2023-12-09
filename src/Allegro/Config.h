@@ -159,7 +159,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_add_config_comment(config, "Debug",      "                      1 - Debug messages");
     al_add_config_comment(config, "Debug",      "                      4 - Debug and Tape messages");
     al_add_config_comment(config, "Debug",      "trap=<address>        Trap execution when PC reaches specified address [-1]");
-    al_set_config_value  (config, "Debug",      "verbose", "1");
+    al_set_config_value  (config, "Debug",      "verbose", "0");
 
     al_save_config_file(al_path_cstr(docPath, PATH_SEPARATOR), config);
   }

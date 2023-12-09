@@ -34,7 +34,7 @@ void UpdateViewMenu() {
 
 void UpdateVolumeMenu () {
   al_set_menu_item_flags(menu, OPTIONS_VOLUME_HIGH_ID, mastervolume == 10 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, OPTIONS_VOLUME_MEDIUM_ID, mastervolume = 4 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, OPTIONS_VOLUME_MEDIUM_ID, mastervolume == 4 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, OPTIONS_VOLUME_LOW_ID, mastervolume == 1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
