@@ -133,10 +133,12 @@ void ToggleFullscreen()
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
 #endif
+    al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
   } else {
-    //go fullscreen and hide menu
+    //go fullscreen and hide menu and mouse
     al_remove_display_menu(display);
+    al_hide_mouse_cursor(display);
     _DisplayWidth = DisplayWidth;
     _DisplayHeight = DisplayHeight;
     _DisplayTileWidth = DisplayTileWidth;
@@ -609,6 +611,12 @@ void Keyboard(void)
     return; //stop handling rest of keys
   }
 
+#ifdef __APPLE__
+  //workaround to show mouse cursor coming back from fullscreen mode
+  if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
+    al_show_mouse_cursor(display);
+#endif
+
   int i,j,k;
   byte keyPressed;
   bool isCombiKey, isNormalKey, isShiftKey;
@@ -712,13 +720,6 @@ void Keyboard(void)
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
       break;
-    }
-
-    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
-      if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
-        al_hide_mouse_cursor(display);
-      else
-        al_show_mouse_cursor(display);
     }
 
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
