@@ -963,7 +963,7 @@ void Keyboard(void)
   if (joymode && joyDetected) {
     al_get_joystick_state(joystick, &joyState);
     for (i = 0; i < 5; i++) { // 4 directions and 1 button
-      if ((i < 4 && joyState.stick[0].axis[i%2] == -2*(i/2)+1) ||
+      if ((i < 4 && joyState.stick[0].axis[i%2]*(-2.0*(i/2)+1.0) > 0.5) ||
           (i == 4 && joyState.button[0])) {
         PushKey(joyKeyMapping[joymap][i]);
         lastJoyState[i] = 1;
