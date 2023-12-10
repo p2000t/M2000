@@ -395,9 +395,8 @@ void SyncEmulation(void)
   // sync emulation by waiting for timer event (fired 50/60 times a second)
   if (Sync) {
     if (al_get_next_event(timerQueue, &event)) {
-#ifdef DEBUG
-      printf("Sync lagged behind @ ts %f...\n", event.timer.timestamp);
-#endif
+      if (Debug)
+        printf("Sync lagged behind @ ts %f...\n", event.timer.timestamp);
       while (al_get_next_event(timerQueue, &event)); //drain the timer queue
     }
     else
@@ -696,7 +695,7 @@ void Keyboard(void)
 
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
-    if (Verbose) printf("Allegro display/menu event.type: %i\n", event.type);
+    if (Debug && isNextEvent) printf("Allegro display/menu event.type: %i\n", event.type);
 #ifdef __APPLE__
     al_clear_keyboard_state(display); //event? -> reset keyboard state
 #endif
@@ -704,7 +703,7 @@ void Keyboard(void)
     if (pausePressed) { // pressing F9 can also unpause
       al_get_keyboard_state(&kbdstate);
       if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
-        pausePressed = 0;
+        pausePressed = Z80_Trace = 0;
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
       if (al_key_up(&kbdstate, ALLEGRO_KEY_RIGHT)) {
@@ -892,13 +891,15 @@ void Keyboard(void)
     }
   }
 
-  /* press F5 to Reset (or trace in DEBUG mode) */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5))
-#ifdef DEBUG
-    Z80_Trace = !Z80_Trace;
-#else
-    Z80_Reset ();
-#endif
+  /* press F5 to Reset (or Shift-F5 to enable trace in DEBUG mode) */
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
+    if (al_shift_down && Debug) {
+      Z80_Trace = 1;
+      pausePressed = 1;
+    }
+    else
+      Z80_Reset ();
+  }
 
   // F6 = save state. Shift-F6 = restore state
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {

@@ -28,14 +28,14 @@
 #endif
 
 /******** Variables used to control emulator behavior ***********************/
-extern byte Verbose;            /* Debug messages ON/OFF                    */
+extern byte Verbose;            /* Verbose messages ON/OFF                  */
 extern byte *VRAM,*RAM,*ROM;    /* Main and Video RAMs                      */
 extern int RAMSize;             /* Amount of RAM installed                  */
-extern const char *FontName;          /* Font file                                */
-extern const char *CartName;          /* Cartridge ROM file                       */
-extern const char *ROMName;           /* Main ROM file                            */
-extern const char *TapeName;          /* Tape image                               */
-extern const char *PrnName;           /* Printer log file                         */
+extern const char *FontName;    /* Font file                                */
+extern const char *CartName;    /* Cartridge ROM file                       */
+extern const char *ROMName;     /* Main ROM file                            */
+extern const char *TapeName;    /* Tape image                               */
+extern const char *PrnName;     /* Printer log file                         */
 extern int PrnType;             /* Printer type                             */
 extern byte DISAReg;            /* Reg #0x70                                */
 extern byte SoundReg;           /* Reg #0x50                                */

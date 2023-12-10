@@ -51,14 +51,12 @@ static Z80_Regs R;
 int Z80_Running=1;
 int Z80_IPeriod=50000;
 int Z80_ICount=50000;
-#ifdef DEBUG
+//debugging vars
+int Debug=0;
 int Z80_Trace=0;
 int Z80_Trap=-1;
-#endif
-#ifdef TRACE
 static unsigned pc_trace[256];
 static unsigned pc_count=0;
-#endif
 
 static byte PTable[512];
 static byte ZSTable[512];
@@ -2527,30 +2525,26 @@ unsigned Z80_GetPC (void)
 /****************************************************************************/
 int Z80_Execute (void)
 {
- unsigned opcode;
- Z80_Running=1;
- InitTables ();
- do
- {
-#ifdef TRACE
-  pc_trace[pc_count]=R.PC.D;
-  pc_count=(pc_count+1)&255;
-#endif
-#ifdef DEBUG
-  if (R.PC.D==Z80_Trap) Z80_Trace=1;
-  if (Z80_Trace) Z80_Debug(&R);
-  if (!Z80_Running) break;
-#endif
-  ++R.R;
-  opcode=M_RDOP(R.PC.D);
-  R.PC.W.l++;
-  Z80_ICount-=cycles_main[opcode];
-  (*(opcode_main[opcode]))();
- }
- while (Z80_ICount>0);
- Z80_ICount+=Z80_IPeriod;
- Interrupt (Z80_Interrupt());
- return Z80_Running;
+  unsigned opcode;
+  Z80_Running=1;
+  InitTables ();
+  do {
+    if (Debug) {
+      pc_trace[pc_count]=R.PC.D;
+      pc_count=(pc_count+1)&255;
+      if (R.PC.D==Z80_Trap) Z80_Trace=1;
+      if (Z80_Trace) Z80_Debug(&R);
+      if (!Z80_Running) break;
+    }
+    ++R.R;
+    opcode=M_RDOP(R.PC.D);
+    R.PC.W.l++;
+    Z80_ICount-=cycles_main[opcode];
+    (*(opcode_main[opcode]))();
+  } while (Z80_ICount>0);
+  Z80_ICount+=Z80_IPeriod;
+  Interrupt (Z80_Interrupt());
+  return Z80_Running;
 }
 
 /****************************************************************************/

@@ -23,7 +23,6 @@
 /****************************************************************************/
 /*** Machine dependent definitions                                        ***/
 /****************************************************************************/
-/* #define DEBUG      */              /* Compile debugging version          */
 
 /****************************************************************************/
 /* If your compiler doesn't know about inlined functions, uncomment this    */
@@ -76,11 +75,10 @@ typedef struct
 /* Set Z80_Trace to 1 when PC==Z80_Trap. When trace is on, Z80_Debug() is   */
 /* called after every instruction                                           */
 /****************************************************************************/
-#ifdef DEBUG
+extern int Debug;
 extern int Z80_Trace;
 extern int Z80_Trap;
 void Z80_Debug(Z80_Regs *R);
-#endif
 
 extern int Z80_Running;      /* When 0, emulation terminates                */
 extern int Z80_IPeriod;      /* Number of T-states per interrupt            */

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <allegro5/allegro.h>
+#include "../Z80.h"
 
 #define CONFIG_FILENAME "M2000.cfg"
 
@@ -56,9 +57,10 @@ void ParseConfig()
   uilanguage      = strcmp(al_get_config_value(config, "Options", "language"), "EN") == 0 ? 0 : 1;
 
   Verbose         = atoi(al_get_config_value(config, "Debug",     "verbose"));
-#ifdef DEBUG
-  sscanf(al_get_config_value(config, "Debug", "trap"), "%X", &Z80_Trap);
-#endif
+  Debug           = strcmp(al_get_config_value(config, "Debug", "debug"), "on") == 0;
+
+  if (Debug && al_get_config_value(config, "Debug", "trap"))
+    sscanf(al_get_config_value(config, "Debug", "trap"), "%X", &Z80_Trap);
 }
 
 void InitConfig(ALLEGRO_PATH * docPath) 
@@ -158,6 +160,7 @@ void InitConfig(ALLEGRO_PATH * docPath)
     al_add_config_comment(config, "Debug",      "                      0 - Silent");    
     al_add_config_comment(config, "Debug",      "                      1 - Debug messages");
     al_add_config_comment(config, "Debug",      "                      4 - Debug and Tape messages");
+    al_add_config_comment(config, "Debug",      "debug=on|off          Select debugging mode [off]");
     al_add_config_comment(config, "Debug",      "trap=<address>        Trap execution when PC reaches specified address [-1]");
     al_set_config_value  (config, "Debug",      "verbose", "0");
 

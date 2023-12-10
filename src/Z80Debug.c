@@ -18,11 +18,8 @@
 /******************************************************************************/
 
 // This file contains a simple single step debugger which is called
-// when DEBUG is #defined and Z80_Trace is true
 
-#ifdef DEBUG
-
-#include "../Z80.h"
+#include "Z80.h"
 #include <stdio.h>
 #include <string.h>
 #include "Z80Dasm.h"
@@ -63,5 +60,3 @@ void Z80_Debug (Z80_Regs *R)
  printf ("%27sAF:%04X BC:%04X DE:%04X HL:%04X IX:%04X IY:%04X\n",
            "",R->AF.D,R->BC.D,R->DE.D,R->HL.D,R->IX.D,R->IY.D);
 }
-
-#endif
