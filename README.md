@@ -145,7 +145,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 ## Credits
 
-* Thanks to Marcel de Kogel for originally creating M2000 back in 1996-1997. His [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html) is still up and running.
+* Thanks to Marcel de Kogel for originally creating M2000 back in 1996-1997. His [M2000 distribution site](https://www.komkon.org/~dekogel/m2000.html) is still up and running, containing the original source code and MS-DOS binaries.
 
 * Thanks to Stafano Bodrato for creating the initial Allegro driver for M2000 in 2013.
 
