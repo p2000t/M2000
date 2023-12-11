@@ -57,7 +57,8 @@ void ParseConfig()
   uilanguage      = strcmp(al_get_config_value(config, "Options", "language"), "EN") == 0 ? 0 : 1;
 
   Verbose         = atoi(al_get_config_value(config, "Debug",     "verbose"));
-  Debug           = strcmp(al_get_config_value(config, "Debug", "debug"), "on") == 0;
+  Debug           = al_get_config_value(config, "Debug", "debug") ?
+                      (strcmp(al_get_config_value(config, "Debug", "debug"), "on") == 0) : 0;
 
   if (Debug && al_get_config_value(config, "Debug", "trap"))
     sscanf(al_get_config_value(config, "Debug", "trap"), "%X", &Z80_Trap);
