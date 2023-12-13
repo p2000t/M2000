@@ -40,9 +40,9 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
     //bump old state dump files down
     for (i=1; i<=10; i++) {
       if (i==10)
-        strcpy(extension, ".dmp");
+        strcpy(extension, ".sav");
       else
-        sprintf(extension, "-%i.dmp", i);
+        sprintf(extension, "-%i.sav", i);
 
       al_set_path_filename(stateFolder, "quicksave");
       al_set_path_extension(stateFolder, extension);
@@ -78,7 +78,7 @@ void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder)
     strcpy(stateFilePath, chosenFilePath);
   } else {
     al_set_path_filename(stateFolder, "quicksave"); 
-    al_set_path_extension(stateFolder, ".dmp");
+    al_set_path_extension(stateFolder, ".sav");
     strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
   }
 

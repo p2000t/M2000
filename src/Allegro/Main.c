@@ -207,24 +207,19 @@ void InitDocumentFolders()
   CopyFile(resourcePath, "README.md", docPath);
   al_set_path_filename(docPath, NULL);
 
-  al_append_path_component((userCassettesPath = al_clone_path(docPath)), "Cassettes");
   if (!al_filename_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
     for (i=0; installCassettes[i]; i++)
       CopyFile(resourcePath, installCassettes[i], userCassettesPath);
 
-  al_append_path_component((userCartridgesPath = al_clone_path(docPath)), "Cartridges");
   if (!al_filename_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
     for (i=0; installCartridges[i]; i++)
       CopyFile(resourcePath, installCartridges[i], userCartridgesPath);
 
-  al_append_path_component((userScreenshotsPath = al_clone_path(docPath)), "Screenshots");
   al_make_directory(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
 
-  al_append_path_component((userVideoRamDumpsPath = al_clone_path(docPath)), "VideoRAM dumps");
   al_make_directory(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
 
-  al_append_path_component((userStateSnapshotsPath= al_clone_path(docPath)), "State snapshots");
-  al_make_directory(al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR));
+  al_make_directory(al_path_cstr(userSavestatesPath, PATH_SEPARATOR));
 
   al_destroy_path(resourcePath);
 }
@@ -248,21 +243,6 @@ int InitMachine(void)
   }
 
   InitDocumentFolders();
-
-  cassetteChooser = al_create_native_file_dialog(userCassettesPath ? al_path_cstr(userCassettesPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
-  cartridgeChooser = al_create_native_file_dialog(userCartridgesPath ? al_path_cstr(userCartridgesPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_LOAD_CARTRIDGE), "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  screenshotChooser = al_create_native_file_dialog(userScreenshotsPath ? al_path_cstr(userScreenshotsPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
-  vRamLoadChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  vRamSaveChooser = al_create_native_file_dialog(userVideoRamDumpsPath ? al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_SAVE_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
-  stateLoadChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_LOAD_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
-  stateSaveChooser = al_create_native_file_dialog(userStateSnapshotsPath ? al_path_cstr(userStateSnapshotsPath, PATH_SEPARATOR) : NULL,
-    _(DIALOG_SAVE_STATE),  "*.dmp", ALLEGRO_FILECHOOSER_SAVE);
 
   if (Verbose) printf("Initialising and detecting joystick... ");
   joyDetected=0; //assume not found
@@ -725,15 +705,18 @@ void Keyboard(void)
       switch (event.user.data1) {
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
+          ALLEGRO_FILECHOOSER *cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
           if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
             InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
             al_destroy_path(currentTapePath);
             currentTapePath = al_create_path(TapeName);
             UpdateWindowTitle();
+            refreshPath(&userCassettesPath, TapeName);
             if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
               Z80_Reset();
             }
           }
+          al_destroy_native_file_dialog(cassetteChooser);
           break;
         case FILE_REMOVE_CASSETTE_ID:
           al_destroy_path(currentTapePath);
@@ -742,8 +725,12 @@ void Keyboard(void)
           UpdateWindowTitle();
           break;
         case FILE_INSERT_CARTRIDGE_ID:
-          if (al_show_native_file_dialog(display, cartridgeChooser) && al_get_native_file_dialog_count(cartridgeChooser) > 0)
+          ALLEGRO_FILECHOOSER *cartridgeChooser = al_create_native_file_dialog(al_path_cstr(userCartridgesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CARTRIDGE), "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+          if (al_show_native_file_dialog(display, cartridgeChooser) && al_get_native_file_dialog_count(cartridgeChooser) > 0) {
             InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
+            refreshPath(&userCartridgesPath, CartName);
+          }
+          al_destroy_native_file_dialog(cartridgeChooser);
           break;
         case FILE_REMOVE_CARTRIDGE_ID:
           RemoveCartridge();
@@ -752,10 +739,15 @@ void Keyboard(void)
           Z80_Reset();
           break;
         case FILE_SAVE_SCREENSHOT_ID:
-          if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0)
+          ALLEGRO_FILECHOOSER *screenshotChooser = al_create_native_file_dialog(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
+          if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0) {
             al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
+            refreshPath(&userScreenshotsPath, al_get_native_file_dialog_path(screenshotChooser, 0));
+          }
+          al_destroy_native_file_dialog(screenshotChooser);
           break;
         case FILE_LOAD_VIDEORAM_ID:
+          ALLEGRO_FILECHOOSER *vRamLoadChooser = al_create_native_file_dialog(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR), _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
           if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
             if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
               // for each of the 24 lines, read 40 chars and skip 40 chars
@@ -763,20 +755,34 @@ void Keyboard(void)
                 fread(VRAM + ScrollReg + i*80, 1, 40, f); 
               fclose(f);
               RefreshScreen();
+              refreshPath(&userVideoRamDumpsPath, al_get_native_file_dialog_path(vRamLoadChooser, 0));
             } 
           }
+          al_destroy_native_file_dialog(vRamLoadChooser);
           break;
         case FILE_SAVE_VIDEORAM_ID:
-          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0)
+          ALLEGRO_FILECHOOSER *vRamSaveChooser = al_create_native_file_dialog(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR), _(DIALOG_SAVE_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_SAVE);
+          if (al_show_native_file_dialog(display, vRamSaveChooser) && al_get_native_file_dialog_count(vRamSaveChooser) > 0) {
             SaveVideoRAM(AppendExtensionIfMissing(al_get_native_file_dialog_path(vRamSaveChooser, 0), ".vram"));
+            refreshPath(&userVideoRamDumpsPath, al_get_native_file_dialog_path(vRamSaveChooser, 0));
+          }
+          al_destroy_native_file_dialog(vRamSaveChooser);
           break;
         case FILE_LOAD_STATE_ID:
-          if (al_show_native_file_dialog(display, stateLoadChooser) && al_get_native_file_dialog_count(stateLoadChooser) > 0)
+          ALLEGRO_FILECHOOSER *stateLoadChooser = al_create_native_file_dialog(al_path_cstr(userSavestatesPath, PATH_SEPARATOR), _(DIALOG_LOAD_STATE),  "*.sav", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+          if (al_show_native_file_dialog(display, stateLoadChooser) && al_get_native_file_dialog_count(stateLoadChooser) > 0) {
             LoadState(al_get_native_file_dialog_path(stateLoadChooser, 0), NULL);
+            refreshPath(&userSavestatesPath, al_get_native_file_dialog_path(stateLoadChooser, 0));
+          }
+          al_destroy_native_file_dialog(stateLoadChooser);
           break;
         case FILE_SAVE_STATE_ID:
-          if (al_show_native_file_dialog(display, stateSaveChooser) && al_get_native_file_dialog_count(stateSaveChooser) > 0)
-            SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".dmp"), NULL);
+          ALLEGRO_FILECHOOSER *stateSaveChooser = al_create_native_file_dialog(al_path_cstr(userSavestatesPath, PATH_SEPARATOR), _(DIALOG_SAVE_STATE),  "*.sav", ALLEGRO_FILECHOOSER_SAVE);
+          if (al_show_native_file_dialog(display, stateSaveChooser) && al_get_native_file_dialog_count(stateSaveChooser) > 0) {
+            SaveState(AppendExtensionIfMissing(al_get_native_file_dialog_path(stateSaveChooser, 0), ".sav"), NULL);
+            refreshPath(&userSavestatesPath, al_get_native_file_dialog_path(stateSaveChooser, 0));
+          }
+          al_destroy_native_file_dialog(stateSaveChooser);
           break;
         case FILE_EXIT_ID:
           Z80_Running = 0;
@@ -859,9 +865,6 @@ void Keyboard(void)
           CreateEmulatorMenu();
           ClearScreen();
           break;
-        case OPTIONS_SAVE_PREFERENCES:
-          SaveConfig(docPath);
-          break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
             "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
@@ -888,6 +891,7 @@ void Keyboard(void)
           ClearScreen();
           break;
       }
+      if (Z80_Running && !delayedShiftedKeyPress) SaveConfig(); //auto save config
     }
   }
 
@@ -903,11 +907,11 @@ void Keyboard(void)
 
   // F6 = save state. Shift-F6 = restore state
   if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {
-    if (userStateSnapshotsPath) { 
+    if (userSavestatesPath) { 
       if (al_shift_down) {
-        LoadState(NULL, userStateSnapshotsPath);
+        LoadState(NULL, userSavestatesPath);
       } else {
-        SaveState(NULL, userStateSnapshotsPath);
+        SaveState(NULL, userSavestatesPath);
         IndicateActionDone();
       }
     }
@@ -1097,7 +1101,7 @@ int main(int argc,char *argv[])
   al_append_path_component(docPath, "M2000");
   if (!al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) return ReturnErrorMessage("Can't create documents folder %s.", al_path_cstr(docPath, PATH_SEPARATOR));
 
-  InitConfig(docPath);
+  InitConfig();
   if (Verbose) {
     uint32_t version = al_get_allegro_version();
     printf("Using Allegro libs version %i.%i.%i\n",version >> 24, (version >> 16) & 255, (version >> 8) & 255);

@@ -34,20 +34,13 @@ ALLEGRO_CONFIG *config = NULL;
 
 ALLEGRO_AUDIO_STREAM *stream = NULL;
 ALLEGRO_MIXER *mixer = NULL;
-ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
-ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
-ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
-ALLEGRO_FILECHOOSER *vRamSaveChooser = NULL;
-ALLEGRO_FILECHOOSER *stateLoadChooser = NULL;
-ALLEGRO_FILECHOOSER *stateSaveChooser = NULL;
 
 ALLEGRO_PATH *docPath = NULL;
 ALLEGRO_PATH *userScreenshotsPath = NULL;
 ALLEGRO_PATH *userVideoRamDumpsPath = NULL;
 ALLEGRO_PATH *userCassettesPath = NULL;
 ALLEGRO_PATH *userCartridgesPath = NULL;
-ALLEGRO_PATH *userStateSnapshotsPath = NULL;
+ALLEGRO_PATH *userSavestatesPath = NULL;
 ALLEGRO_PATH *currentTapePath = NULL;
 
 int buf_size;
@@ -122,6 +115,13 @@ static const char *installCartridges[] = {
   "Familiegeheugen 2.0 NL.bin",
   NULL
 };
+
+void refreshPath(ALLEGRO_PATH **path, const char * newCPath)
+{
+  al_destroy_path(*path);
+  *path = al_create_path(newCPath);
+  al_set_path_filename(*path, NULL);
+}
 
 void InitVideoMode() 
 {
