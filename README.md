@@ -31,11 +31,11 @@ Installation of M2000 depends on your platform:
 ## What's emulated
 
 -  P2000T or P2000M model (P2000M emulation is experimental)
--  Support for 1 ROM cartridge
+-  Support for a single ROM cartridge
 -  User-definable amount of RAM
 -  One tape drive
 -  Sound
--  SAA5050 character rounding emulated in high resolution mode
+-  SAA5050 character rounding
 
 ## Function Keys
 ```
