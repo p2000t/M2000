@@ -157,4 +157,8 @@ void CreateEmulatorMenu()
   UpdateCpuSpeedMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
+#if defined(__linux__)
+  // resize display after menu was attached
+  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
+#endif
 }

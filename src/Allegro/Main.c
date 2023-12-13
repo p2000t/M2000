@@ -322,8 +322,6 @@ int InitMachine(void)
   CreateEmulatorMenu();
 #ifdef _WIN32
   menubarHeight = al_get_display_height(display) - DisplayHeight - 2*DisplayVBorder;
-#endif
-#if defined(_WIN32) || defined(__linux__)
   // resize display after menu was attached
   al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
 #endif
