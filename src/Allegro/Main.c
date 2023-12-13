@@ -125,12 +125,12 @@ void ToggleFullscreen()
     DisplayTileHeight = _DisplayTileHeight;
     DisplayHBorder = _DisplayHBorder;
     DisplayVBorder = _DisplayVBorder;
-    if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+    if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #ifdef __APPLE__
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #else
-    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight -menubarHeight + 2*DisplayVBorder);
+    al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
 #endif
     al_show_mouse_cursor(display);
@@ -320,11 +320,6 @@ int InitMachine(void)
   // create menu
   if (Verbose) printf("Creating menu...");
   CreateEmulatorMenu();
-#ifdef _WIN32
-  menubarHeight = al_get_display_height(display) - DisplayHeight - 2*DisplayVBorder;
-  // resize display after menu was attached
-  al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
-#endif
 
   if (Verbose) puts(menu ? "OK" : "FAILED");
 
@@ -893,7 +888,7 @@ void Keyboard(void)
           videomode = event.user.data1 - DISPLAY_WINDOW_MENU;
           UpdateDisplaySettings();
           UpdateViewMenu();
-          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder -menubarHeight);
+          al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
           ClearScreen();
           break;
       }

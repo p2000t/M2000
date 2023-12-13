@@ -28,7 +28,6 @@ static int _DisplayWidth, _DisplayHeight, _DisplayHBorder, _DisplayVBorder, _Dis
 int videomode, optimalVideomode;
 int scanlines;
 int smoothing;
-int menubarHeight = 0;
 
 ALLEGRO_CONFIG *config = NULL;
 
