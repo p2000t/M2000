@@ -64,7 +64,6 @@ typedef struct {
 #define OPTIONS_JOYSTICK_MAP_0_ID         45
 #define OPTIONS_JOYSTICK_MAP_1_ID         46
 #define OPTIONS_JOYSTICK_MAP              47
-#define OPTIONS_SAVE_PREFERENCES          48
 #define OPTIONS_ENGLISH_ID                38
 #define OPTIONS_NEDERLANDS_ID             39
 #define SPEED_SYNC                        50
@@ -138,8 +137,6 @@ static LanguageEntry ENstrings[] = {
   { OPTIONS_JOYSTICK_MAP, "Joystick Mapping->" },
   { OPTIONS_JOYSTICK_MAP_0_ID, "Emulate Cursorkeys + Spacebar" },
   { OPTIONS_JOYSTICK_MAP_1_ID, "Fraxxon Mode (Left/Up/Spacebar)" },
-  //{ OPTIONS_LANGUAGE_MENU_ID, "UI Language->" },
-  { OPTIONS_SAVE_PREFERENCES, "Save Preferences" },
   { HELP_MENU_ID, "Info->" },
   { HELP_ABOUT_ID, "About M2000" },
   { HELP_ABOUT_MSG_ID, "Thanks to Marcel de Kogel for creating the core of this emulator back in 1996." },
@@ -148,8 +145,8 @@ static LanguageEntry ENstrings[] = {
   { DIALOG_SAVE_SCREENSHOT, "Save as .png or .bmp file" },
   { DIALOG_LOAD_VRAM, "Select a .vram file" },
   { DIALOG_SAVE_VRAM, "Save as .vram file" },
-  { DIALOG_LOAD_STATE, "Select a .dmp file" },
-  { DIALOG_SAVE_STATE, "Save as .dmp file" },
+  { DIALOG_LOAD_STATE, "Select a .sav file" },
+  { DIALOG_SAVE_STATE, "Save as .sav file" },
   { 0, NULL },
 };
 
@@ -194,8 +191,6 @@ static LanguageEntry NLstrings[] = {
   { OPTIONS_JOYSTICK_MAP, "Joystick configuratie->" },
   { OPTIONS_JOYSTICK_MAP_0_ID, "Emuleer cursortoetsen + spatiebalk" },
   { OPTIONS_JOYSTICK_MAP_1_ID, "Fraxxon mode (links/omhoog/spatiebalk)" },
-  //{ OPTIONS_LANGUAGE_MENU_ID, "Voorkeurstaal->" },
-  { OPTIONS_SAVE_PREFERENCES, "Opslaan van voorkeuren" },
   { HELP_MENU_ID, "Info->" },
   { HELP_ABOUT_ID, "Over M2000" },
   { HELP_ABOUT_MSG_ID, "Met dank aan Marcel de Kogel voor het creëren van de basis voor deze emulator in 1996." },
@@ -204,8 +199,8 @@ static LanguageEntry NLstrings[] = {
   { DIALOG_SAVE_SCREENSHOT, "Bewaar als .png of .bmp bestand" },
   { DIALOG_LOAD_VRAM, "Selecteer een .vram bestand" },
   { DIALOG_SAVE_VRAM, "Bewaar als .vram bestand" },
-  { DIALOG_LOAD_STATE, "Selecteer een .dmp bestand" },
-  { DIALOG_SAVE_STATE, "Bewaar als .dmp bestand" },
+  { DIALOG_LOAD_STATE, "Selecteer een .sav bestand" },
+  { DIALOG_SAVE_STATE, "Bewaar als .sav bestand" },
   { 0, NULL },
 };
 
