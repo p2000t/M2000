@@ -90,7 +90,7 @@ jobs:
   build-macos:
     runs-on: macos-11
     env:
-      MACOSX_DEPLOYMENT_TARGET: 10.13
+      MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
     - name: Install dependencies
       run: |
