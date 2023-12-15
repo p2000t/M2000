@@ -210,13 +210,13 @@ byte Z80_In (byte Port)
 //  0 for 256-byte header
 //  1 for 32-byte header
 int GetCassetteHeaderType(const char *path) {
-  // if the 33rd byte is $00, then assume 256-byte header
-  unsigned char buffer[33] = {0};
+  // if the first two bytes are $47 and $65, then assume 32-byte header
+  unsigned char buffer[2] = {0};
   FILE *f;
   if ((f = fopen(path, "rb")) != NULL) {
-    fread(buffer,sizeof(buffer),1,f); // read (at most) 33 bytes to the buffer
+    fread(buffer,sizeof(buffer),1,f); // read (at most) 2 bytes to the buffer
     fclose(f);
-    return buffer[32] == 0 ? 0 : 1;
+    return (buffer[0] == 0x47 && buffer[1] == 0x65) ? 1 : 0;
   } else {
     return 0; //file doesn't exist (yet) => use 256-byte header
   }
