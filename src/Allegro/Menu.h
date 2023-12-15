@@ -83,12 +83,7 @@ void CreateEmulatorMenu()
       { "1920 x 1440", DISPLAY_WINDOW_1920x1440, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
 #ifndef __linux__
       ALLEGRO_MENU_SEPARATOR,
-#endif
-#ifdef _WIN32
       { _(DISPLAY_FULLSCREEN), DISPLAY_FULLSCREEN, 0, NULL },
-#endif
-#ifdef __APPLE__
-      { _(DISPLAY_FULLSCREEN_APPLE), DISPLAY_FULLSCREEN, 0, NULL },
 #endif
       ALLEGRO_END_OF_MENU,
 
