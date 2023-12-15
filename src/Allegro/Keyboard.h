@@ -50,12 +50,9 @@ static unsigned char keymask[]=
   ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
 };
 
-#define NUMBER_OF_KEYMAPPINGS 70
+#define NUMBER_OF_KEYMAPPINGS 68
 static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
-  //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
-  { ALLEGRO_KEY_F1,         59,      1,       59,      1 }, // ZOEK    [free]
-  { ALLEGRO_KEY_F2,         56,      1,       16,      1 }, // START   STOP
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_A,          34,      0,       34,      1 }, // A       a
   { ALLEGRO_KEY_B,          29,      0,       29,      1 }, // B       b

@@ -535,6 +535,22 @@ void SaveVideoRAM(const char * filename)
   }
 }
 
+void OpenCassetteDialog(bool boot) 
+{
+  ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
+  cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
+  if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
+    InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
+    al_destroy_path(currentTapePath);
+    currentTapePath = al_create_path(TapeName);
+    UpdateWindowTitle();
+    refreshPath(&userCassettesPath, TapeName);
+    if (boot)
+      Z80_Reset();
+  }
+  al_destroy_native_file_dialog(cassetteChooser);
+}
+
 void IndicateActionDone() {
   //show white screen to indicate action was done
   al_clear_to_color(al_map_rgb(255, 255, 255));
@@ -598,7 +614,6 @@ void Keyboard(void)
   bool isP2000ShiftDown;
   FILE *f;
 
-  ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
   ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
   ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
   ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
@@ -616,61 +631,63 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
-  if (keyboardmap == 0) {
-    /* Positional Key Mapping */
-    //fill P2000 KeyMap
-    for (i = 0; i < 80; i++) {
-      k = i / 8;
-      j = 1 << (i % 8);
-      if (!keymask[i])
-        continue;
-      if (al_key_down(&kbdstate, keymask[i]))
-        KeyMap[k] &= ~j;
-      else
-        KeyMap[k] |= j;  
-    }
-  }
-  else {
-    /* Symbolic Key Mapping */
-    isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
-    for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
-      keyPressed = keyMappings[i][0];
-      isCombiKey = keyMappings[i][1] != keyMappings[i][3];
-      isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
-      isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
-      keyCode = keyMappings[i][al_shift_down ? 3 : 1];
-      keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
-
-      if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
-        if (isCombiKey) 
-          ReleaseKey(keyCodeCombi);
-        if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
-          queuedKeys[i] = 0;
-          PushKey(keyCode);
-        } else {
-          // first, the shift must be pressed/un-pressed in this interrupt
-          // then in the next interrupt the target key itself will be pressed
-          KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
-          queuedKeys[i] = 1;
-        }
-        activeKeys[i] = 1;
-#ifdef __APPLE__
-        if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
-          al_clear_keyboard_state(display);
-#endif
-        if (!isNormalKey) 
-          isSpecialKeyPressed = true;
-      } else if (activeKeys[i]) {
-        // unpress key and second key in P2000's keyboard matrix
-        if (isCombiKey) ReleaseKey(keyCodeCombi);
-        ReleaseKey(keyCode);
-        activeKeys[i] = 0;
+  if (!al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) && !al_key_down(&kbdstate,ALLEGRO_KEY_ALT)) {
+    if (keyboardmap == 0) {
+      /* Positional Key Mapping */
+      //fill P2000 KeyMap
+      for (i = 0; i < 80; i++) {
+        k = i / 8;
+        j = 1 << (i % 8);
+        if (!keymask[i])
+          continue;
+        if (al_key_down(&kbdstate, keymask[i]))
+          KeyMap[k] &= ~j;
+        else
+          KeyMap[k] |= j;  
       }
     }
-    if (!isSpecialKeyPressed) {
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
-      if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+    else {
+      /* Symbolic Key Mapping */
+      isP2000ShiftDown = (~KeyMap[9] & 0xff) ? 1 : 0; // 1 when one of the shift keys is pressed
+      for (i = 0; i < NUMBER_OF_KEYMAPPINGS; i++) {
+        keyPressed = keyMappings[i][0];
+        isCombiKey = keyMappings[i][1] != keyMappings[i][3];
+        isNormalKey = !isCombiKey && (keyMappings[i][2] == 0) && (keyMappings[i][4] == 1);
+        isShiftKey = keyMappings[i][al_shift_down ? 4 : 2];
+        keyCode = keyMappings[i][al_shift_down ? 3 : 1];
+        keyCodeCombi = isCombiKey ? keyMappings[i][al_shift_down ? 1 : 3] : -1;
+
+        if (queuedKeys[i] || al_key_down(&kbdstate, keyPressed)) {
+          if (isCombiKey) 
+            ReleaseKey(keyCodeCombi);
+          if (isNormalKey || (isShiftKey == isP2000ShiftDown)) {
+            queuedKeys[i] = 0;
+            PushKey(keyCode);
+          } else {
+            // first, the shift must be pressed/un-pressed in this interrupt
+            // then in the next interrupt the target key itself will be pressed
+            KeyMap[9] = isShiftKey ? 0xfe : 0xff; // 0xfe = LSHIFT
+            queuedKeys[i] = 1;
+          }
+          activeKeys[i] = 1;
+#ifdef __APPLE__
+          if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
+            al_clear_keyboard_state(display);
+#endif
+          if (!isNormalKey) 
+            isSpecialKeyPressed = true;
+        } else if (activeKeys[i]) {
+          // unpress key and second key in P2000's keyboard matrix
+          if (isCombiKey) ReleaseKey(keyCodeCombi);
+          ReleaseKey(keyCode);
+          activeKeys[i] = 0;
+        }
+      }
+      if (!isSpecialKeyPressed) {
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT)) KeyMap[9] &= ~0b00000001; else KeyMap[9] |= 0b00000001;
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT)) KeyMap[9] &= ~0b10000000; else KeyMap[9] |= 0b10000000;
+        if (al_key_down(&kbdstate,ALLEGRO_KEY_CAPSLOCK)) KeyMap[3] &= ~0b00000001; else KeyMap[3] |= 0b00000001;
+      }
     }
   }
 
@@ -681,9 +698,9 @@ void Keyboard(void)
     al_clear_keyboard_state(display); //event? -> reset keyboard state
 #endif
 
-    if (pausePressed) { // pressing F9 can also unpause
+    if (pausePressed) { // pressing Ctrl-P toggles pause
       al_get_keyboard_state(&kbdstate);
-      if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
+      if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_P)) {
         pausePressed = Z80_Trace = 0;
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
@@ -706,18 +723,7 @@ void Keyboard(void)
       switch (event.user.data1) {
         case FILE_INSERT_CASSETTE_ID:
         case FILE_INSERTRUN_CASSETTE_ID:
-          cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
-          if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
-            InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
-            al_destroy_path(currentTapePath);
-            currentTapePath = al_create_path(TapeName);
-            UpdateWindowTitle();
-            refreshPath(&userCassettesPath, TapeName);
-            if (event.user.data1 == FILE_INSERTRUN_CASSETTE_ID) {
-              Z80_Reset();
-            }
-          }
-          al_destroy_native_file_dialog(cassetteChooser);
+          OpenCassetteDialog(event.user.data1 == FILE_INSERTRUN_CASSETTE_ID);
           break;
         case FILE_REMOVE_CASSETTE_ID:
           al_destroy_path(currentTapePath);
@@ -896,74 +902,110 @@ void Keyboard(void)
     }
   }
 
-  /* press F5 to Reset (or Shift-F5 to enable trace in DEBUG mode) */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
-    if (al_shift_down && Debug) {
-      Z80_Trace = 1;
-      pausePressed = 1;
-    }
-    else
-      Z80_Reset ();
+  // Ctrl-1           -  ZOEK key (show cassette index)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_1) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_1))) {
+    PushKey(72); //LSHIFT
+    delayedShiftedKeyPress = 59;
+  }
+  // Ctrl-3           -  START key (start loaded program)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_3) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_3))) {
+    PushKey(72); //LSHIFT
+    delayedShiftedKeyPress = 56;
+  }
+  // Ctrl-.           -  STOP key (pause/halt program)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_FULLSTOP) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_DELETE))) {
+    PushKey(72); //LSHIFT
+    delayedShiftedKeyPress = 16;
+  }
+  // Ctrl-7           -  WIS key (clear cassette)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_7) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_7))) {
+    PushKey(72); //LSHIFT
+    delayedShiftedKeyPress = 51;
   }
 
-  // F6 = save state. Shift-F6 = restore state
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F6)) {
-    if (userSavestatesPath) { 
-      if (al_shift_down) {
-        LoadState(NULL, userSavestatesPath);
-      } else {
-        SaveState(NULL, userSavestatesPath);
-        IndicateActionDone();
-      }
-    }
+  // Ctrl-I           -  Insert cassette dialog
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_I))
+    OpenCassetteDialog(false);
+
+  // Ctrl-O           -  Open/Boot Cassette dialog
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_O))
+    OpenCassetteDialog(true);
+
+  // Ctrl-E           -  Eject current cassette
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_E)) {
+    al_destroy_path(currentTapePath);
+    currentTapePath = NULL;
+    RemoveCassette();
+    UpdateWindowTitle();
   }
 
-  /* press F7 to silently save screenshot */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F7)) {
+  // Ctrl-R           -  Reset P2000
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
+    Z80_Reset();
+
+  // Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
+  if ((al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) || al_key_down(&kbdstate, ALLEGRO_KEY_ALT)) && al_key_up(&kbdstate, ALLEGRO_KEY_ENTER))
+    ToggleFullscreen();
+
+  // Ctrl-L           -  Toggle scanlines on/off
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_L)) {
+    scanlines = !scanlines;
+    ClearScreen();
+  }
+
+  // Ctrl-Q           -  Quit emulator
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_Q))
+    Z80_Running = 0;
+
+  // Ctrl-C           -  Save current state to file (without dialog)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_C)) {
+    SaveState(NULL, userSavestatesPath);
+    IndicateActionDone();
+  }
+
+  // Ctrl-V           -  Load previously saved state (without dialog)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_V))
+    LoadState(NULL, userSavestatesPath);
+
+  // Ctrl-S           -  Save screenshot to file (without dialog)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_S)) {
     static char extension[25];
-    if (userScreenshotsPath) {
-      time_t now = time(NULL);
-      strftime(extension, 25, " %Y-%m-%d %H-%M-%S.png", localtime(&now));
-      al_set_path_filename(userScreenshotsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "Screenshot");
-      al_set_path_extension(userScreenshotsPath, extension);
-      al_save_bitmap(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), al_get_target_bitmap());
-      IndicateActionDone();
-    }
+    time_t now = time(NULL);
+    strftime(extension, 25, " %Y-%m-%d %H-%M-%S.png", localtime(&now));
+    al_set_path_filename(userScreenshotsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "Screenshot");
+    al_set_path_extension(userScreenshotsPath, extension);
+    al_save_bitmap(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), al_get_target_bitmap());
+    IndicateActionDone();
   }
 
-  /* press F8 to silently save video RAM */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F8)) {  
+  // Ctrl-R           -  Save visible video RAM to file (without dialog)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R)) {
     static char extension[26];
-    if (userVideoRamDumpsPath) {
-      time_t now = time(NULL);
-      strftime(extension, 26, " %Y-%m-%d %H-%M-%S.vram", localtime(&now));
-      al_set_path_filename(userVideoRamDumpsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "VideoRAM");
-      al_set_path_extension(userVideoRamDumpsPath, extension);
-      SaveVideoRAM(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
-      IndicateActionDone();
-    }
+    time_t now = time(NULL);
+    strftime(extension, 26, " %Y-%m-%d %H-%M-%S.vram", localtime(&now));
+    al_set_path_filename(userVideoRamDumpsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "VideoRAM");
+    al_set_path_extension(userVideoRamDumpsPath, extension);
+    SaveVideoRAM(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
+    IndicateActionDone();
   }
   
-  /* F9 = pause / unpause */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F9)) {
+  // Ctrl-P           -  Toggle pause on/off
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_P)) {
     pausePressed = !pausePressed;
     al_set_menu_item_flags(menu, SPEED_PAUSE, pausePressed ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   }
 
-  /* F10 = toggle sound on/off */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F10)) {
+  // Ctrl-M           -  Toggle mute/unmute
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_M)) {
     soundmode = !soundmode;
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   }
 
-  /* F11 toggle fullscreen */
-  if (al_key_up(&kbdstate, ALLEGRO_KEY_F11))
-    ToggleFullscreen();
-
-  /* ALT-F4 or CTRL-Q to quit M2000 */
-  if ((al_key_down(&kbdstate, ALLEGRO_KEY_ALT) && al_key_down(&kbdstate, ALLEGRO_KEY_F4)) ||
-      (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_down(&kbdstate, ALLEGRO_KEY_Q)))
-    Z80_Running = 0;
+  /* press F5 to enable trace in DEBUG mode */
+  if (Debug && al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
+    Z80_Trace = 1;
+    pausePressed = 1;
+  }
 
   // handle joystick
   if (joymode && joyDetected) {

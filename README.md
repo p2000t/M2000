@@ -37,20 +37,30 @@ Installation of M2000 depends on your platform:
 -  Sound
 -  SAA5050 character rounding
 
-## Function Keys
+## Control Keys
 ```
-F1               -  ZOEK key (show cassette index in BASIC)
-F2               -  START key (start loaded program in BASIC)
-Shift-F2         -  STOP key (pause/halt program in BASIC)
-F5               -  Reset P2000
-F6               -  Save current state to file (without dialog)
-Shift-F6         -  Load previously saved state (without dialog)
-F7               -  Save screenshot to file (without dialog)
-F8               -  Save visible video RAM to file (without dialog)
-F9               -  Toggle pause on/off
-F10              -  Toggle sound on/off
-F11              -  Toggle fullscreen on/off (use Shift-F11 for macOS)
-Alt-F4 / Ctrl-Q  -  Quit emulator
+Ctrl-I           -  Insert cassette dialog
+Ctrl-O           -  Open/Boot cassette dialog
+Ctrl-E           -  Eject current cassette
+Ctrl-R           -  Reset P2000
+
+Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
+Ctrl-L           -  Toggle scanlines on/off
+
+Ctrl-C           -  Save current state to file (without dialog)
+Ctrl-V           -  Load previously saved state (without dialog)
+Ctrl-S           -  Save screenshot picture to file (without dialog)
+Ctrl-R           -  Save visible video RAM to file (without dialog)
+
+Ctrl-1           -  ZOEK key (show cassette index)
+Ctrl-3           -  START key (start loaded program)
+Ctrl-.           -  STOP key (pause/halt program)
+Ctrl-7           -  WIS key (clear cassette dialog)
+
+Ctrl-P           -  Toggle pause on/off
+Ctrl-M           -  Mute/unmute sound
+
+Ctrl-Q           -  Quit emulator
 ```
 
 ## Command line options
