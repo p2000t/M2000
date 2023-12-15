@@ -348,6 +348,7 @@ void RemoveCassette()
   if (TapeStream) fclose (TapeStream);
   TapeStream = NULL;
   TapeName = NULL;
+  TapeProtect = 0;
   if (Verbose) puts ("OK");
 }
 
@@ -375,7 +376,11 @@ void InsertCassette(const char *filename)
     TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
   }
   if (TapeStream) fclose (TapeStream); //close previous stream
-  TapeStream=fopen (_TapeName,"a+b");
+  TapeProtect = 0;
+  if (!(TapeStream = fopen (_TapeName,"a+b"))) {
+    TapeProtect = 1;
+    TapeStream = fopen (_TapeName,"rb"); //try to open read only
+  }
   if (TapeStream) rewind (TapeStream);
   if (Verbose) puts ((TapeStream)? "OK":"FAILED");
 }
