@@ -49,7 +49,7 @@ static void ProcessArgument (int argc,char *argv[])
 {
   if (argc != 2) return;
   char *dot = strrchr(argv[1], '.');
-  if (dot && !strcmp(dot, ".bin"))
+  if (dot && !strcasecmp(dot, ".bin"))
     CartName=argv[1];
   else 
     TapeName=argv[1]; // else asume tape filename

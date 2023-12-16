@@ -206,22 +206,6 @@ byte Z80_In (byte Port)
  return 0xFF;
 }
 
-// returns:
-//  0 for 256-byte header
-//  1 for 32-byte header
-int GetCassetteHeaderType(const char *path) {
-  // if the first two bytes are $47 and $65, then assume 32-byte header
-  unsigned char buffer[2] = {0};
-  FILE *f;
-  if ((f = fopen(path, "rb")) != NULL) {
-    fread(buffer,sizeof(buffer),1,f); // read (at most) 2 bytes to the buffer
-    fclose(f);
-    return (buffer[0] == 0x47 && buffer[1] == 0x65) ? 1 : 0;
-  } else {
-    return 0; //file doesn't exist (yet) => use 256-byte header
-  }
-}
-
 /****************************************************************************/
 /*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and ***/
 /*** the emulation. This function returns 0 in case of a failure          ***/
@@ -368,12 +352,15 @@ void InsertCassette(const char *filename)
   else if (Verbose) printf ("Creating tape image %s... ",_TapeName);
 
   TapeName=_TapeName;
-  if (GetCassetteHeaderType(TapeName)) {
-    TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
-    TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
-  } else {
+  char *dot = strrchr(TapeName, '.');
+  if (dot && !strcasecmp(dot, ".cas")) {
+    // .cas files use 256-byte header
     TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
     TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
+  } else {
+    // assume alternative cassette format with cleaned, 32-byte header
+    TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
   }
   if (TapeStream) fclose (TapeStream); //close previous stream
   TapeProtect = 0;
