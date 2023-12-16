@@ -353,7 +353,7 @@ void InsertCassette(const char *filename)
 
   TapeName=_TapeName;
   char *dot = strrchr(TapeName, '.');
-  if (dot && !strcasecmp(dot, ".cas")) {
+  if (!dot || strcasecmp(dot, ".cas") == 0) {
     // .cas files use 256-byte header
     TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
     TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
