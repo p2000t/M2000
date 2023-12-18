@@ -65,7 +65,7 @@ int ReturnErrorMessage(const char *format, ...)
   vsprintf(string, format, args);
   va_end(args);
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
-  return 0; //always returns error code
+  return EXIT_FAILURE; //always returns error code
 }
 
 void ClearScreen() 
@@ -329,7 +329,7 @@ int InitMachine(void)
   /* start the 50Hz/60Hz timer */
   al_start_timer(timer);
 
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 /****************************************************************************/
@@ -520,7 +520,7 @@ int LoadFont(const char *filename)
   al_draw_scaled_bitmap(FontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0); 
 
   //al_save_bitmap("FontBuf.png", FontBuf);
-  return 1;
+  return EXIT_SUCCESS;
 }
 
 void SaveVideoRAM(const char * filename) 
@@ -845,6 +845,18 @@ void Keyboard(void)
         case KEYBOARD_CLEARCAS_ID:
           PushKey(72); //LSHIFT
           delayedShiftedKeyPress = 51;
+          break;
+        case HARDWARE_MEMORY_16KB_ID: RAMSizeKb=16; goto updateMem;
+        case HARDWARE_MEMORY_32KB_ID: RAMSizeKb=32; goto updateMem;
+        case HARDWARE_MEMORY_40KB_ID: RAMSizeKb=40; goto updateMem;
+        case HARDWARE_MEMORY_48KB_ID: RAMSizeKb=48; goto updateMem;
+        case HARDWARE_MEMORY_64KB_ID: RAMSizeKb=64; goto updateMem;
+        case HARDWARE_MEMORY_96KB_ID: RAMSizeKb=96; goto updateMem;
+          updateMem:
+          InitRAM();
+          UpdateMemoryMenu();
+          ColdBoot = 1;
+          Z80_Reset();
           break;
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;

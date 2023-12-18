@@ -34,7 +34,7 @@ void ParseConfig()
 {
   if (!config) return;
   P2000_Mode      = strcmp(al_get_config_value(config, "Hardware",  "model"), "T") == 0 ? 0 : 1;
-  RAMSize         = atoi(al_get_config_value(config, "Hardware",  "ram"));
+  RAMSizeKb       = atoi(al_get_config_value(config, "Hardware",  "ram"));
   TapeBootEnabled = strcmp(al_get_config_value(config, "Hardware",  "boot"), "on") == 0;
   PrnType         = atoi(al_get_config_value(config, "Hardware",  "printertype"));
   ROMName         =      al_get_config_value(config, "Hardware",  "romfile");
@@ -221,6 +221,8 @@ void SaveConfig()
   al_set_config_value(config, "Display", "smoothing", smoothing? "on" : "off");
   
   if (sprintf(intstr, "%i", keyboardmap))   al_set_config_value(config, "Keyboard", "keymap", intstr);
+
+  if (sprintf(intstr, "%i", RAMSizeKb))  al_set_config_value(config, "Hardware", "ram", intstr);
 
   al_set_config_value(config, "Options", "sound", soundmode ? "on" : "off");
   if (sprintf(intstr, "%i", mastervolume))  al_set_config_value(config, "Options", "volume", intstr);

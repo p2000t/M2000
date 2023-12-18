@@ -30,7 +30,7 @@
 /******** Variables used to control emulator behavior ***********************/
 extern byte Verbose;            /* Verbose messages ON/OFF                  */
 extern byte *VRAM,*RAM,*ROM;    /* Main and Video RAMs                      */
-extern int RAMSize;             /* Amount of RAM installed                  */
+extern int RAMSizeKb;           /* Amount of RAM installed in kilobytes     */
 extern const char *FontName;    /* Font file                                */
 extern const char *CartName;    /* Cartridge ROM file                       */
 extern const char *ROMName;     /* Main ROM file                            */
@@ -44,6 +44,7 @@ extern byte OutputReg;          /* Reg #0x20                                */
 extern byte KeyMap[10];         /* Keyboard map                             */
 extern int P2000_Mode;          /* 0=P2000T, 1=P2000M                       */
 extern int TapeBootEnabled;     /* 1 if booting enabled                     */
+extern int ColdBoot;            /* 1 if cold boot                           */
 extern int TapeProtect;         /* 1 if tape is write-protected             */
 extern int UPeriod;             /* Number of interrupts/screen update       */
 extern int IFreq;               /* Number of interrupts/second              */
@@ -56,6 +57,9 @@ extern int CpuSpeed;            /* default 100                              */
 /*** the emulation. This function returns 0 in case of a failure          ***/
 /****************************************************************************/
 int StartP2000(void);
+
+/*** (re)Allocate RAM memory ***/
+int InitRAM(void);
 
 /****************************************************************************/
 /*** Free memory allocated by StartP2000()                                ***/
@@ -70,7 +74,7 @@ void InsertCassette(const char *filename);
 /****************************************************************************/
 /*** Removes current cassette                                             ***/
 /****************************************************************************/
-void RemoveCassette();
+void RemoveCassette(void);
 
 /****************************************************************************/
 /*** Insert cartridge                                                     ***/
@@ -80,7 +84,7 @@ void InsertCartridge(const char *filename);
 /****************************************************************************/
 /*** Removes current cartridge                                            ***/
 /****************************************************************************/
-void RemoveCartridge();
+void RemoveCartridge(void);
 
 /****************************************************************************/
 /*** Allocate resources needed by the machine-dependent code              ***/
@@ -133,12 +137,12 @@ int LoadFont (const char *filename);
 /****************************************************************************/
 /*** Returns the path relative to the M2000 executable                    ***/
 /************************************************** TO BE WRITTEN BY USER ***/
-char *GetResourcesPath ();
+char *GetResourcesPath (void);
 
 /****************************************************************************/
 /*** Returns the user's home directory                                    ***/
 /************************************************** TO BE WRITTEN BY USER ***/
-char *GetDocumentsPath ();
+char *GetDocumentsPath (void);
 
 /****************************************************************************/
 /*** Shows breaking error message and returns error code 1                ***/

@@ -62,7 +62,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
     fwrite(&regs, sizeof(regs), 1, f); //write Z80 registers
     fwrite(ROM, 1, 0x5000, f); //write ROM
     fwrite(VRAM, 1, 0x1000, f); //write VRAM
-    fwrite(RAM, 1, RAMSize, f); //write RAM
+    fwrite(RAM, 1, RAMSizeKb * 1024, f); //write RAM
     fclose(f);
     return stateFilePath;
   }
@@ -86,7 +86,7 @@ void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder)
     fread(&regs, sizeof(regs), 1, f); //read Z80 registers
     fread(ROM, 1, 0x5000, f); //read ROM
     fread(VRAM, 1, 0x1000, f); //read VRAM
-    fread(RAM, 1, RAMSize, f); //read RAM
+    fread(RAM, 1, RAMSizeKb * 1024, f); //read RAM
     fclose(f);
     Z80_SetRegs(&regs);
   }     
