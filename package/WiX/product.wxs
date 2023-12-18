@@ -34,7 +34,7 @@
             <Directory Id="INSTALLDIR" Name="M2000">
                <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855de">
                   <File Id="M2000.exe"           Source="..\..\M2000.exe" />
-                  <File Id="m2000.ico"           Source="m2000.ico" />
+                  <File Id="cassette.ico"        Source="cassette.ico" />
                   <File Id="ApplicationFile1"    Source="..\..\Default.fnt"/>
                   <File Id="ApplicationFile2"    Source="..\..\P2000ROM.bin"/>
                   <File Id="ApplicationFile3"    Source="..\..\BASIC.bin"/>
@@ -54,7 +54,7 @@
                   <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities" Name="ApplicationName" Value="M2000" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities\FileAssociations" Name=".cas" Value="M2000.Cassette" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="M2000" Value="SOFTWARE\M2000\Capabilities" Type="string" />
-                  <ProgId Id="M2000.Cassette" Description="M2000 Cassette" Icon="m2000.ico">
+                  <ProgId Id="M2000.Cassette" Description="M2000 Cassette" Icon="cassette.ico">
                      <Extension Id="cas">
                         <Verb Id="open" Command="Open" TargetFile="M2000.exe" Argument='"%1"' />
                      </Extension>
