@@ -21,7 +21,7 @@ CC	= gcc	# C compiler used
 CFLAGS  = -Wall -O2
 LDFLAGS  = -s
 
-OBJECTS = M2000.o P2000.o Z80.o Main.o Z80Debug.o icon.res
+OBJECTS = M2000.o P2000.o Z80.o Main.o Z80Debug.o
 
 all:    m2000
 
