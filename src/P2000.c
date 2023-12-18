@@ -50,14 +50,15 @@ int Sync         = 1;
 int CpuSpeed     = 100;
 int TapeBootEnabled = 0;
 int PrnType      = 0;
-int RAMSize      = 32;
+int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
+int ColdBoot     = 1;
 
 byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0;
 byte RAMMask=0;
 byte *ROM;
 byte *VRAM;
-byte *RAM;
+byte *RAM = NULL;
 byte NoRAMWrite[0x100];
 byte NoRAMRead[0x100];
 byte *ReadPage[256];
@@ -134,7 +135,7 @@ void Z80_Out (byte Port, byte Value)
     Value&=RAMMask;
     RAMMapper=Value;
     for (i=0xE000;i<0x10000;i+=256)
-     ReadPage[i>>8]=WritePage[i>>8]=&RAM[i-24576+Value*8192];
+      ReadPage[i>>8]=WritePage[i>>8]=RAM+i-0x6000+Value*8192;
    }
    return;
  }
@@ -206,45 +207,69 @@ byte Z80_In (byte Port)
  return 0xFF;
 }
 
-/****************************************************************************/
-/*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and ***/
-/*** the emulation. This function returns 0 in case of a failure          ***/
-/****************************************************************************/
+int InitRAM()
+{
+  int I,J;
+  int RAMSize=RAMSizeKb*1024;
+  RAMMask = 0;
+  if (RAMSize>40960) {
+    I=RAMSize-32768;
+    if (I&8191) I=(I&(~8191))+8192;
+    I/=8192;
+    //calculate number of 8KB banks needed
+    for(J=1;J<I;J<<=1);
+    RAMMask=J-1;
+    RAMSize=32768+J*8192;
+  } else {
+   if (RAMSize<=16384) RAMSize=16384;
+   else if (RAMSize<=32768) RAMSize=32768;
+   else RAMSize=40960;
+  }
+
+  if (Verbose) printf ("Allocating memory: %uKB RAM...",RAMSize/1024);
+  if (RAM) free(RAM);
+  RAM = malloc(RAMSize);
+  if (!RAM) {
+    if (Verbose) printf ("FAILED\n");
+    return EXIT_FAILURE;
+  }
+  memset (RAM,0,RAMSize);
+  if (Verbose) printf ("OK\n");
+
+  for (I=0x0000;I<0xA000;I+=256) {
+    if (I<RAMSize)
+      ReadPage[(I+0x6000)>>8]=WritePage[(I+0x6000)>>8]=RAM+I;
+    else {
+      ReadPage[(I+0x6000)>>8]=NoRAMRead;
+      WritePage[(I+0x6000)>>8]=NoRAMWrite;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}
+
+/******************************************************************************/
+/*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and   ***/
+/*** the emulation. This function returns EXIT_FAILURE in case of a failure ***/
+/******************************************************************************/
 word Exit_PC;
 int StartP2000 (void)
 {
   FILE *F;
   int I,J;
-  RAMSize*=1024;
-  if (RAMSize>40960)
-  {
-   I=RAMSize-32768;
-   if (I&8191) I=(I&(~8191))+8192;
-   I/=8192;
-   for(J=1;J<I;J<<=1) {};
-   RAMMask=J-1;
-   RAMSize=32768+J*8192;
-  }
-  else
-  {
-   if (RAMSize<=16384) RAMSize=16384;
-   else if (RAMSize<=32768) RAMSize=32768;
-   else RAMSize=40960;
-  }
-  if (Verbose)
-   printf ("Allocating memory: 20KB ROM, 4KB VRAM, %uKB RAM...",RAMSize/1024);
+  
+  if (Verbose) printf ("Allocating memory: 20KB ROM, 4KB VRAM... ");
   ROM=malloc (0x5000);
   VRAM=malloc (0x1000);
-  RAM=malloc (RAMSize);
-  if (!ROM || !VRAM || !RAM)
+  if (!ROM || !VRAM)
   {
    if (Verbose) printf ("FAILED\n");
-   return 0;
+   return EXIT_FAILURE;
   }
   memset (ROM,0xFF,0x5000);
   memset (VRAM,0,0x1000);
-  memset (RAM,0,RAMSize);
   if (Verbose) printf ("OK\n");
+
   for (I=0;I<256;++I)
   {
    ReadPage[I]=NoRAMRead;
@@ -262,10 +287,8 @@ int StartP2000 (void)
   else
    for (I=0x0000;I<0x0800;I+=256)
     ReadPage[(I+0x5000)>>8]=WritePage[(I+0x5000)>>8]=VRAM+I;
-  for (I=0x0000;I<((RAMSize<0xA000)? RAMSize:0xA000);I+=256)
-  {
-   ReadPage[(I+0x6000)>>8]=WritePage[(I+0x6000)>>8]=RAM+I;
-  }
+
+  InitRAM();
 
   if (Verbose) printf ("Loading ROMs:\n");
   if (Verbose) printf ("  Opening %s... ",ROMName);
@@ -277,7 +300,7 @@ int StartP2000 (void)
    fclose (F);
   }
   if(Verbose) puts(J? "OK":"FAILED");
-  if(!J) return(0);
+  if(!J) return EXIT_FAILURE;
   if (Verbose) printf ("  Patching");
   for (J=0;ROMPatches[J];++J)
   {
@@ -295,14 +318,13 @@ int StartP2000 (void)
    fclose(F);
   }
   if(Verbose) puts (J? "OK":"FAILED");
-/*  if(!J) return 0; */
+  /*  if(!J) return EXIT_FAILURE; */
 
   if (TapeName)
-  {
     InsertCassette(TapeName);
-  }
 
-  if (!LoadFont(FontName)) return 0;
+  if (LoadFont(FontName) != EXIT_SUCCESS) 
+    return EXIT_FAILURE;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
 
@@ -310,7 +332,7 @@ int StartP2000 (void)
   Z80_Reset ();
   Exit_PC=Z80 ();
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
-  return(1);
+  return EXIT_SUCCESS;
 }
 
 /****************************************************************************/
@@ -682,12 +704,11 @@ void Z80_Patch (Z80_Regs *R)
     *************************************************************************/
     case 7:
     {
-     static int first=1;
      if (Verbose&4) puts ("Tape status");
      i=Z80_In (0x20);
-     if (first && !TapeBootEnabled)
+     if (ColdBoot && !TapeBootEnabled)
       i|=0x10;
-     first=0;
+     ColdBoot=0;
      if (i&8)
       R->AF.B.l|=1;
      else
