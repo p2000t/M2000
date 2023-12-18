@@ -26,7 +26,7 @@ OBJECTS = M2000.o P2000.o Z80.o Main.o Z80Debug.o
 all:    m2000
 
 m2000:	$(OBJECTS)
-	$(CC) $(LDFLAGS) -o ../M2000 $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog -lallegro_memfile
+	$(CC) $(LDFLAGS) -o ../M2000 $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog
 
 M2000.o:    M2000.c P2000.h Z80.h Z80IO.h
 P2000.o:    P2000.c P2000.h Z80.h Z80IO.h

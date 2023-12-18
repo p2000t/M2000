@@ -36,12 +36,10 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_audio.h>
 #include <allegro5/allegro_native_dialog.h> 
-#include <allegro5/allegro_memfile.h>
 #include "../P2000.h"
 #include "../M2000.h"
 #include "../Common.h"
 #include "Main.h"
-#include "Icon.h"
 #include "Keyboard.h"
 #include "Menu.h"
 #include "State.h"
@@ -282,18 +280,9 @@ int InitMachine(void)
   if (Verbose) puts("OK");
 
   UpdateWindowTitle();
-
-#ifdef _WIN32
-  // Set app icon. Only for Windows, as macOS uses its own app package icons
-  // and Linux doesn't support al_set_display_icon when using a menu.
-  ALLEGRO_FILE *iconFile;
-  if ((iconFile = al_open_memfile(p2000icon_png, p2000icon_png_len, "r")) != NULL) {
-    ALLEGRO_BITMAP *bm = al_load_bitmap_f(iconFile, ".png");
-    al_set_display_icon(display, bm);
-    al_fclose(iconFile);
-    al_destroy_bitmap(bm);
-  }
-#endif
+  ALLEGRO_BITMAP *iconbm = al_create_bitmap(0,0);
+  al_set_display_icon(display, iconbm);
+  al_destroy_bitmap(iconbm);
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());

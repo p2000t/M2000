@@ -13,15 +13,15 @@
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f541"
             Name="M2000"
             Version="0.8.0"
-            Manufacturer="The M2000 Team"
+            Manufacturer="M2000"
             Language="1033">
 
       <Package InstallerVersion="200" Compressed="yes" Comments="Windows Installer Package" InstallScope="perMachine"/>
 
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
-      <Icon Id="m2000.ico" SourceFile="m2000.ico"/>
-      <Property Id="ARPPRODUCTICON" Value="m2000.ico" />
+      <Icon Id="P2000T.ico" SourceFile="P2000T.ico"/>
+      <Property Id="ARPPRODUCTICON" Value="P2000T.ico" />
 
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f541">
          <UpgradeVersion Minimum="0.8.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
@@ -44,7 +44,6 @@
                   <File Id="ApplicationFile7"    Source="..\..\allegro\bin\allegro_image-5.2.dll"/>
                   <File Id="ApplicationFile8"    Source="..\..\allegro\bin\allegro_audio-5.2.dll"/>
                   <File Id="ApplicationFile9"    Source="..\..\allegro\bin\allegro_dialog-5.2.dll"/>
-                  <File Id="ApplicationFile10"   Source="..\..\allegro\bin\allegro_memfile-5.2.dll"/>
                   <File Id="ApplicationFile11"   Source="..\Cassettes\Basic Demo Cassette (zijde A).cas"/>
                   <File Id="ApplicationFile12"   Source="..\Cassettes\Basic Demo Cassette (zijde B).cas"/>
                   <File Id="ApplicationFile13"   Source="..\Cartridges\Basic 1.1 NL.bin"/>
@@ -70,10 +69,10 @@
                         Description="M2000 - portable Philips P2000 Emulator"
                         Target="[INSTALLDIR]\M2000.exe"
                         WorkingDirectory="INSTALLDIR">
-                        <Icon Id="Icon0" SourceFile="m2000.ico" />
+                        <Icon Id="Icon0" SourceFile="P2000T.ico" />
                   </Shortcut>
                   <RegistryValue Root="HKCU"
-                    Key="Software\The M2000 Team\M2000"
+                    Key="Software\M2000\M2000"
                     Name="installed0"
                     Type="integer" Value="1" KeyPath="yes"/>
                   <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>

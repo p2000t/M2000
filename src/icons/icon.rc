@@ -1,0 +1,4 @@
+0 ICON "../../package/WiX/P2000T.ico"
+
+// windres icon.rc -O coff -o icon64.res
+// windres icon.rc -O coff --target=pe-i386 -o icon32.res
