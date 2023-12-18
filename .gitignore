@@ -13,7 +13,10 @@
 /M2000.EXE
 /Printer.out
 build/*
+allegro/*
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 .DS_Store
+product.wixobj
+*.msi

@@ -20,6 +20,9 @@
 
       <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
+      <Icon Id="m2000.ico" SourceFile="m2000.ico"/>
+      <Property Id="ARPPRODUCTICON" Value="m2000.ico" />
+
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f541">
          <UpgradeVersion Minimum="0.8.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
          <UpgradeVersion Minimum="0.0.0" Maximum="0.8.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
@@ -30,21 +33,32 @@
          <Directory Id="$(var.Program_Files)">
             <Directory Id="INSTALLDIR" Name="M2000">
                <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855de">
-                    <File Id="ApplicationFileM2000" Source="..\..\M2000.exe" />
-                    <File Id="ApplicationFile1"     Source="..\..\Default.fnt"/>
-                    <File Id="ApplicationFile2"     Source="..\..\P2000ROM.bin"/>
-                    <File Id="ApplicationFile3"     Source="..\..\BASIC.bin"/>
-                    <File Id="ApplicationFile4"     Source="..\..\README.md"/>
-                    <File Id="ApplicationFile5"     Source="..\..\allegro\bin\allegro-5.2.dll"/>
-                    <File Id="ApplicationFile6"     Source="..\..\allegro\bin\allegro_primitives-5.2.dll"/>
-                    <File Id="ApplicationFile7"     Source="..\..\allegro\bin\allegro_image-5.2.dll"/>
-                    <File Id="ApplicationFile8"     Source="..\..\allegro\bin\allegro_audio-5.2.dll"/>
-                    <File Id="ApplicationFile9"     Source="..\..\allegro\bin\allegro_dialog-5.2.dll"/>
-                    <File Id="ApplicationFile10"    Source="..\..\allegro\bin\allegro_memfile-5.2.dll"/>
-                    <File Id="ApplicationFile11"    Source="..\Cassettes\Basic Demo Cassette (zijde A).cas"/>
-                    <File Id="ApplicationFile12"    Source="..\Cassettes\Basic Demo Cassette (zijde B).cas"/>
-                    <File Id="ApplicationFile13"    Source="..\Cartridges\Basic 1.1 NL.bin"/>
-                    <File Id="ApplicationFile14"    Source="..\Cartridges\Familiegeheugen 2.0 NL.bin"/>
+                  <File Id="M2000.exe"           Source="..\..\M2000.exe" />
+                  <File Id="m2000.ico"           Source="m2000.ico" />
+                  <File Id="ApplicationFile1"    Source="..\..\Default.fnt"/>
+                  <File Id="ApplicationFile2"    Source="..\..\P2000ROM.bin"/>
+                  <File Id="ApplicationFile3"    Source="..\..\BASIC.bin"/>
+                  <File Id="ApplicationFile4"    Source="..\..\README.md"/>
+                  <File Id="ApplicationFile5"    Source="..\..\allegro\bin\allegro-5.2.dll"/>
+                  <File Id="ApplicationFile6"    Source="..\..\allegro\bin\allegro_primitives-5.2.dll"/>
+                  <File Id="ApplicationFile7"    Source="..\..\allegro\bin\allegro_image-5.2.dll"/>
+                  <File Id="ApplicationFile8"    Source="..\..\allegro\bin\allegro_audio-5.2.dll"/>
+                  <File Id="ApplicationFile9"    Source="..\..\allegro\bin\allegro_dialog-5.2.dll"/>
+                  <File Id="ApplicationFile10"   Source="..\..\allegro\bin\allegro_memfile-5.2.dll"/>
+                  <File Id="ApplicationFile11"   Source="..\Cassettes\Basic Demo Cassette (zijde A).cas"/>
+                  <File Id="ApplicationFile12"   Source="..\Cassettes\Basic Demo Cassette (zijde B).cas"/>
+                  <File Id="ApplicationFile13"   Source="..\Cartridges\Basic 1.1 NL.bin"/>
+                  <File Id="ApplicationFile14"   Source="..\Cartridges\Familiegeheugen 2.0 NL.bin"/>
+
+                  <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities" Name="ApplicationDescription" Value="M2000 - Philips P2000 Emulator" Type="string" />
+                  <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities" Name="ApplicationName" Value="M2000" Type="string" />
+                  <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities\FileAssociations" Name=".cas" Value="M2000.Cassette" Type="string" />
+                  <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="M2000" Value="SOFTWARE\M2000\Capabilities" Type="string" />
+                  <ProgId Id="M2000.Cassette" Description="M2000 Cassette" Icon="m2000.ico">
+                     <Extension Id="cas">
+                        <Verb Id="open" Command="Open" TargetFile="M2000.exe" Argument='"%1"' />
+                     </Extension>
+                  </ProgId>
                </Component>
             </Directory>
          </Directory>
@@ -62,7 +76,7 @@
                     Key="Software\The M2000 Team\M2000"
                     Name="installed0"
                     Type="integer" Value="1" KeyPath="yes"/>
-                <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+                  <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
                </Component>
             </Directory>
          </Directory>
@@ -101,7 +115,7 @@
       <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
       <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch M2000" />
       <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
-      <Property Id="WixShellExecTarget" Value="[#ApplicationFileM2000]" />
+      <Property Id="WixShellExecTarget" Value="[#M2000.exe]" />
       <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes" />
    </Product>
 </Wix>
