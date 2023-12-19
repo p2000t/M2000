@@ -50,7 +50,7 @@ Ctrl-L           -  Toggle scanlines on/off
 Ctrl-C           -  Save current state to file (without dialog)
 Ctrl-V           -  Load previously saved state (without dialog)
 Ctrl-S           -  Save screenshot picture to file (without dialog)
-Ctrl-R           -  Save visible video RAM to file (without dialog)
+Ctrl-D           -  Dump visible video RAM to file (without dialog)
 
 Ctrl-1           -  ZOEK key (show cassette index)
 Ctrl-3           -  START key (start loaded program)

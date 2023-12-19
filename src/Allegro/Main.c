@@ -105,7 +105,7 @@ void ResetAudioStream()
 void UpdateWindowTitle() 
 {
   static char windowTitle[ALLEGRO_NEW_WINDOW_TITLE_MAX_SIZE];
-  sprintf(windowTitle, "%s [%s]", Title, currentTapePath ? al_get_path_filename(currentTapePath) : "empty");
+  sprintf(windowTitle, "%s [%s]", Title, currentTapePath ? al_get_path_filename(currentTapePath) : _(NO_CASSETTE));
   al_set_window_title(display, windowTitle);
 }
 
@@ -523,11 +523,25 @@ int LoadFont(const char *filename)
   return EXIT_SUCCESS;
 }
 
+const wchar_t *GetWideFilename(const char * filename)
+{
+  static wchar_t _filename_utf16[2*FILENAME_MAX];
+  ALLEGRO_USTR *_filename = al_ustr_new(filename);
+  al_ustr_encode_utf16(_filename, _filename_utf16, 2*FILENAME_MAX-1);
+  al_ustr_free(_filename);
+  return _filename_utf16;
+}
+
 void SaveVideoRAM(const char * filename) 
 {
   int i;
   FILE *f;
-  if ((f = fopen(filename, "wb")) != NULL) {
+#ifdef _WIN32
+  f = _wfopen(GetWideFilename(filename), L"wb");
+#else
+  f = fopen(filename, "wb");
+#endif
+  if (f != NULL) {
     // for each of the 24 lines, write 40 chars and skip 40 chars
     for (i=0;i<24;i++)
       fwrite(VRAM + ScrollReg + i*80, 1, 40, f); 
@@ -537,11 +551,18 @@ void SaveVideoRAM(const char * filename)
 
 void OpenCassetteDialog(bool boot) 
 {
+  FILE *f;
+  const char *_cassetteFilePath = NULL;
   al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
   ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
   cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
-    InsertCassette(AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas"));
+    _cassetteFilePath = AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas");
+#ifdef _WIN32
+    InsertCassette(_cassetteFilePath, (f = _wfopen(GetWideFilename(_cassetteFilePath), L"a+b")) ? f : _wfopen(GetWideFilename(_cassetteFilePath), L"rb"));
+#else
+    InsertCassette(_cassetteFilePath, (f = fopen(filePath, "a+b")) ? f : fopen(filePath, "rb"));
+#endif
     al_destroy_path(currentTapePath);
     currentTapePath = al_create_path(TapeName);
     UpdateWindowTitle();
@@ -555,7 +576,7 @@ void OpenCassetteDialog(bool boot)
 }
 
 void IndicateActionDone() {
-  //show white screen to indicate action was done
+  //briefly flash white screen to indicate action was done
   al_clear_to_color(al_map_rgb(255, 255, 255));
   al_flip_display();
   Pause(20);
@@ -731,7 +752,13 @@ void Keyboard(void)
         case FILE_INSERT_CARTRIDGE_ID:
           cartridgeChooser = al_create_native_file_dialog(al_path_cstr(userCartridgesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CARTRIDGE), "*.bin", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
           if (al_show_native_file_dialog(display, cartridgeChooser) && al_get_native_file_dialog_count(cartridgeChooser) > 0) {
-            InsertCartridge(al_get_native_file_dialog_path(cartridgeChooser, 0));
+            const char *_filename = al_get_native_file_dialog_path(cartridgeChooser, 0);
+#ifdef _WIN32
+            f = _wfopen(GetWideFilename(_filename), L"rb");
+#else
+            f = fopen(_filename, "rb");
+#endif
+            InsertCartridge(_filename, f);
             refreshPath(&userCartridgesPath, CartName);
           }
           al_destroy_native_file_dialog(cartridgeChooser);
@@ -753,7 +780,13 @@ void Keyboard(void)
         case FILE_LOAD_VIDEORAM_ID:
           vRamLoadChooser = al_create_native_file_dialog(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR), _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
           if (al_show_native_file_dialog(display, vRamLoadChooser) && al_get_native_file_dialog_count(vRamLoadChooser) > 0) {
-            if ((f = fopen(al_get_native_file_dialog_path(vRamLoadChooser, 0), "rb")) != NULL) {
+            const char *_filename = al_get_native_file_dialog_path(vRamLoadChooser, 0);
+#ifdef _WIN32
+            f = _wfopen(GetWideFilename(_filename), L"rb");
+#else
+            f = fopen(_filename, "rb");
+#endif
+            if (f != NULL) {
               // for each of the 24 lines, read 40 chars and skip 40 chars
               for (i=0;i<24;i++)
                 fread(VRAM + ScrollReg + i*80, 1, 40, f); 
@@ -984,17 +1017,19 @@ void Keyboard(void)
     al_set_path_filename(userScreenshotsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "Screenshot");
     al_set_path_extension(userScreenshotsPath, extension);
     al_save_bitmap(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), al_get_target_bitmap());
+    al_set_path_filename(userScreenshotsPath, NULL);
     IndicateActionDone();
   }
 
-  // Ctrl-R           -  Save visible video RAM to file (without dialog)
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R)) {
+  // Ctrl-D           -  Dump visible video RAM to file (without dialog)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_D)) {
     static char extension[26];
     time_t now = time(NULL);
     strftime(extension, 26, " %Y-%m-%d %H-%M-%S.vram", localtime(&now));
     al_set_path_filename(userVideoRamDumpsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "VideoRAM");
     al_set_path_extension(userVideoRamDumpsPath, extension);
     SaveVideoRAM(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
+    al_set_path_filename(userVideoRamDumpsPath, NULL);
     IndicateActionDone();
   }
   
