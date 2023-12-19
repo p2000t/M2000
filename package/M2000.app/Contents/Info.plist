@@ -3,26 +3,42 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleGetInfoString</key>
-  <string>M2000 - Philips P2000 Emulator</string>
+    <string>M2000 - Philips P2000 Emulator</string>
   <key>CFBundleExecutable</key>
-  <string>M2000</string>
+    <string>M2000</string>
   <key>CFBundleIdentifier</key>
-  <string>org.m2000</string>
+    <string>org.m2000</string>
   <key>CFBundleName</key>
-  <string>M2000</string>
+    <string>M2000</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.8</string>
+    <string>0.8</string>
   <key>CFBundleInfoDictionaryVersion</key>
-  <string>6.0</string>
+    <string>6.0</string>
   <key>CFBundlePackageType</key>
-  <string>APPL</string>
+    <string>APPL</string>
   <key>IFMajorVersion</key>
-  <integer>0</integer>
+    <integer>0</integer>
   <key>IFMinorVersion</key>
-  <integer>7</integer>
+    <integer>7</integer>
   <key>CFBundleIconFile</key>
-  <string>M2000</string>
+    <string>M2000.icns</string>
   <key>NSHighResolutionCapable</key>
-  <true/>
+    <true/>
+  <key>CFBundleTypeRole</key>
+    <string>Viewer</string>
+  <key>CFBundleTypeExtensions</key>
+    <array>
+      <string>cas</string>
+    </array>
+  <key>CFBundleTypeIconFile</key>
+    <string>M2000.icns</string>
+  <key>CFBundleTypeMIMETypes</key>
+    <string>application/octet-stream</string>
+  <key>CFBundleTypeName</key>
+    <string>Something Unique Here</string>
+  <key>CFBundleTypeOSTypes</key>
+  <array>
+    <string>****</string>
+  </array>
 </dict>
 </plist>
