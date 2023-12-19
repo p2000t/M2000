@@ -24,21 +24,29 @@
     <string>M2000.icns</string>
   <key>NSHighResolutionCapable</key>
     <true/>
-  <key>CFBundleTypeRole</key>
-    <string>Viewer</string>
-  <key>CFBundleTypeExtensions</key>
-    <array>
-      <string>cas</string>
-    </array>
-  <key>CFBundleTypeIconFile</key>
-    <string>M2000.icns</string>
-  <key>CFBundleTypeMIMETypes</key>
-    <string>application/octet-stream</string>
-  <key>CFBundleTypeName</key>
-    <string>Something Unique Here</string>
-  <key>CFBundleTypeOSTypes</key>
+
+  <key>UTExportedTypeDeclarations</key>
   <array>
-    <string>****</string>
+    <dict>
+        <key>UTTypeIdentifier</key>
+        <string>com.m2000.cassette</string>
+        <key>UTTypeTagSpecification</key>
+        <dict>
+            <key>public.filename-extension</key>
+            <array>
+                <string>cas</string>
+            </array>
+        </dict>
+        <key>UTTypeConformsTo</key>
+        <array>
+            <string>public.data</string>
+        </array>
+        <key>UTTypeDescription</key>
+        <string>M2000 cassette file</string>
+        <key>UTTypeIconFile</key>
+        <string>M2000.icns</string>
+    </dict>
   </array>
+  
 </dict>
 </plist>
