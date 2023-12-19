@@ -25,11 +25,27 @@
   <key>NSHighResolutionCapable</key>
     <true/>
 
+  <key>CFBundleDocumentTypes</key>
+  <array>
+    <dict>
+        <key>CFBundleTypeName</key>
+        <string>M2000 cassette file</string>
+        <key>CFBundleTypeRole</key>
+        <string>Viewer</string>
+        <key>LSHandlerRank</key>
+        <string>Owner</string>
+        <key>LSItemContentTypes</key>
+        <array>
+            <string>org.m2000.cassette</string>
+        </array>
+    </dict>
+  </array>
+
   <key>UTExportedTypeDeclarations</key>
   <array>
     <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.m2000.cassette</string>
+        <string>org.m2000.cassette</string>
         <key>UTTypeTagSpecification</key>
         <dict>
             <key>public.filename-extension</key>
