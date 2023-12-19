@@ -49,6 +49,7 @@ int mastervolume;                  /* Master volume setting                 */
 
 ALLEGRO_EVENT event;
 ALLEGRO_DISPLAY *display = NULL;
+ALLEGRO_MOUSE_CURSOR *hiddenMouse = NULL;
 ALLEGRO_MONITOR_INFO monitorInfo;
 ALLEGRO_EVENT_QUEUE *eventQueue = NULL; // generic queue for keyboard and windows events
 ALLEGRO_KEYBOARD_STATE kbdstate;

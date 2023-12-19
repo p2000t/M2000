@@ -131,12 +131,14 @@ void ToggleFullscreen()
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
 #endif
-    al_show_mouse_cursor(display);
+    //al_show_mouse_cursor(display);
+    al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
     al_set_display_menu(display,  menu);
   } else {
     //go fullscreen and hide menu and mouse
     al_remove_display_menu(display);
-    al_hide_mouse_cursor(display);
+    //al_hide_mouse_cursor(display);
+    al_set_mouse_cursor(display, hiddenMouse);
     _DisplayWidth = DisplayWidth;
     _DisplayHeight = DisplayHeight;
     _DisplayTileWidth = DisplayTileWidth;
@@ -288,6 +290,10 @@ int InitMachine(void)
   al_set_display_icon(display, iconbm);
   al_destroy_bitmap(iconbm);
 #endif
+
+  ALLEGRO_BITMAP *empty = al_create_bitmap(0,0);
+  hiddenMouse = al_create_mouse_cursor(empty,0,0);
+  al_destroy_bitmap(empty);
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
@@ -531,7 +537,7 @@ void SaveVideoRAM(const char * filename)
 
 void OpenCassetteDialog(bool boot) 
 {
-  al_show_mouse_cursor(display);
+  al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
   ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
   cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
@@ -545,7 +551,10 @@ void OpenCassetteDialog(bool boot)
   }
   al_destroy_native_file_dialog(cassetteChooser);
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
-    al_hide_mouse_cursor(display);
+    al_set_mouse_cursor(display, hiddenMouse);
+#ifdef __APPLE__
+  al_clear_keyboard_state(display);
+#endif
 }
 
 void IndicateActionDone() {
@@ -596,11 +605,11 @@ void Keyboard(void)
     return; //stop handling rest of keys
   }
 
-#ifdef __APPLE__
-  //workaround to show mouse cursor coming back from fullscreen mode
-  if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
-    al_show_mouse_cursor(display);
-#endif
+// #ifdef __APPLE__
+//   //workaround to show mouse cursor coming back from fullscreen mode
+//   if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
+//     al_show_mouse_cursor(display);
+// #endif
 
   int i,j,k;
   byte keyPressed;
@@ -625,9 +634,6 @@ void Keyboard(void)
   static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
 
   //read keyboard state
-#ifdef __APPLE__
-  al_clear_keyboard_state(display);
-#endif
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 

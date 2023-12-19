@@ -158,7 +158,7 @@ static LanguageEntry ENstrings[] = {
 };
 
 static LanguageEntry NLstrings[] = {
-  { FILE_MENU_ID, "Archief->" },
+  { FILE_MENU_ID, "Bestand->" },
   { FILE_INSERT_CASSETTE_ID, "Invoeren cassette... (Ctrl-I)"},
   { FILE_INSERTRUN_CASSETTE_ID, "Openen/starten cassette... (Ctrl-O)" },
   { FILE_REMOVE_CASSETTE_ID, "Verwijder cassette (Ctrl-E)" },
