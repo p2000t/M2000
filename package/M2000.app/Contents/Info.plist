@@ -51,6 +51,7 @@
             <key>public.filename-extension</key>
             <array>
                 <string>cas</string>
+                <string>p2000t</string>
             </array>
         </dict>
         <key>UTTypeConformsTo</key>
