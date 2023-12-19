@@ -291,7 +291,7 @@ int InitMachine(void)
   al_destroy_bitmap(iconbm);
 #endif
 
-  ALLEGRO_BITMAP *empty = al_create_bitmap(0,0);
+  ALLEGRO_BITMAP *empty = al_create_bitmap(1,1);
   hiddenMouse = al_create_mouse_cursor(empty,0,0);
   al_destroy_bitmap(empty);
 
@@ -553,7 +553,7 @@ void OpenCassetteDialog(bool boot)
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
     al_set_mouse_cursor(display, hiddenMouse);
 #ifdef __APPLE__
-  al_clear_keyboard_state(display);
+  al_clear_keyboard_state(display); //hack to prevent "hanging" Ctrl key
 #endif
 }
 
@@ -604,12 +604,6 @@ void Keyboard(void)
     }
     return; //stop handling rest of keys
   }
-
-// #ifdef __APPLE__
-//   //workaround to show mouse cursor coming back from fullscreen mode
-//   if (!(al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW))
-//     al_show_mouse_cursor(display);
-// #endif
 
   int i,j,k;
   byte keyPressed;
