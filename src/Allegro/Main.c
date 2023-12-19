@@ -24,9 +24,9 @@
 #define CHAR_TILE_HEIGHT (10*CHAR_PIXEL_HEIGHT)
 #define FONT_BITMAP_WIDTH (96+64+64)*(CHAR_TILE_WIDTH + CHAR_TILE_SPACE)
 
-#ifdef __APPLE__
-#define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
-#endif
+// #ifdef __APPLE__
+// #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
+// #endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -628,6 +628,11 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
+#ifdef __APPLE__
+  //hack to ignore Mac command key presses
+  while (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND)) al_get_keyboard_state(&kbdstate);
+#endif
+
   if (!al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) && !al_key_down(&kbdstate,ALLEGRO_KEY_ALT)) {
     if (keyboardmap == 0) {
       /* Positional Key Mapping */
@@ -667,10 +672,10 @@ void Keyboard(void)
             queuedKeys[i] = 1;
           }
           activeKeys[i] = 1;
-#ifdef __APPLE__
-          if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
-            al_clear_keyboard_state(display);
-#endif
+// #ifdef __APPLE__
+//           if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
+//             al_clear_keyboard_state(display);
+// #endif
           if (!isNormalKey) 
             isSpecialKeyPressed = true;
         } else if (activeKeys[i]) {
@@ -691,9 +696,9 @@ void Keyboard(void)
   // handle window and menu events
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     if (Debug && isNextEvent) printf("Allegro display/menu event.type: %i\n", event.type);
-#ifdef __APPLE__
-    if (isNextEvent) al_clear_keyboard_state(display); //event? -> reset keyboard state
-#endif
+// #ifdef __APPLE__
+//     if (isNextEvent) al_clear_keyboard_state(display); //event? -> reset keyboard state
+// #endif
 
     if (pausePressed) { // pressing Ctrl-P toggles pause
       al_get_keyboard_state(&kbdstate);
