@@ -280,9 +280,14 @@ int InitMachine(void)
   if (Verbose) puts("OK");
 
   UpdateWindowTitle();
-  ALLEGRO_BITMAP *iconbm = al_create_bitmap(0,0);
+#ifdef _WIN32
+  al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+  ALLEGRO_BITMAP *iconbm = al_create_bitmap(32,32);
+  al_set_target_bitmap(iconbm);
+  al_draw_filled_circle(16,16,8,al_map_rgb(255, 0, 0));
   al_set_display_icon(display, iconbm);
   al_destroy_bitmap(iconbm);
+#endif
 
   al_register_event_source(eventQueue, al_get_display_event_source(display));
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
