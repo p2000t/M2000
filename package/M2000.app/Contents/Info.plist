@@ -21,7 +21,7 @@
   <key>IFMinorVersion</key>
     <integer>7</integer>
   <key>CFBundleIconFile</key>
-    <string>M2000.icns</string>
+    <string>P2000-512.icns</string>
   <key>NSHighResolutionCapable</key>
     <true/>
 
@@ -60,7 +60,7 @@
         <key>UTTypeDescription</key>
         <string>M2000 cassette file</string>
         <key>UTTypeIconFile</key>
-        <string>M2000.icns</string>
+        <string>p2000icoon.icns</string>
     </dict>
   </array>
   
