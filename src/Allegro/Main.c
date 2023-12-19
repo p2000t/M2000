@@ -531,6 +531,7 @@ void SaveVideoRAM(const char * filename)
 
 void OpenCassetteDialog(bool boot) 
 {
+  al_show_mouse_cursor(display);
   ALLEGRO_FILECHOOSER *cassetteChooser = NULL;
   cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
@@ -543,6 +544,8 @@ void OpenCassetteDialog(bool boot)
       Z80_Reset();
   }
   al_destroy_native_file_dialog(cassetteChooser);
+  if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
+    al_hide_mouse_cursor(display);
 }
 
 void IndicateActionDone() {
@@ -622,6 +625,9 @@ void Keyboard(void)
   static byte activeKeys[NUMBER_OF_KEYMAPPINGS] = {0};
 
   //read keyboard state
+#ifdef __APPLE__
+  al_clear_keyboard_state(display);
+#endif
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
