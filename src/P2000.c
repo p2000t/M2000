@@ -255,8 +255,8 @@ int InitRAM()
 word Exit_PC;
 int StartP2000 (void)
 {
-  FILE *F;
-  int I,J;
+  FILE *f;
+  int i,j;
   
   if (Verbose) printf ("Allocating memory: 20KB ROM, 4KB VRAM... ");
   ROM=malloc (0x5000);
@@ -270,58 +270,58 @@ int StartP2000 (void)
   memset (VRAM,0,0x1000);
   if (Verbose) printf ("OK\n");
 
-  for (I=0;I<256;++I)
+  for (i=0;i<256;++i)
   {
-   ReadPage[I]=NoRAMRead;
-   WritePage[I]=NoRAMWrite;
-   NoRAMRead[I]=0xFF;
+   ReadPage[i]=NoRAMRead;
+   WritePage[i]=NoRAMWrite;
+   NoRAMRead[i]=0xFF;
   }
-  for (I=0;I<0x5000;I+=256)
+  for (i=0;i<0x5000;i+=256)
   {
-   ReadPage[I>>8]=ROM+I;
-   WritePage[I>>8]=NoRAMWrite;
+   ReadPage[i>>8]=ROM+i;
+   WritePage[i>>8]=NoRAMWrite;
   }
   if (P2000_Mode)
-   for (I=0x0000;I<0x1000;I+=256)
-    ReadPage[(I+0x5000)>>8]=WritePage[(I+0x5000)>>8]=VRAM+I;
+   for (i=0x0000;i<0x1000;i+=256)
+    ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
   else
-   for (I=0x0000;I<0x0800;I+=256)
-    ReadPage[(I+0x5000)>>8]=WritePage[(I+0x5000)>>8]=VRAM+I;
+   for (i=0x0000;i<0x0800;i+=256)
+    ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
 
   InitRAM();
 
   if (Verbose) printf ("Loading ROMs:\n");
   if (Verbose) printf ("  Opening %s... ",ROMName);
-  J=0;
-  F=fopen(ROMName,"rb");
-  if(F)
+  j=0;
+  f=fopen(ROMName,"rb");
+  if(f)
   {
-   if(fread(ROM,1,0x1000,F)==0x1000) J=1;
-   fclose (F);
+   if(fread(ROM,1,0x1000,f)==0x1000) j=1;
+   fclose (f);
   }
-  if(Verbose) puts(J? "OK":"FAILED");
-  if(!J) return EXIT_FAILURE;
+  if(Verbose) puts(j? "OK":"FAILED");
+  if(!j) return EXIT_FAILURE;
   if (Verbose) printf ("  Patching");
-  for (J=0;ROMPatches[J];++J)
+  for (j=0;ROMPatches[j];++j)
   {
-   if (Verbose) printf ("...%04X",ROMPatches[J]);
-   ROM[ROMPatches[J]+0]=0xED;
-   ROM[ROMPatches[J]+1]=0xFE;
-   ROM[ROMPatches[J]+2]=0xC9;
+   if (Verbose) printf ("...%04X",ROMPatches[j]);
+   ROM[ROMPatches[j]+0]=0xED;
+   ROM[ROMPatches[j]+1]=0xFE;
+   ROM[ROMPatches[j]+2]=0xC9;
   }
   if(Verbose) printf(" OK\n  Opening %s... ",CartName);
-  J=0;
-  F=fopen(CartName,"rb");
-  if (F)
+  j=0;
+  f=fopen(CartName,"rb");
+  if (f)
   {
-   if (fread(ROM+0x1000,1,0x4000,F)) J=1;
-   fclose(F);
+   if (fread(ROM+0x1000,1,0x4000,f)) j=1;
+   fclose(f);
   }
-  if(Verbose) puts (J? "OK":"FAILED");
-  /*  if(!J) return EXIT_FAILURE; */
+  if(Verbose) puts (j? "OK":"FAILED");
+  /*  if(!j) return EXIT_FAILURE; */
 
   if (TapeName)
-    InsertCassette(TapeName);
+    InsertCassette(TapeName, (f = fopen(TapeName, "a+b")) ? f : fopen(TapeName, "rb"));
 
   if (LoadFont(FontName) != EXIT_SUCCESS) 
     return EXIT_FAILURE;
@@ -361,19 +361,18 @@ void RemoveCassette()
 /****************************************************************************/
 /*** Insert cassette tape file.                                           ***/
 /****************************************************************************/
-void InsertCassette(const char *filename)
+void InsertCassette(const char *filename, FILE *f)
 {
-  static char _TapeName[FILENAME_MAX];
-  FILE *f;
-  strcpy (_TapeName,filename);
-
-  if ((f = fopen(_TapeName, "rb")) != NULL) {
-    fclose(f);
-    if (Verbose) printf ("Reading tape image %s... ",_TapeName);
+  if (Verbose) printf("Opening cassette file %s... ", filename);
+  if (!f) {
+    if (Verbose) puts("FAILED");
+    return;
   }
-  else if (Verbose) printf ("Creating tape image %s... ",_TapeName);
 
+  static char _TapeName[FILENAME_MAX];
+  strcpy (_TapeName,filename);
   TapeName=_TapeName;
+
   char *dot = strrchr(TapeName, '.');
   if (!dot || strcasecmp(dot, ".cas") == 0) {
     // .cas files use 256-byte header
@@ -384,14 +383,12 @@ void InsertCassette(const char *filename)
     TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
     TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
   }
+
   if (TapeStream) fclose (TapeStream); //close previous stream
-  TapeProtect = 0;
-  if (!(TapeStream = fopen (_TapeName,"a+b"))) {
-    TapeProtect = 1;
-    TapeStream = fopen (_TapeName,"rb"); //try to open read only
-  }
-  if (TapeStream) rewind (TapeStream);
-  if (Verbose) puts ((TapeStream)? "OK":"FAILED");
+  TapeProtect = (f->_flag == 1); // check read only flag
+  TapeStream = f;
+  rewind (TapeStream);
+  if (Verbose) puts("OK");
 }
 
 /****************************************************************************/
@@ -400,25 +397,26 @@ void InsertCassette(const char *filename)
 void RemoveCartridge()
 {
   memset (ROM + 0x1000, 0xFF, 0x4000);
+  ColdBoot = 1;
   Z80_Reset ();
 }
 
 /****************************************************************************/
 /*** Insert cartridge file and resets Z80                                 ***/
 /****************************************************************************/
-void InsertCartridge(const char *filename)
+void InsertCartridge(const char *filename, FILE *f)
 {
   static char _CartName[FILENAME_MAX];
   int success=0;
-  FILE *f;
   strcpy (_CartName,filename);
   CartName=_CartName;
 
   if(Verbose) printf(" OK\n  Opening cartridge %s... ",_CartName);
-  if ((f=fopen(CartName,"rb")) != NULL)
+  if (f)
   {
     if (fread(ROM+0x1000,1,0x4000,f)) success=1;
     fclose(f);
+    ColdBoot = 1;
     Z80_Reset ();
   }
   if(Verbose) puts (success? "OK":"FAILED");

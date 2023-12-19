@@ -47,6 +47,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
       al_set_path_filename(stateFolder, "quicksave");
       al_set_path_extension(stateFolder, extension);
       strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
+      al_set_path_filename(stateFolder, NULL);
 
       if (i==1) 
         al_remove_filename(stateFilePath);
@@ -80,6 +81,7 @@ void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder)
     al_set_path_filename(stateFolder, "quicksave"); 
     al_set_path_extension(stateFolder, ".sav");
     strcpy(stateFilePath, al_path_cstr(stateFolder, PATH_SEPARATOR));
+    al_set_path_filename(stateFolder, NULL);
   }
 
   if ((f = fopen(stateFilePath , "rb"))) {

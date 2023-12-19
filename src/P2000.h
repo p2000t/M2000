@@ -19,6 +19,7 @@
 
 // This file contains the P2000 hardware emulation function prototypes
 
+#include <stdio.h>
 #include "Z80.h"            /* Z80 emulation declarations    */
 
 #if defined(_WIN32) // Windows
@@ -69,7 +70,7 @@ void TrashP2000(void);
 /****************************************************************************/
 /*** Insert cassette                                                      ***/
 /****************************************************************************/
-void InsertCassette(const char *filename);
+void InsertCassette(const char *filename, FILE *f);
 
 /****************************************************************************/
 /*** Removes current cassette                                             ***/
@@ -79,7 +80,7 @@ void RemoveCassette(void);
 /****************************************************************************/
 /*** Insert cartridge                                                     ***/
 /****************************************************************************/
-void InsertCartridge(const char *filename);
+void InsertCartridge(const char *filename, FILE *f);
 
 /****************************************************************************/
 /*** Removes current cartridge                                            ***/

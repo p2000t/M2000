@@ -101,6 +101,7 @@ typedef struct {
 #define DIALOG_SAVE_VRAM                  112
 #define DIALOG_LOAD_STATE                 113
 #define DIALOG_SAVE_STATE                 114
+#define NO_CASSETTE                       115
 
 
 static LanguageEntry ENstrings[] = {
@@ -114,7 +115,7 @@ static LanguageEntry ENstrings[] = {
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
   { FILE_LOAD_VIDEORAM_ID, "Load Video RAM..." },
-  { FILE_SAVE_VIDEORAM_ID, "Save Video RAM... (Ctrl-R)" },
+  { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Exit (Ctrl-Q)" },
   { DISPLAY_WINDOW_MENU, "Display->" },
   { DISPLAY_SCANLINES, "Scanlines On/Off (Ctrl-L)" },
@@ -154,6 +155,7 @@ static LanguageEntry ENstrings[] = {
   { DIALOG_SAVE_VRAM, "Save as .vram file" },
   { DIALOG_LOAD_STATE, "Select a .sav file" },
   { DIALOG_SAVE_STATE, "Save as .sav file" },
+  { NO_CASSETTE, "no cassette" },
   { 0, NULL },
 };
 
@@ -168,7 +170,7 @@ static LanguageEntry NLstrings[] = {
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },
   { FILE_LOAD_VIDEORAM_ID, "Inlezen Video RAM..." },
-  { FILE_SAVE_VIDEORAM_ID, "Opslaan Video RAM... (Ctrl-R)" },
+  { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Afsluiten (Ctrl-Q)" },
   { DISPLAY_WINDOW_MENU, "Beeld->" },
   { DISPLAY_SCANLINES, "Scanlijnen aan/uit (Ctrl-L)" },
@@ -208,6 +210,7 @@ static LanguageEntry NLstrings[] = {
   { DIALOG_SAVE_VRAM, "Bewaar als .vram bestand" },
   { DIALOG_LOAD_STATE, "Selecteer een .sav bestand" },
   { DIALOG_SAVE_STATE, "Bewaar als .sav bestand" },
+  { NO_CASSETTE, "geen cassette" },
   { 0, NULL },
 };
 

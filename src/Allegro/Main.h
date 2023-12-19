@@ -119,8 +119,8 @@ static const char *installCartridges[] = {
 void refreshPath(ALLEGRO_PATH **path, const char * newCPath)
 {
   al_destroy_path(*path);
-  *path = al_create_path(newCPath);
-  al_set_path_filename(*path, NULL);
+  (*path) = al_create_path(newCPath);
+  al_set_path_filename((*path), NULL);
 }
 
 void InitVideoMode() 
