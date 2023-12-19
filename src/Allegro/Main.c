@@ -552,9 +552,6 @@ void OpenCassetteDialog(bool boot)
   al_destroy_native_file_dialog(cassetteChooser);
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
     al_set_mouse_cursor(display, hiddenMouse);
-#ifdef __APPLE__
-  al_clear_keyboard_state(display); //hack to prevent "hanging" Ctrl key
-#endif
 }
 
 void IndicateActionDone() {
@@ -695,7 +692,7 @@ void Keyboard(void)
   while ((isNextEvent = al_get_next_event(eventQueue, &event)) || pausePressed) {
     if (Debug && isNextEvent) printf("Allegro display/menu event.type: %i\n", event.type);
 #ifdef __APPLE__
-    al_clear_keyboard_state(display); //event? -> reset keyboard state
+    if (isNextEvent) al_clear_keyboard_state(display); //event? -> reset keyboard state
 #endif
 
     if (pausePressed) { // pressing Ctrl-P toggles pause
@@ -936,11 +933,11 @@ void Keyboard(void)
   }
 
   // Ctrl-I           -  Insert cassette dialog
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_I))
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_I) && al_key_up(&kbdstate, ALLEGRO_KEY_LCTRL))
     OpenCassetteDialog(false);
 
   // Ctrl-O           -  Open/Boot Cassette dialog
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_O))
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_O) && al_key_up(&kbdstate, ALLEGRO_KEY_LCTRL))
     OpenCassetteDialog(true);
 
   // Ctrl-E           -  Eject current cassette
