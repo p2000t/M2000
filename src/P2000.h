@@ -70,7 +70,7 @@ void TrashP2000(void);
 /****************************************************************************/
 /*** Insert cassette                                                      ***/
 /****************************************************************************/
-void InsertCassette(const char *filename, FILE *f);
+void InsertCassette(const char *filename, FILE *f, int readOnly);
 
 /****************************************************************************/
 /*** Removes current cassette                                             ***/

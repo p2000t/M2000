@@ -523,6 +523,7 @@ int LoadFont(const char *filename)
   return EXIT_SUCCESS;
 }
 
+#ifdef _WIN32
 const wchar_t *GetWideFilename(const char * filename)
 {
   static wchar_t _filename_utf16[2*FILENAME_MAX];
@@ -531,6 +532,7 @@ const wchar_t *GetWideFilename(const char * filename)
   al_ustr_free(_filename);
   return _filename_utf16;
 }
+#endif
 
 void SaveVideoRAM(const char * filename) 
 {
@@ -559,9 +561,11 @@ void OpenCassetteDialog(bool boot)
   if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
     _cassetteFilePath = AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas");
 #ifdef _WIN32
-    InsertCassette(_cassetteFilePath, (f = _wfopen(GetWideFilename(_cassetteFilePath), L"a+b")) ? f : _wfopen(GetWideFilename(_cassetteFilePath), L"rb"));
+    f = _wfopen(GetWideFilename(_cassetteFilePath), L"a+b");
+    InsertCassette(_cassetteFilePath, f ? f : _wfopen(GetWideFilename(_cassetteFilePath), L"rb"), (f == NULL));
 #else
-    InsertCassette(_cassetteFilePath, (f = fopen(filePath, "a+b")) ? f : fopen(filePath, "rb"));
+    f = fopen(_cassetteFilePath, "a+b");
+    InsertCassette(_cassetteFilePath, f ? f : fopen(_cassetteFilePath, "rb"), (f == NULL));
 #endif
     al_destroy_path(currentTapePath);
     currentTapePath = al_create_path(TapeName);

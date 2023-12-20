@@ -320,8 +320,10 @@ int StartP2000 (void)
   if(Verbose) puts (j? "OK":"FAILED");
   /*  if(!j) return EXIT_FAILURE; */
 
-  if (TapeName)
-    InsertCassette(TapeName, (f = fopen(TapeName, "a+b")) ? f : fopen(TapeName, "rb"));
+  if (TapeName) {
+    f = fopen(TapeName, "a+b");
+    InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
+  }
 
   if (LoadFont(FontName) != EXIT_SUCCESS) 
     return EXIT_FAILURE;
@@ -361,9 +363,10 @@ void RemoveCassette()
 /****************************************************************************/
 /*** Insert cassette tape file.                                           ***/
 /****************************************************************************/
-void InsertCassette(const char *filename, FILE *f)
+void InsertCassette(const char *filename, FILE *f, int readOnly)
 {
-  if (Verbose) printf("Opening cassette file %s... ", filename);
+  if (Verbose) printf("Opening cassette file %s", filename);
+  if (Verbose) printf(readOnly ? " (readonly)... " : "... ");
   if (!f) {
     if (Verbose) puts("FAILED");
     return;
@@ -385,7 +388,7 @@ void InsertCassette(const char *filename, FILE *f)
   }
 
   if (TapeStream) fclose (TapeStream); //close previous stream
-  TapeProtect = (f->_flag == 1); // check read only flag
+  TapeProtect = readOnly;
   TapeStream = f;
   rewind (TapeStream);
   if (Verbose) puts("OK");
