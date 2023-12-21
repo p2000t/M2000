@@ -39,12 +39,9 @@ void UpdateVolumeMenu () {
 }
 
 void UpdateMemoryMenu() {
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_16KB_ID, RAMSizeKb == 16 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_32KB_ID, RAMSizeKb == 32 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_40KB_ID, RAMSizeKb == 40 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_48KB_ID, RAMSizeKb == 48 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_64KB_ID, RAMSizeKb == 64 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
-  al_set_menu_item_flags(menu, HARDWARE_MEMORY_96KB_ID, RAMSizeKb == 96 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, HARDWARE_T38_ID, RAMSizeKb == 16 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, HARDWARE_T54_ID, RAMSizeKb == 32 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, HARDWARE_T102_ID, RAMSizeKb == 80 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
 void UpdateCpuSpeedMenu () {
@@ -126,13 +123,10 @@ void CreateEmulatorMenu()
       ALLEGRO_END_OF_MENU,
 
     { "Hardware->", HARDWARE_MENU_ID, 0, NULL },
-      { _(HARDWARE_MEMORY_ID), HARDWARE_MEMORY_ID, 0, NULL },
-        { "16 KB", HARDWARE_MEMORY_16KB_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "32 KB", HARDWARE_MEMORY_32KB_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "40 KB", HARDWARE_MEMORY_40KB_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "48 KB", HARDWARE_MEMORY_48KB_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "64 KB", HARDWARE_MEMORY_64KB_ID , ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "96 KB", HARDWARE_MEMORY_96KB_ID , ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+      { _(HARDWARE_TMODEL_ID), HARDWARE_TMODEL_ID, 0, NULL },
+        { "P2000T/38 (16K RAM)", HARDWARE_T38_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { "P2000T/54 (32K RAM)", HARDWARE_T54_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { "P2000T/102 (80K RAM)", HARDWARE_T102_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_END_OF_MENU,
 
@@ -170,7 +164,10 @@ void CreateEmulatorMenu()
   if (!joyDetected) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
   UpdateCpuSpeedMenu();
-  UpdateMemoryMenu();
+  if (P2000_Mode) 
+    al_remove_menu_item(menu, HARDWARE_MENU_ID);
+  else 
+    UpdateMemoryMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
 #if defined(__linux__)

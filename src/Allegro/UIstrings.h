@@ -82,13 +82,10 @@ typedef struct {
 #define HELP_ABOUT_MSG_ID                 64
 #define OPTIONS_MENU_ID                   65
 #define HARDWARE_MENU_ID                  70
-#define HARDWARE_MEMORY_ID                71
-#define HARDWARE_MEMORY_16KB_ID           72
-#define HARDWARE_MEMORY_32KB_ID           73
-#define HARDWARE_MEMORY_40KB_ID           74
-#define HARDWARE_MEMORY_48KB_ID           75
-#define HARDWARE_MEMORY_64KB_ID           76
-#define HARDWARE_MEMORY_96KB_ID           77
+#define HARDWARE_TMODEL_ID                71
+#define HARDWARE_T38_ID                   72
+#define HARDWARE_T54_ID                   73
+#define HARDWARE_T102_ID                  74
 #define OPTIONS_LANGUAGE_MENU_ID          103
 #define KEYBOARD_MENU_ID                  104
 #define SPEED_MENU_ID                     105
@@ -132,7 +129,7 @@ static LanguageEntry ENstrings[] = {
   { KEYBOARD_CLEARCAS_ID, "[WIS] - Clear Cassette (Ctrl-7)" },
   { KEYBOARD_SYMBOLIC_ID, "Symbolic Key Mapping" },
   { KEYBOARD_POSITIONAL_ID, "Positional Key Mapping" },
-  { HARDWARE_MEMORY_ID, "RAM Memory->" },
+  { HARDWARE_TMODEL_ID, "P2000T model->" },
   { OPTIONS_MENU_ID, "Options->"},
   { OPTIONS_SOUND_ID, "Mute/Unmute Sound (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Sound Card Not Detected" },
@@ -187,7 +184,7 @@ static LanguageEntry NLstrings[] = {
   { KEYBOARD_CLEARCAS_ID, "[WIS] - Wis cassette (Ctrl-7)" },
   { KEYBOARD_SYMBOLIC_ID, "Toetsindeling o.b.v. karakter" },
   { KEYBOARD_POSITIONAL_ID, "Toetsindeling o.b.v. positie" },
-  { HARDWARE_MEMORY_ID, "RAM geheugen->" },
+  { HARDWARE_TMODEL_ID, "P2000T model->" },
   { OPTIONS_MENU_ID, "Opties->" },
   { OPTIONS_SOUND_ID, "Geluid aan/uit (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Geluidskaart niet gedetecteerd" },
