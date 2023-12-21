@@ -92,7 +92,7 @@ void InitConfig()
   al_add_config_comment(config, "Hardware",   "romfile=<file>        Set P2000 ROM file [P2000ROM.bin]");
   al_add_config_comment(config, "Hardware",   "font=<filename>       Set SAA5050 font to use [Default.fnt]");
   al_set_config_value  (config, "Hardware",   "model", "T");
-  al_set_config_value  (config, "Hardware",   "ram", "32");
+  al_set_config_value  (config, "Hardware",   "ram", "80");
   al_set_config_value  (config, "Hardware",   "boot", "on");
   al_set_config_value  (config, "Hardware",   "printertype", "0");
   al_set_config_value  (config, "Hardware",   "romfile", "P2000ROM.bin");

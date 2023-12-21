@@ -880,12 +880,9 @@ void Keyboard(void)
           PushKey(72); //LSHIFT
           delayedShiftedKeyPress = 51;
           break;
-        case HARDWARE_MEMORY_16KB_ID: RAMSizeKb=16; goto updateMem;
-        case HARDWARE_MEMORY_32KB_ID: RAMSizeKb=32; goto updateMem;
-        case HARDWARE_MEMORY_40KB_ID: RAMSizeKb=40; goto updateMem;
-        case HARDWARE_MEMORY_48KB_ID: RAMSizeKb=48; goto updateMem;
-        case HARDWARE_MEMORY_64KB_ID: RAMSizeKb=64; goto updateMem;
-        case HARDWARE_MEMORY_96KB_ID: RAMSizeKb=96; goto updateMem;
+        case HARDWARE_T38_ID: RAMSizeKb=16; goto updateMem;
+        case HARDWARE_T54_ID: RAMSizeKb=32; goto updateMem;
+        case HARDWARE_T102_ID: RAMSizeKb=80; goto updateMem;
           updateMem:
           InitRAM();
           UpdateMemoryMenu();

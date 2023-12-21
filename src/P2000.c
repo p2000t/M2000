@@ -55,7 +55,7 @@ int Z80_IRQ      = Z80_IGNORE_INT;
 int ColdBoot     = 1;
 
 byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0;
-byte RAMMask=0;
+int RAMBanks=0;
 byte *ROM;
 byte *VRAM;
 byte *RAM = NULL;
@@ -121,23 +121,22 @@ void Z80_Out (byte Port, byte Value)
   case 0x89:
   case 0x8A:
   case 0x8B:
-   break;
+    break;
   /* Floppy controller */
   case 0x8D:
   case 0x8E:
   case 0x8F:
   case 0x90:
-   break;
+    break;
   /* RAM Bank select */
   case 0x94:
-   if (RAMMask)
-   {
-    Value&=RAMMask;
-    RAMMapper=Value;
-    for (i=0xE000;i<0x10000;i+=256)
-      ReadPage[i>>8]=WritePage[i>>8]=RAM+i-0x6000+Value*8192;
-   }
-   return;
+    if (RAMBanks && Value < RAMBanks) {
+      if (Verbose) printf(">> Bank %i selected\n", Value);
+      RAMMapper=Value;
+      for (i=0xE000;i<0x10000;i+=256)
+        ReadPage[i>>8]=WritePage[i>>8]=RAM+i-0x6000+Value*8192;
+    }
+    return;
  }
 }
 
@@ -200,8 +199,9 @@ byte Z80_In (byte Port)
    break;
   /* RAM Bank select */
   case 0x94:
-   if (RAMMask)
+   if (RAMBanks) {
     return RAMMapper;
+   }
    break;
  }
  return 0xFF;
@@ -209,24 +209,18 @@ byte Z80_In (byte Port)
 
 int InitRAM()
 {
-  int I,J;
+  int i;
   int RAMSize=RAMSizeKb*1024;
-  RAMMask = 0;
-  if (RAMSize>40960) {
-    I=RAMSize-32768;
-    if (I&8191) I=(I&(~8191))+8192;
-    I/=8192;
-    //calculate number of 8KB banks needed
-    for(J=1;J<I;J<<=1);
-    RAMMask=J-1;
-    RAMSize=32768+J*8192;
-  } else {
-   if (RAMSize<=16384) RAMSize=16384;
-   else if (RAMSize<=32768) RAMSize=32768;
-   else RAMSize=40960;
+  RAMBanks = RAMMapper = 0;
+  if (RAMSize<=16384) RAMSize=16384;
+  else if (RAMSize<=32768) RAMSize=32768;
+  else {
+    RAMBanks = (RAMSize-32768)/8192;
+    if (RAMBanks > 16) RAMBanks = 16; //keeping it realistic :)
+    RAMSize=32768+RAMBanks*8192;
   }
 
-  if (Verbose) printf ("Allocating memory: %uKB RAM...",RAMSize/1024);
+  if (Verbose) printf ("Allocating memory: %uK RAM...",RAMSize/1024);
   if (RAM) free(RAM);
   RAM = malloc(RAMSize);
   if (!RAM) {
@@ -236,12 +230,12 @@ int InitRAM()
   memset (RAM,0,RAMSize);
   if (Verbose) printf ("OK\n");
 
-  for (I=0x0000;I<0xA000;I+=256) {
-    if (I<RAMSize)
-      ReadPage[(I+0x6000)>>8]=WritePage[(I+0x6000)>>8]=RAM+I;
+  for (i=0x0000;i<0xA000;i+=256) {
+    if (i<RAMSize)
+      ReadPage[(i+0x6000)>>8]=WritePage[(i+0x6000)>>8]=RAM+i;
     else {
-      ReadPage[(I+0x6000)>>8]=NoRAMRead;
-      WritePage[(I+0x6000)>>8]=NoRAMWrite;
+      ReadPage[(i+0x6000)>>8]=NoRAMRead;
+      WritePage[(i+0x6000)>>8]=NoRAMWrite;
     }
   }
 
@@ -258,7 +252,7 @@ int StartP2000 (void)
   FILE *f;
   int i,j;
   
-  if (Verbose) printf ("Allocating memory: 20KB ROM, 4KB VRAM... ");
+  if (Verbose) printf ("Allocating memory: 20K ROM, 4K VRAM... ");
   ROM=malloc (0x5000);
   VRAM=malloc (0x1000);
   if (!ROM || !VRAM)
