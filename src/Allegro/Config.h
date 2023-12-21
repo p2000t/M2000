@@ -84,7 +84,7 @@ void InitConfig()
   al_add_config_comment(config, "Hardware",   "model=T|M             Set P2000 model [T]");
   al_add_config_comment(config, "Hardware",   "                      T - P2000T");
   al_add_config_comment(config, "Hardware",   "                      M - P2000M (experimental)");
-  al_add_config_comment(config, "Hardware",   "ram=<value>           Set amount of RAM installed in kilobytes [32]");
+  al_add_config_comment(config, "Hardware",   "ram=<value>           Set amount of RAM installed in kilobytes [80]");
   al_add_config_comment(config, "Hardware",   "boot=on|off           Allow/Don't allow BASIC to boot from tape [on]");
   al_add_config_comment(config, "Hardware",   "printertype=<type>    Set printer type [0]");
   al_add_config_comment(config, "Hardware",   "                      0 - Daisy wheel");
