@@ -660,7 +660,7 @@ void Keyboard(void)
       for (i = 0; i < 80; i++) {
         k = i / 8;
         j = 1 << (i % 8);
-        if (!keymask[i])
+        if (keymask[i] == ALLEGRO_KEY_UNKNOWN)
           continue;
         if (al_key_down(&kbdstate, keymask[i])) {
           if (Debug) printf("KEYDOWN CODE:%i\n", keymask[i]);
