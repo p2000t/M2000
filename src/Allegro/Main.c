@@ -653,6 +653,8 @@ void Keyboard(void)
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
 
+  //for (i=0;i<256;i++) if (al_key_down(&kbdstate,i)) printf("KEYDOWN CODE: %i\n", i);
+
   if (!al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) && !al_key_down(&kbdstate,ALLEGRO_KEY_ALT)) {
     if (keyboardmap == 0) {
       /* Positional Key Mapping */
@@ -662,8 +664,7 @@ void Keyboard(void)
         j = 1 << (i % 8);
         if (keymask[i] == ALLEGRO_KEY_UNKNOWN)
           continue;
-        if (al_key_down(&kbdstate, keymask[i])) {
-          if (Debug) printf("KEYDOWN CODE:%i\n", keymask[i]);
+        if (al_key_down(&kbdstate, (keymask[i] & 0xff)) || (keymask[i] && al_key_down(&kbdstate, (keymask[i] >> 8)))) {
           KeyMap[k] &= ~j;
         }
         else
