@@ -662,8 +662,10 @@ void Keyboard(void)
         j = 1 << (i % 8);
         if (!keymask[i])
           continue;
-        if (al_key_down(&kbdstate, keymask[i]))
+        if (al_key_down(&kbdstate, keymask[i])) {
+          if (Debug) printf("KEYDOWN CODE:%i\n", keymask[i]);
           KeyMap[k] &= ~j;
+        }
         else
           KeyMap[k] |= j;  
       }
