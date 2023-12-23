@@ -84,7 +84,7 @@ void InitConfig()
   al_add_config_comment(config, "Hardware",   "model=T|M             Set P2000 model [T]");
   al_add_config_comment(config, "Hardware",   "                      T - P2000T");
   al_add_config_comment(config, "Hardware",   "                      M - P2000M (experimental)");
-  al_add_config_comment(config, "Hardware",   "ram=<value>           Set amount of RAM installed in kilobytes [80]");
+  al_add_config_comment(config, "Hardware",   "ram=<value>           Set amount of RAM installed in kilobytes [32]");
   al_add_config_comment(config, "Hardware",   "boot=on|off           Allow/Don't allow BASIC to boot from tape [on]");
   al_add_config_comment(config, "Hardware",   "printertype=<type>    Set printer type [0]");
   al_add_config_comment(config, "Hardware",   "                      0 - Daisy wheel");
@@ -92,7 +92,7 @@ void InitConfig()
   al_add_config_comment(config, "Hardware",   "romfile=<file>        Set P2000 ROM file [P2000ROM.bin]");
   al_add_config_comment(config, "Hardware",   "font=<filename>       Set SAA5050 font to use [Default.fnt]");
   al_set_config_value  (config, "Hardware",   "model", "T");
-  al_set_config_value  (config, "Hardware",   "ram", "80");
+  al_set_config_value  (config, "Hardware",   "ram", "32");
   al_set_config_value  (config, "Hardware",   "boot", "on");
   al_set_config_value  (config, "Hardware",   "printertype", "0");
   al_set_config_value  (config, "Hardware",   "romfile", "P2000ROM.bin");

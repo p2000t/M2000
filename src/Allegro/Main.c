@@ -370,7 +370,7 @@ void SyncEmulation(void)
     if (al_get_next_event(timerQueue, &event)) {
       if (Debug)
         printf("Sync lagged behind @ ts %f...\n", event.timer.timestamp);
-      while (al_get_next_event(timerQueue, &event)); //drain the timer queue
+      al_flush_event_queue(timerQueue);
     }
     else
       al_wait_for_event(timerQueue, &event);   
@@ -652,6 +652,14 @@ void Keyboard(void)
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
+  
+  static int debugLastKeydown = -1;
+  if (Debug) for (i=0;i<256;i++) {
+    if (al_key_down(&kbdstate,i)) {
+      if (i!=debugLastKeydown) printf("Allegro key down code: %i\n", i);
+      debugLastKeydown = i;
+    } else if (i==debugLastKeydown) debugLastKeydown = -1;
+  }
 
   if (!al_key_down(&kbdstate,ALLEGRO_KEY_LCTRL) && !al_key_down(&kbdstate,ALLEGRO_KEY_ALT)) {
     if (keyboardmap == 0) {
@@ -660,10 +668,11 @@ void Keyboard(void)
       for (i = 0; i < 80; i++) {
         k = i / 8;
         j = 1 << (i % 8);
-        if (!keymask[i])
+        if (keymask[i] == ALLEGRO_KEY_UNKNOWN)
           continue;
-        if (al_key_down(&kbdstate, keymask[i]))
+        if (al_key_down(&kbdstate, (keymask[i] & 0xff)) || (keymask[i] && al_key_down(&kbdstate, (keymask[i] >> 8)))) {
           KeyMap[k] &= ~j;
+        }
         else
           KeyMap[k] |= j;  
       }

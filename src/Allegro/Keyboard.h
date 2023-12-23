@@ -23,12 +23,12 @@
     P2000 Keyboard layout
 
     Y \ X   0       1        2       3        4       5        6       7
-    0       LEFT    6        up      Q        3       5        7       4
+    0       LEFT    6        UP      Q        3       5        7       4
     1       TAB     H        Z       S        D       G        J       F
     2       . *     SPACE    00 *    0 *      #       DOWN     ,       RIGHT
     3       SHLOCK  N        <       X        C       B        M       V
     4       CODE    Y        A       W        E       T        U       R
-    5       CLRLN   9        + *     - *      BACKSP  0        1       -
+    5       CLRLN * 9        + *     - *      BACKSP  0        1       -
     6       9 *     O        8 *     7 *      ENTER   P        8       @
     7       3 *     .        2 *     1 *      ->      /        K       2
     8       6 *     L        5 *     4 *      1/4     ;        I       :
@@ -36,18 +36,35 @@
 
     Keys marked with an asterix (*) are on the numeric keypad
 */
-static unsigned char keymask[]=
+#ifdef __APPLE__
+#define P2000_KEY_LESS_THAN  ALLEGRO_KEY_BACKQUOTE
+#define P2000_KEY_CODE       0 // has no official key constant
+//ISO/EIC 9995 standard keyboard
+#define P2000_KEY_PAD_MIN    ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
+#define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_SLASH
+#define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_ASTERISK
+// Apple Magic keyboard
+// #define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_EQUALS
+// #define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_SLASH
+#else
+#define P2000_KEY_LESS_THAN  ((ALLEGRO_KEY_BACKSLASH2<<8) | ALLEGRO_KEY_DELETE)
+#define P2000_KEY_CODE       ALLEGRO_KEY_TILDE
+#define P2000_KEY_PAD_MIN    ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
+#define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_SLASH
+#define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_ASTERISK
+#endif
+static int keymask[] =
 {
-  ALLEGRO_KEY_LEFT,       ALLEGRO_KEY_6,         ALLEGRO_KEY_UP,          ALLEGRO_KEY_Q,          ALLEGRO_KEY_3,          ALLEGRO_KEY_5,         ALLEGRO_KEY_7,      ALLEGRO_KEY_4,
-  ALLEGRO_KEY_TAB,        ALLEGRO_KEY_H,         ALLEGRO_KEY_Z,           ALLEGRO_KEY_S,          ALLEGRO_KEY_D,          ALLEGRO_KEY_G,         ALLEGRO_KEY_J,      ALLEGRO_KEY_F,
-  ALLEGRO_KEY_PAD_ENTER,  ALLEGRO_KEY_SPACE,     ALLEGRO_KEY_PAD_DELETE,  ALLEGRO_KEY_PAD_0,      ALLEGRO_KEY_SLASH,      ALLEGRO_KEY_DOWN,      ALLEGRO_KEY_COMMA,  ALLEGRO_KEY_RIGHT,
-  ALLEGRO_KEY_CAPSLOCK,   ALLEGRO_KEY_N,         ALLEGRO_KEY_DELETE,      ALLEGRO_KEY_X,          ALLEGRO_KEY_C,          ALLEGRO_KEY_B,         ALLEGRO_KEY_M,      ALLEGRO_KEY_V,
-  ALLEGRO_KEY_BACKQUOTE,  ALLEGRO_KEY_Y,         ALLEGRO_KEY_A,           ALLEGRO_KEY_W,          ALLEGRO_KEY_E,          ALLEGRO_KEY_T,         ALLEGRO_KEY_U,      ALLEGRO_KEY_R,
-  ALLEGRO_KEY_BACKSLASH,  ALLEGRO_KEY_9,         ALLEGRO_KEY_PAD_PLUS,    ALLEGRO_KEY_OPENBRACE,  ALLEGRO_KEY_BACKSPACE,  ALLEGRO_KEY_0,         ALLEGRO_KEY_1,      ALLEGRO_KEY_PAD_MINUS,
-  ALLEGRO_KEY_PAD_9,      ALLEGRO_KEY_O,         ALLEGRO_KEY_PAD_8,       ALLEGRO_KEY_PAD_7,      ALLEGRO_KEY_ENTER,      ALLEGRO_KEY_P,         ALLEGRO_KEY_8,      ALLEGRO_KEY_SEMICOLON,
-  ALLEGRO_KEY_PAD_3,      ALLEGRO_KEY_FULLSTOP,  ALLEGRO_KEY_PAD_2,       ALLEGRO_KEY_PAD_1,      ALLEGRO_KEY_RCTRL,      ALLEGRO_KEY_MINUS,     ALLEGRO_KEY_K,      ALLEGRO_KEY_2,
-  ALLEGRO_KEY_PAD_6,      ALLEGRO_KEY_L,         ALLEGRO_KEY_PAD_5,       ALLEGRO_KEY_PAD_4,      ALLEGRO_KEY_CLOSEBRACE, ALLEGRO_KEY_TILDE,     ALLEGRO_KEY_I,      ALLEGRO_KEY_QUOTE,
-  ALLEGRO_KEY_LSHIFT,     0,                     0,                       0,                      0,                      0,                     0,                  ALLEGRO_KEY_RSHIFT
+  ALLEGRO_KEY_LEFT,      ALLEGRO_KEY_6,        ALLEGRO_KEY_UP,         ALLEGRO_KEY_Q,       ALLEGRO_KEY_3,          ALLEGRO_KEY_5,         ALLEGRO_KEY_7,       ALLEGRO_KEY_4,
+  ALLEGRO_KEY_TAB,       ALLEGRO_KEY_H,        ALLEGRO_KEY_Z,          ALLEGRO_KEY_S,       ALLEGRO_KEY_D,          ALLEGRO_KEY_G,         ALLEGRO_KEY_J,       ALLEGRO_KEY_F,
+  ALLEGRO_KEY_PAD_ENTER, ALLEGRO_KEY_SPACE,    ALLEGRO_KEY_PAD_DELETE, ALLEGRO_KEY_PAD_0,   ALLEGRO_KEY_BACKSLASH,  ALLEGRO_KEY_DOWN,      ALLEGRO_KEY_COMMA,   ALLEGRO_KEY_RIGHT,
+  ALLEGRO_KEY_CAPSLOCK,  ALLEGRO_KEY_N,        P2000_KEY_LESS_THAN,    ALLEGRO_KEY_X,       ALLEGRO_KEY_C,          ALLEGRO_KEY_B,         ALLEGRO_KEY_M,       ALLEGRO_KEY_V,
+  P2000_KEY_CODE,        ALLEGRO_KEY_Y,        ALLEGRO_KEY_A,          ALLEGRO_KEY_W,       ALLEGRO_KEY_E,          ALLEGRO_KEY_T,         ALLEGRO_KEY_U,       ALLEGRO_KEY_R,
+  P2000_KEY_PAD_CLRLN,   ALLEGRO_KEY_9,        P2000_KEY_PAD_PLUS,     P2000_KEY_PAD_MIN,   ALLEGRO_KEY_BACKSPACE,  ALLEGRO_KEY_0,         ALLEGRO_KEY_1,       ALLEGRO_KEY_MINUS,
+  ALLEGRO_KEY_PAD_9,     ALLEGRO_KEY_O,        ALLEGRO_KEY_PAD_8,      ALLEGRO_KEY_PAD_7,   ALLEGRO_KEY_ENTER,      ALLEGRO_KEY_P,         ALLEGRO_KEY_8,       ALLEGRO_KEY_OPENBRACE,
+  ALLEGRO_KEY_PAD_3,     ALLEGRO_KEY_FULLSTOP, ALLEGRO_KEY_PAD_2,      ALLEGRO_KEY_PAD_1,   ALLEGRO_KEY_CLOSEBRACE, ALLEGRO_KEY_SLASH,     ALLEGRO_KEY_K,       ALLEGRO_KEY_2,
+  ALLEGRO_KEY_PAD_6,     ALLEGRO_KEY_L,        ALLEGRO_KEY_PAD_5,      ALLEGRO_KEY_PAD_4,   ALLEGRO_KEY_EQUALS,     ALLEGRO_KEY_SEMICOLON, ALLEGRO_KEY_I,       ALLEGRO_KEY_QUOTE,
+  ALLEGRO_KEY_LSHIFT,    ALLEGRO_KEY_UNKNOWN,  ALLEGRO_KEY_UNKNOWN,    ALLEGRO_KEY_UNKNOWN, ALLEGRO_KEY_UNKNOWN,    ALLEGRO_KEY_UNKNOWN,   ALLEGRO_KEY_UNKNOWN, ALLEGRO_KEY_RSHIFT
 };
 
 #define NUMBER_OF_KEYMAPPINGS 68
