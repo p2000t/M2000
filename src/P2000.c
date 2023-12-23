@@ -371,14 +371,14 @@ void InsertCassette(const char *filename, FILE *f, int readOnly)
   TapeName=_TapeName;
 
   char *dot = strrchr(TapeName, '.');
-  if (!dot || strcasecmp(dot, ".cas") == 0) {
-    // .cas files use 256-byte header
-    TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
-    TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
-  } else {
-    // assume alternative cassette format with cleaned, 32-byte header
+  if (dot && strcasecmp(dot, ".p2000t") == 0) {
+    // .p2000t format uses 32-byte headers
     TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
     TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
+  } else {
+    // .cas (default) format uses 256-byte headers (of which 224 are unused)
+    TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
   }
 
   if (TapeStream) fclose (TapeStream); //close previous stream
