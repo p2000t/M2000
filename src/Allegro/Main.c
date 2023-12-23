@@ -26,6 +26,7 @@
 
 #ifdef __APPLE__
 #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
+#define OSX_COMMAND_KEY_FIX if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND)) al_clear_keyboard_state(display);
 #endif
 
 #include <stdio.h>
@@ -672,6 +673,9 @@ void Keyboard(void)
           continue;
         if (al_key_down(&kbdstate, (keymask[i] & 0xff)) || (keymask[i] && al_key_down(&kbdstate, (keymask[i] >> 8)))) {
           KeyMap[k] &= ~j;
+#ifdef __APPLE__
+          OSX_COMMAND_KEY_FIX
+#endif
         }
         else
           KeyMap[k] |= j;  
@@ -702,8 +706,7 @@ void Keyboard(void)
           }
           activeKeys[i] = 1;
 #ifdef __APPLE__
-          if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND))
-            al_clear_keyboard_state(display);
+          OSX_COMMAND_KEY_FIX
 #endif
           if (!isNormalKey) 
             isSpecialKeyPressed = true;
