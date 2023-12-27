@@ -79,7 +79,7 @@ There are two keyboard mappings available in M2000:
 
 - **Symbolic** key mapping (default), in which typing a key on your keyboard will - as far as possible - show the actual character/symbol written on the keycap. So that means that typing Shift-2 will show the @ symbol in the emulator.
 
-- **Positional** key mapping (optional), in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2.
+- **Positional** key mapping (optional), in which the keys are mapped to the same relative positions as they would be on a real P2000 keyboard. So that means that typing Shift-2 on your keyboard will show the double-quote (") character, because that matches a real P2000 when you type Shift-2. Note that P2000's "<" key (located between the left shift and the Z-key) is also mapped to the Delete key, as some modern keyboards are missing this key.
 
 ## How to compile M2000 from the sources
 
