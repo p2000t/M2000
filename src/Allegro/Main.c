@@ -939,7 +939,7 @@ void Keyboard(void)
           break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
-            "M2000 - Philips P2000 emulator", "Version "M2000_VERSION,
+            "M2000 - Philips P2000 emulator", "",
             _(HELP_ABOUT_MSG_ID),
             NULL, 0);
           break;
