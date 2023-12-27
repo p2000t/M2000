@@ -31,7 +31,7 @@
         <key>CFBundleTypeName</key>
         <string>M2000 cassette file</string>
         <key>CFBundleTypeRole</key>
-        <string>Shell</string>
+        <string>Editor</string>
         <key>LSHandlerRank</key>
         <string>Owner</string>
         <key>LSItemContentTypes</key>
