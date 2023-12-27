@@ -144,7 +144,9 @@ static LanguageEntry ENstrings[] = {
   { OPTIONS_JOYSTICK_MAP_1_ID, "Fraxxon Mode (Left/Up/Spacebar)" },
   { HELP_MENU_ID, "Info->" },
   { HELP_ABOUT_ID, "About M2000" },
-  { HELP_ABOUT_MSG_ID, "Thanks to Marcel de Kogel for creating the core of this emulator back in 1996." },
+  { HELP_ABOUT_MSG_ID, 
+    "Version "M2000_VERSION
+    "\n\nThanks to Marcel de Kogel for creating the core of this emulator back in 1996." },
   { DIALOG_LOAD_CASSETTE, "Select a .cas cassette file" },
   { DIALOG_LOAD_CARTRIDGE, "Select a .bin cartridge file" },
   { DIALOG_SAVE_SCREENSHOT, "Save as .png or .bmp file" },
@@ -199,7 +201,9 @@ static LanguageEntry NLstrings[] = {
   { OPTIONS_JOYSTICK_MAP_1_ID, "Fraxxon mode (links/omhoog/spatiebalk)" },
   { HELP_MENU_ID, "Info->" },
   { HELP_ABOUT_ID, "Over M2000" },
-  { HELP_ABOUT_MSG_ID, "Met dank aan Marcel de Kogel voor het creëren van de basis voor deze emulator in 1996." },
+  { HELP_ABOUT_MSG_ID,
+    "Versie "M2000_VERSION
+    "\n\nMet dank aan Marcel de Kogel voor het creëren van de basis voor deze emulator in 1996." },
   { DIALOG_LOAD_CASSETTE, "Selecteer een .cas cassette bestand" },
   { DIALOG_LOAD_CARTRIDGE, "Selecteer een .bin cartridge bestand" },
   { DIALOG_SAVE_SCREENSHOT, "Bewaar als .png of .bmp bestand" },
