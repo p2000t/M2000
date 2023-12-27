@@ -103,7 +103,7 @@ int M2000_main(int argc,char *argv[])
   Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
 
   /* Start emulated P2000 */
-  if (InitMachine() != EXIT_SUCCESS) return EXIT_FAILURE;
+  if (!InitMachine()) return EXIT_FAILURE;
   StartP2000(); // P2000 loop
   /* Trash emulated P2000 */
   TrashP2000();

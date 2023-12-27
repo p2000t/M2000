@@ -56,7 +56,7 @@ void TrashMachine(void)
   if (OldCharacter) free (OldCharacter);
 }
 
-int ReturnErrorMessage(const char *format, ...)
+void ShowErrorMessage(const char *format, ...)
 {
   char string[1024];
   va_list args;
@@ -64,7 +64,6 @@ int ReturnErrorMessage(const char *format, ...)
   vsprintf(string, format, args);
   va_end(args);
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
-  return EXIT_FAILURE; //always returns error code
 }
 
 void ClearScreen() 
@@ -226,7 +225,8 @@ void InitDocumentFolders()
 }
 
 /****************************************************************************/
-/*** Initialise all resources needed by the Linux/SVGALib implementation  ***/
+/*** Initialise all resources needed by the Allegro implementation        ***/
+/*** Returns 0 on init failure                                            ***/
 /****************************************************************************/
 int InitMachine(void)
 {
@@ -258,28 +258,29 @@ int InitMachine(void)
   if (Verbose) printf("Creating the display window... ");
   InitVideoMode();
   UpdateDisplaySettings();
-#ifdef __linux__
-  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
-#else
-  al_set_new_display_flags (ALLEGRO_WINDOWED);
-#endif
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
 #ifdef __linux__
+  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
   // for Linux create smallest display, as it does not correctly scale back
-  if ((display = al_create_display(Displays[1][0], Displays[1][1])) == NULL)
+  display = al_create_display(Displays[1][0], Displays[1][1]);
 #else
-  if ((display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder)) == NULL)
+  al_set_new_display_flags (ALLEGRO_WINDOWED);
+  display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #endif
-    return ReturnErrorMessage("Could not initialize display.");
-
+  if (!display) {
+    ShowErrorMessage("Could not initialize display.");
+    return 0;
+  }
   if (Verbose) puts("OK");
 
   if (Verbose) printf("Creating timer and queues... ");
   eventQueue = al_create_event_queue();
   timerQueue =  al_create_event_queue();
   timer = al_create_timer(1.0 / IFreq);
-  if (!eventQueue || !timerQueue || !timer)
-    return ReturnErrorMessage("Could not initialize timer and event queues.");
+  if (!eventQueue || !timerQueue || !timer) {
+    ShowErrorMessage("Could not initialize timer and event queues.");
+    return 0;
+  }
   if (Verbose) puts("OK");
 
   UpdateWindowTitle();
@@ -308,7 +309,10 @@ int InitMachine(void)
 
   if (Verbose) printf("  Allocating cache buffers... ");
   OldCharacter = malloc(80 * 24 * sizeof(int));
-  if (!OldCharacter) return ReturnErrorMessage("Could not allocate character buffer.");
+  if (!OldCharacter) {
+    ShowErrorMessage("Could not allocate character buffer.");
+    return 0;
+  }
   ClearScreen();
   if (Verbose) puts("OK");
 
@@ -329,8 +333,7 @@ int InitMachine(void)
 
   /* start the 50Hz/60Hz timer */
   al_start_timer(timer);
-
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 /****************************************************************************/
@@ -429,8 +432,10 @@ int LoadFont(const char *filename)
   smFontBuf = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
   smFontBuf_bk = al_create_bitmap(FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT);
   
-  if (!FontBuf || !FontBuf_bk || !smFontBuf || !smFontBuf_bk )
-    return ReturnErrorMessage("Could not create font bitmaps.");
+  if (!FontBuf || !FontBuf_bk || !smFontBuf || !smFontBuf_bk ) {
+    ShowErrorMessage("Could not create font bitmaps.");
+    return 0;
+  }
 
   al_set_target_bitmap(FontBuf);
   al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -439,8 +444,10 @@ int LoadFont(const char *filename)
 
   if (Verbose) printf("  Allocating memory for temp buffer for font... ");
   TempBuf = malloc(2240);
-  if (!TempBuf)
-    return ReturnErrorMessage("Could not allocate temp buffer for font.");
+  if (!TempBuf) {
+    ShowErrorMessage("Could not allocate temp buffer for font.");
+    return 0;
+  }
   if (Verbose) puts("OK");
 
   if (Verbose) printf("  Opening font file %s... ", filename);
@@ -452,7 +459,10 @@ int LoadFont(const char *filename)
     fclose(F);
   }
   if (Verbose) puts(i ? "OK" : "FAILED");
-  if (!i) return ReturnErrorMessage("Could not read font file %s", filename);
+  if (!i) {
+    ShowErrorMessage("Could not read font file %s", filename);
+    return 0;
+  }
 
   // Stretch 6x10 characters to 12x20, so we can do character rounding 
   // 96 alpha + 64 graphic (cont) + 64 graphic (sep)
@@ -521,7 +531,7 @@ int LoadFont(const char *filename)
   al_draw_scaled_bitmap(FontBuf_bk, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0, 0, FONT_BITMAP_WIDTH, CHAR_TILE_HEIGHT, 0); 
 
   //al_save_bitmap("FontBuf.png", FontBuf);
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 #ifdef _WIN32
@@ -1190,16 +1200,19 @@ char *GetDocumentsPath()
 
 int main(int argc,char *argv[]) 
 {
-  if (!al_init()) return ReturnErrorMessage("Allegro could not initialize its core.");
-  if (!al_init_primitives_addon()) return ReturnErrorMessage("Allegro could not initialize primitives addon.");
-  if (!al_init_image_addon()) return ReturnErrorMessage("Allegro could not initialize image addon.");
-  if (!al_init_native_dialog_addon()) return ReturnErrorMessage("Allegro could not initialize native dialog addon.");
-  if (!al_install_keyboard())return ReturnErrorMessage("Allegro could not install keyboard.");
+  if (!al_init()) { ShowErrorMessage("Allegro could not initialize its core."); return EXIT_FAILURE; }
+  if (!al_init_primitives_addon()) { ShowErrorMessage("Allegro could not initialize primitives addon."); return EXIT_FAILURE; }
+  if (!al_init_image_addon()) { ShowErrorMessage("Allegro could not initialize image addon."); return EXIT_FAILURE; }
+  if (!al_init_native_dialog_addon()) { ShowErrorMessage("Allegro could not initialize native dialog addon."); return EXIT_FAILURE; }
+  if (!al_install_keyboard()) { ShowErrorMessage("Allegro could not install keyboard."); return EXIT_FAILURE; }
 
   /* create M2000 folder inside user's Documents folder */
   docPath = al_get_standard_path(ALLEGRO_USER_DOCUMENTS_PATH);
   al_append_path_component(docPath, "M2000");
-  if (!al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) return ReturnErrorMessage("Can't create documents folder %s.", al_path_cstr(docPath, PATH_SEPARATOR));
+  if (!al_make_directory(al_path_cstr(docPath, PATH_SEPARATOR))) { 
+    ShowErrorMessage("Can't create documents folder %s.", al_path_cstr(docPath, PATH_SEPARATOR)); 
+    return EXIT_FAILURE; 
+  }
 
   InitConfig();
   if (Verbose) {

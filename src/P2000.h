@@ -146,6 +146,6 @@ char *GetResourcesPath (void);
 char *GetDocumentsPath (void);
 
 /****************************************************************************/
-/*** Shows breaking error message and returns error code 1                ***/
+/*** Used to shows breaking error messages                                ***/
 /************************************************** TO BE WRITTEN BY USER ***/
-int ReturnErrorMessage(const char *format, ...);
+void ShowErrorMessage(const char *format, ...);

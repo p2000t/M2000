@@ -171,7 +171,7 @@ void CreateEmulatorMenu()
   UpdateViewMenu();
   al_set_display_menu(display, menu);
 #if defined(__linux__)
-  // resize display after menu was attached
+  // resize display after menu was attached, see https://github.com/liballeg/allegro5/issues/1500
   al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #endif
 }

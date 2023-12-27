@@ -225,7 +225,7 @@ int InitRAM()
   RAM = malloc(RAMSize);
   if (!RAM) {
     if (Verbose) printf ("FAILED\n");
-    return EXIT_FAILURE;
+    return 0;
   }
   memset (RAM,0,RAMSize);
   if (Verbose) printf ("OK\n");
@@ -238,13 +238,12 @@ int InitRAM()
       WritePage[(i+0x6000)>>8]=NoRAMWrite;
     }
   }
-
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 /******************************************************************************/
 /*** Allocate memory, load ROM images, initialise mapper, VDP and CPU and   ***/
-/*** the emulation. This function returns EXIT_FAILURE in case of a failure ***/
+/*** the emulation. This function returns 0 in case of a failure            ***/
 /******************************************************************************/
 word Exit_PC;
 int StartP2000 (void)
@@ -258,7 +257,7 @@ int StartP2000 (void)
   if (!ROM || !VRAM)
   {
    if (Verbose) printf ("FAILED\n");
-   return EXIT_FAILURE;
+   return 0;
   }
   memset (ROM,0xFF,0x5000);
   memset (VRAM,0,0x1000);
@@ -282,7 +281,7 @@ int StartP2000 (void)
    for (i=0x0000;i<0x0800;i+=256)
     ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
 
-  InitRAM();
+  if (!InitRAM()) return 0;
 
   if (Verbose) printf ("Loading ROMs:\n");
   if (Verbose) printf ("  Opening %s... ",ROMName);
@@ -294,7 +293,7 @@ int StartP2000 (void)
    fclose (f);
   }
   if(Verbose) puts(j? "OK":"FAILED");
-  if(!j) return EXIT_FAILURE;
+  if(!j) return 0;
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
@@ -312,15 +311,15 @@ int StartP2000 (void)
    fclose(f);
   }
   if(Verbose) puts (j? "OK":"FAILED");
-  /*  if(!j) return EXIT_FAILURE; */
+  /*  if(!j) return 0; */
 
   if (TapeName) {
     f = fopen(TapeName, "a+b");
     InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
   }
 
-  if (LoadFont(FontName) != EXIT_SUCCESS) 
-    return EXIT_FAILURE;
+  if (!LoadFont(FontName)) 
+    return 0;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
 
@@ -328,7 +327,7 @@ int StartP2000 (void)
   Z80_Reset ();
   Exit_PC=Z80 ();
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
-  return EXIT_SUCCESS;
+  return 1;
 }
 
 /****************************************************************************/
