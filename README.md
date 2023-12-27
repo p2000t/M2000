@@ -52,10 +52,10 @@ Ctrl-V           -  Load previously saved state (without dialog)
 Ctrl-S           -  Save screenshot picture to file (without dialog)
 Ctrl-D           -  Dump visible video RAM to file (without dialog)
 
-Ctrl-1           -  ZOEK key (show cassette index)
+Ctrl-1           -  ZOEK  key (show cassette index)
 Ctrl-3           -  START key (start loaded program)
-Ctrl-.           -  STOP key (pause/halt program)
-Ctrl-7           -  WIS key (clear cassette dialog)
+Ctrl-.           -  STOP  key (pause/halt program)
+Ctrl-7           -  WIS   key (clear cassette dialog)
 
 Ctrl-P           -  Toggle pause on/off
 Ctrl-M           -  Mute/unmute sound
