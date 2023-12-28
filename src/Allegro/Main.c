@@ -117,12 +117,7 @@ void ToggleFullscreen()
   ClearScreen();
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
     //back to window mode
-    DisplayWidth = _DisplayWidth;
-    DisplayHeight = _DisplayHeight;
-    DisplayTileWidth = _DisplayTileWidth;
-    DisplayTileHeight = _DisplayTileHeight;
-    DisplayHBorder = _DisplayHBorder;
-    DisplayVBorder = _DisplayVBorder;
+    UpdateDisplaySettings();
     if (Verbose) printf("Back to window %ix%i\n", DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #ifdef __APPLE__
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
@@ -130,22 +125,13 @@ void ToggleFullscreen()
 #else
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
     al_set_display_flag(display , ALLEGRO_FULLSCREEN_WINDOW , 0);
-#endif
-    //al_show_mouse_cursor(display);
-    al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+#endif 
+    al_set_system_mouse_cursor(display, ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT); //al_show_mouse_cursor(display);
     al_set_display_menu(display,  menu);
   } else {
     //go fullscreen and hide menu and mouse
     al_remove_display_menu(display);
-    //al_hide_mouse_cursor(display);
-    al_set_mouse_cursor(display, hiddenMouse);
-    _DisplayWidth = DisplayWidth;
-    _DisplayHeight = DisplayHeight;
-    _DisplayTileWidth = DisplayTileWidth;
-    _DisplayTileHeight = DisplayTileHeight;
-    _DisplayHBorder = DisplayHBorder;
-    _DisplayVBorder = DisplayVBorder;
-
+    al_set_mouse_cursor(display, hiddenMouse); //al_hide_mouse_cursor(display);
     DisplayHeight = ((monitorInfo.y2 - monitorInfo.y1) / 240) * 240;
     DisplayWidth = DisplayHeight * 4 / 3;
     DisplayVBorder = (monitorInfo.y2 - monitorInfo.y1 - DisplayHeight) / 2;
