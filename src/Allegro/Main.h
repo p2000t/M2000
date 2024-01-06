@@ -147,3 +147,13 @@ void UpdateDisplaySettings()
   DisplayVBorder = DisplayTileHeight / 2;
   if (Verbose) printf("DisplayTileWidth: %i, DisplayTileHeight: %i\n", DisplayTileWidth, DisplayTileHeight);
 }
+
+const char* AppendExtensionIfMissing(const char* filename, const char* extension) {
+  static ALLEGRO_PATH *path;
+  if (path) al_destroy_path(path);
+  path = al_create_path(filename);
+  if (al_get_path_extension(path)[0] == '\0') {
+    al_set_path_extension(path, extension);
+  }
+  return al_path_cstr(path, PATH_SEPARATOR);
+}

@@ -32,18 +32,6 @@ static void PutImage(void);
 // when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 
-const char* AppendExtensionIfMissing(const char* filename, const char* extension) {
-  static char newFilename[FILENAME_MAX];  // Use a static buffer for the result
-  if (strrchr(filename, '.') == NULL && (strlen(filename)+strlen(extension) < FILENAME_MAX)) {
-    // add extension to the filename
-    memcpy(newFilename, filename, strlen(filename));
-    memcpy(newFilename + strlen(filename), extension, strlen(extension) + 1);
-    return newFilename;
-  } else {
-    return filename;
-  }
-}
-
 /****************************************************************************/
 /*** Refresh screen for T-model emulation                                 ***/
 /****************************************************************************/
