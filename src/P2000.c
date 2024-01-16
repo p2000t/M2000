@@ -314,7 +314,8 @@ int StartP2000 (void)
   /*  if(!j) return 0; */
 
   if (TapeName) {
-    f = fopen(TapeName, "a+b");
+    // first try open for update, then try create then try read-only
+    if ((f = fopen(TapeName,"r+b")) == NULL) f = fopen(TapeName, "w+b");
     InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
   }
 
@@ -569,12 +570,7 @@ void Z80_Patch (Z80_Regs *R)
      {
       /* Truncate the tape image */
       ftruncate (fileno(TapeStream),ftell(TapeStream));
-      fclose (TapeStream);
-      TapeStream=fopen (TapeName,"a+b");
-      if (TapeStream)
-       Z80_WRMEM (caserror,0);
-      else
-       Z80_WRMEM (caserror,0x41);         /* No tape */
+      Z80_WRMEM (caserror,0);
      }
      else
       Z80_WRMEM (caserror,(TapeStream)? 0x47:0x41);

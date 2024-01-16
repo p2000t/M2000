@@ -245,6 +245,7 @@ int InitMachine(void)
   InitVideoMode();
   UpdateDisplaySettings();
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
+  al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE); //disable vsync
 #ifdef __linux__
   al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
   // for Linux create smallest display, as it does not correctly scale back
@@ -557,11 +558,12 @@ void OpenCassetteDialog(bool boot)
   cassetteChooser = al_create_native_file_dialog(al_path_cstr(userCassettesPath, PATH_SEPARATOR), _(DIALOG_LOAD_CASSETTE), "*.*", 0); //file doesn't have to exist
   if (al_show_native_file_dialog(display, cassetteChooser) && al_get_native_file_dialog_count(cassetteChooser) > 0) {
     _cassetteFilePath = AppendExtensionIfMissing(al_get_native_file_dialog_path(cassetteChooser, 0), ".cas");
+    // first try open for update, then try create then try read-only
 #ifdef _WIN32
-    f = _wfopen(GetWideFilename(_cassetteFilePath), L"a+b");
+    if ((f = _wfopen(GetWideFilename(_cassetteFilePath), L"r+b")) == NULL) f = _wfopen(GetWideFilename(_cassetteFilePath), L"w+b");
     InsertCassette(_cassetteFilePath, f ? f : _wfopen(GetWideFilename(_cassetteFilePath), L"rb"), (f == NULL));
 #else
-    f = fopen(_cassetteFilePath, "a+b");
+    if ((f = fopen(_cassetteFilePath,"r+b")) == NULL) f = fopen(_cassetteFilePath, "w+b");
     InsertCassette(_cassetteFilePath, f ? f : fopen(_cassetteFilePath, "rb"), (f == NULL));
 #endif
     al_destroy_path(currentTapePath);
