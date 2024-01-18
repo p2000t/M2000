@@ -100,6 +100,10 @@ typedef struct {
 #define DIALOG_SAVE_STATE                 114
 #define NO_CASSETTE                       115
 
+#define OPTIONS_AUDIOFILTER_MENU_ID       116
+#define OPTIONS_AUDIOFILTER_0_ID          117
+#define OPTIONS_AUDIOFILTER_1_ID          118
+#define OPTIONS_AUDIOFILTER_2_ID          119
 
 static LanguageEntry ENstrings[] = {
   { FILE_MENU_ID, "File->" },
@@ -107,7 +111,7 @@ static LanguageEntry ENstrings[] = {
   { FILE_INSERTRUN_CASSETTE_ID, "Open/Boot Cassette... (Ctrl-O)" },
   { FILE_REMOVE_CASSETTE_ID, "Eject Cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Insert Cartridge..." },
-  { FILE_REMOVE_CARTRIDGE_ID, "Remove Cartridge..." },
+  { FILE_REMOVE_CARTRIDGE_ID, "Remove Cartridge" },
   { FILE_SAVE_STATE_ID, "Save State... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
@@ -137,6 +141,10 @@ static LanguageEntry ENstrings[] = {
   { OPTIONS_VOLUME_HIGH_ID, "High" },
   { OPTIONS_VOLUME_MEDIUM_ID, "Medium" },
   { OPTIONS_VOLUME_LOW_ID, "Low" },
+  { OPTIONS_AUDIOFILTER_MENU_ID, "Audio Filter->" },
+  { OPTIONS_AUDIOFILTER_0_ID, "No Filter" },
+  { OPTIONS_AUDIOFILTER_1_ID, "Normal Filter" },
+  { OPTIONS_AUDIOFILTER_2_ID, "Heavy Filter" },
   { OPTIONS_JOYSTICK_ID, "Joystick On/Off" },
   { OPTIONS_JOYSTICK_NOT_DETECTED_ID, "Joystick Not Detected" },
   { OPTIONS_JOYSTICK_MAP, "Joystick Mapping->" },
@@ -164,7 +172,7 @@ static LanguageEntry NLstrings[] = {
   { FILE_INSERTRUN_CASSETTE_ID, "Openen/starten cassette... (Ctrl-O)" },
   { FILE_REMOVE_CASSETTE_ID, "Verwijder cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Invoeren cartridge..." },
-  { FILE_REMOVE_CARTRIDGE_ID, "Verwijder cartridge..." },
+  { FILE_REMOVE_CARTRIDGE_ID, "Verwijder cartridge" },
   { FILE_SAVE_STATE_ID, "Opslaan huidige toestand... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },
@@ -194,6 +202,10 @@ static LanguageEntry NLstrings[] = {
   { OPTIONS_VOLUME_HIGH_ID, "Hoog" },
   { OPTIONS_VOLUME_MEDIUM_ID, "Gemiddeld" },
   { OPTIONS_VOLUME_LOW_ID, "Laag" },
+  { OPTIONS_AUDIOFILTER_MENU_ID, "Audio Filter->" },
+  { OPTIONS_AUDIOFILTER_0_ID, "Geen filter" },
+  { OPTIONS_AUDIOFILTER_1_ID, "Normaal filter" },
+  { OPTIONS_AUDIOFILTER_2_ID, "Zwaar filter" },
   { OPTIONS_JOYSTICK_ID, "Joystick aan/uit" },
   { OPTIONS_JOYSTICK_NOT_DETECTED_ID, "Joystick niet gedetecteerd" },
   { OPTIONS_JOYSTICK_MAP, "Joystick configuratie->" },

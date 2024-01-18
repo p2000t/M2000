@@ -81,11 +81,12 @@ void ResetAudioStream()
     if (Verbose) printf("%d Hz, buffer size %d...", sample_rate, buf_size);
     if (soundbuf) free(soundbuf);
     soundbuf = malloc(buf_size);
+    memset(soundbuf, 0, buf_size); //init sound buffer
     if (stream) {
       al_detach_audio_stream(stream);
       al_destroy_audio_stream(stream);
     }
-    stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_UINT8, ALLEGRO_CHANNEL_CONF_1);
+    stream = al_create_audio_stream(4, buf_size, sample_rate, ALLEGRO_AUDIO_DEPTH_INT8, ALLEGRO_CHANNEL_CONF_1);
     if (!stream || !soundbuf) {
       if (Verbose) puts("FAILED");
       soundDetected = 0;
@@ -331,25 +332,22 @@ void FlushSound(void)
 {
   int i;
   static int soundstate = 0;
-  static int sample_count = 1;
+  static int smooth = 0;
 
   if (soundmode && soundDetected) {
     int8_t *playbuf = al_get_audio_stream_fragment(stream);
     if (playbuf) {
       for (i=0;i<buf_size;++i) {
         if (soundbuf[i]) {
-          soundstate=soundbuf[i];
-          soundbuf[i]=0;
-          sample_count=sample_rate/1000;
+          soundstate = soundbuf[i];
+          soundbuf[i] = 0;
         }
-        playbuf[i]=soundstate+128;
-        if (!--sample_count) {
-          sample_count=sample_rate/1000;
-          if (soundstate>0) --soundstate;
-          if (soundstate<0) ++soundstate;
-        }
+        smooth = (smooth << audiofilter) + soundstate - smooth; 
+        smooth >>= audiofilter;
+        playbuf[i] = smooth;
       }
       al_set_audio_stream_fragment(stream, playbuf);
+      soundstate >>= 1;
     }
   }
 }
@@ -381,7 +379,7 @@ void Sound(int toggle)
 
   if (toggle!=last) {
     last=toggle;
-    pos=(buf_size-1)-(buf_size*Z80_ICount/Z80_IPeriod);
+    pos=(buf_size-1)-((buf_size-1)*Z80_ICount/Z80_IPeriod);
     val=(toggle)? (-mastervolume*8):(mastervolume*8);
     soundbuf[pos]=val;
   }
@@ -907,6 +905,12 @@ void Keyboard(void)
         case OPTIONS_VOLUME_LOW_ID: mastervolume=1; 
           updateVol:
           UpdateVolumeMenu();
+          break;
+        case OPTIONS_AUDIOFILTER_0_ID: audiofilter=0; goto updateAudioFilter;
+        case OPTIONS_AUDIOFILTER_1_ID: audiofilter=1; goto updateAudioFilter;
+        case OPTIONS_AUDIOFILTER_2_ID: audiofilter=2; goto updateAudioFilter;
+          updateAudioFilter:
+          UpdateAudioFilterMenu();
           break;
         case OPTIONS_JOYSTICK_ID:
           joymode = !joymode;
