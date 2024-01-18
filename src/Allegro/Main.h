@@ -27,6 +27,7 @@ static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayT
 int videomode, optimalVideomode;
 int scanlines;
 int smoothing;
+int audiofilter = 1;
 
 ALLEGRO_CONFIG *config = NULL;
 

@@ -62,6 +62,7 @@ void ParseConfig()
 
   soundmode       = strcmp(al_get_config_value(config, "Options", "sound"), "on") == 0;
   mastervolume    = atoi(al_get_config_value(config, "Options",   "volume"));
+  audiofilter     = atoi(al_get_config_value(config, "Options",   "audiofilter"));
   joymode         = strcmp(al_get_config_value(config, "Options", "joystick"), "on") == 0;
   joymap          = atoi(al_get_config_value(config, "Options",   "joymap"));
   uilanguage      = strcmp(al_get_config_value(config, "Options", "language"), "EN") == 0 ? 0 : 1;
@@ -168,6 +169,10 @@ void InitConfig()
   al_add_config_comment(config, "Options",    "                      0 - Silent");
   al_add_config_comment(config, "Options",    "                      ...");
   al_add_config_comment(config, "Options",    "                      15 - Maximum");
+  al_add_config_comment(config, "Options",    "audiofilter=<mode>    Set audio filter mode [2]");
+  al_add_config_comment(config, "Options",    "                      0 - No filter");
+  al_add_config_comment(config, "Options",    "                      1 - Normal filter");
+  al_add_config_comment(config, "Options",    "                      2 - Heavy filter");
   al_add_config_comment(config, "Options",    "joystick=on|off       Set joystick mode [on]");
   al_add_config_comment(config, "Options",    "joymap=<mode>         Set joystick mapping [0]");
   al_add_config_comment(config, "Options",    "                      0 - Moving the joystick emulates cursorkey presses");
@@ -177,6 +182,8 @@ void InitConfig()
   al_add_config_comment(config, "Options",    "language=EN|NL        Set UI language [EN]");
   al_set_config_value  (config, "Options",    "sound", "on");
   al_set_config_value  (config, "Options",    "volume", "4");
+  al_set_config_value  (config, "Options",    "audiofilter", "1");
+
   al_set_config_value  (config, "Options",    "joystick", "on");
   al_set_config_value  (config, "Options",    "joymap", "0");
   al_set_config_value  (config, "Options",    "language", "EN");
@@ -222,10 +229,11 @@ void SaveConfig()
   
   if (sprintf(intstr, "%i", keyboardmap))   al_set_config_value(config, "Keyboard", "keymap", intstr);
 
-  if (sprintf(intstr, "%i", RAMSizeKb))  al_set_config_value(config, "Hardware", "ram", intstr);
+  if (sprintf(intstr, "%i", RAMSizeKb))     al_set_config_value(config, "Hardware", "ram", intstr);
 
   al_set_config_value(config, "Options", "sound", soundmode ? "on" : "off");
   if (sprintf(intstr, "%i", mastervolume))  al_set_config_value(config, "Options", "volume", intstr);
+  if (sprintf(intstr, "%i", audiofilter))   al_set_config_value(config, "Options", "audiofilter", intstr);
   al_set_config_value(config, "Options", "joystick", joymode ? "on" : "off");
   if (sprintf(intstr, "%i", joymap))        al_set_config_value(config, "Options", "joymap", intstr);
   al_set_config_value(config, "Options", "language", uilanguage ? "NL" : "EN");
