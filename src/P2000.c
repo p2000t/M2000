@@ -470,6 +470,8 @@ void Z80_Patch (Z80_Regs *R)
    Z80_WRWORD (des1,Z80_RDWORD(descrip));
    Z80_WRWORD (desleng,0x20);
    Z80_WRMEM (telblok,Z80_RDMEM(recnum));
+   //every tape interaction sets/enables the keyboard interrupt
+   OutputReg|=0x40; //set keyboard interrupt in output reg
    switch (R->AF.B.h)
    {
     /*************************************************************************
