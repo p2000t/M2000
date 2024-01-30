@@ -28,6 +28,10 @@
 #define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
 #define OSX_COMMAND_KEY_FIX if (al_key_down(&kbdstate,ALLEGRO_KEY_COMMAND)) al_clear_keyboard_state(display);
 #endif
+#ifdef _WIN32
+#define ALLEGRO_UNSTABLE // needed for al_clear_keyboard_state();
+#define WINDOWS_NUM_KEY_FIX if ((keyPressed >= ALLEGRO_KEY_PAD_0 && keyPressed <= ALLEGRO_KEY_PAD_9) || (keyPressed >= ALLEGRO_KEY_PAD_SLASH && keyPressed <= ALLEGRO_KEY_PAD_ENTER)) al_clear_keyboard_state(display);
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -672,6 +676,10 @@ void Keyboard(void)
 #ifdef __APPLE__
           OSX_COMMAND_KEY_FIX
 #endif
+#ifdef _WIN32
+          keyPressed = keymask[i] & 0xff;
+          WINDOWS_NUM_KEY_FIX
+#endif
         }
         else
           KeyMap[k] |= j;  
@@ -703,6 +711,9 @@ void Keyboard(void)
           activeKeys[i] = 1;
 #ifdef __APPLE__
           OSX_COMMAND_KEY_FIX
+#endif
+#ifdef _WIN32
+          WINDOWS_NUM_KEY_FIX
 #endif
           if (!isNormalKey) 
             isSpecialKeyPressed = true;
