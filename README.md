@@ -147,6 +147,10 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 ## More information on the P2000
 
+:point_right: For P2000T documentation, please go to: https://github.com/p2000t/documentation
+
+:point_right: For P2000T software, please go to: https://github.com/p2000t/software
+
 ### P2000 documentation
 * A large collection of (scanned) P2000 documents, P2000gg and Nat.Lab. newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
 * The [P2000T community on Retroforum](https://www.retroforum.nl/topic/3914-philips-p2000t/
@@ -154,6 +158,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 ### P2000 software
 * Many P2000 cartridge images and cassette dumps (games, utilities, etc.) can be found on: https://github.com/p2000t/software
+
 
 ## Credits
 
