@@ -23,7 +23,7 @@
 #include <string.h>
 
 #define SPACE 32 // space character
-#define M2000_VERSION "0.9-SNAPSHOT"
+#define M2000_VERSION "0.8.1"
 
 static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);
 static inline void PutChar_M(int x, int y, int c, int eor, int ul);

@@ -12,7 +12,7 @@
 
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f542"
             Name="M2000"
-            Version="0.9.0"
+            Version="0.8.1"
             Manufacturer="M2000"
             Language="1033">
 
@@ -24,8 +24,8 @@
       <Property Id="ARPPRODUCTICON" Value="P2000T.ico" />
 
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f542">
-         <UpgradeVersion Minimum="0.9.0" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
-         <UpgradeVersion Minimum="0.0.0" Maximum="0.9.0" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+         <UpgradeVersion Minimum="0.8.1" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="0.8.1" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
       </Upgrade>
       <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 

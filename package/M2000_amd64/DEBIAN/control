@@ -1,5 +1,5 @@
 Package: M2000
-Version: 0.9
+Version: 0.8.1
 Maintainer: M2000 team
 Architecture: amd64
 Depends: liballegro5.2 (>=5.2.7), liballegro-dialog5.2 (>=5.2.7), liballegro-audio5.2 (>=5.2.7), liballegro-image5.2 (>=5.2.7)

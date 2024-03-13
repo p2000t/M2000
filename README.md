@@ -1,5 +1,5 @@
 # M2000 - Philips P2000 home computer emulator
-Version 0.9-prerelease
+Version 0.8.1
 
 ![P2000T](/img/P2000T.png)
                                      
