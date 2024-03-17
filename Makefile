@@ -20,10 +20,10 @@
 all: build
 
 build:
-	$(MAKE) -C src all
+	$(MAKE) -C src/Allegro all
 
-# test: build
-# 	$(MAKE) -C test all
+libretro:
+	$(MAKE) -C src/Libretro all
 	
 clean:
-	$(MAKE) -C src clean
+	rm -f src/Allegro/*.o src/Libretro/*.o
