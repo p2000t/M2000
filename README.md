@@ -2,7 +2,7 @@
 Version 0.9-prerelease
 
 ![P2000T](/img/P2000T.png)
-                                     
+
 ## Supported platforms
 
 * Windows

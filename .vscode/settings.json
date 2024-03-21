@@ -11,5 +11,6 @@
             "CHERE_INVOKING": "1"
           }
         }
-  }
+  },
+  "vtools.autoHideBottomBar": true
 }

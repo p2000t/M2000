@@ -1,5 +1,7 @@
-/src/*.o
-/src/*.map
+/src/**/*.o
+/src/**/*.map
+/src/**/*.dll
+/src/**/*.a
 /*.cas
 /*.vram
 /*.png

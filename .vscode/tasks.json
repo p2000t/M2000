@@ -6,16 +6,17 @@
         {
             "label": "Make",
             "type": "shell",
-            "command": "make",
+            "command": "make libretro",
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Build and Run",
             "type": "shell",
-            "command": "./M2000",
+            "command": "C:/RetroArch-Win64/retroarch.exe",
             "args": [
-                //"test/SAA5050.cas"
+                "-L", "./src/Libretro/m2000_libretro.dll",
+                "--verbose"
             ],
             "dependsOn": [
                 "Make"

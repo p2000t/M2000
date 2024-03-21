@@ -34,3 +34,4 @@ P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
 Z80.o:      Z80.c Z80.h Z80DAA.h Z80IO.h
 Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
 Main.o: 	*.c *.h Common.h P2000.h Z80.h Z80IO.h
+#	$(CC) $(CFLAGS) -c $< -o $@
