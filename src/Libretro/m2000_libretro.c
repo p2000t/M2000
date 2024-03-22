@@ -5,9 +5,21 @@
 #include <string.h>
 #include <math.h>
 
+#include "p2000t_roms.h"
+#include "../Z80.h"
 #include "libretro.h"
 
+#define VIDEO_BUFFER_WIDTH 480
+#define VIDEO_BUFFER_HEIGHT 480
+
+#define NUMBER_OF_CHARS 224
+#define CHAR_WIDTH 12
+#define CHAR_HEIGHT 20
+#define CHAR_WIDTH_ORIG 6
+#define CHAR_HEIGHT_ORIG 10
+
 static uint32_t *frame_buf;
+static byte *font_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static unsigned phase;
@@ -21,17 +33,76 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
+void load_SAA5050_font()
+{
+   byte *p = font_buf;
+   int linePixelsPrev, linePixels, linePixelsNext;
+   int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
+   // Stretch 6x10 characters to 12x20, so we can do character rounding 
+   // 96 alphanumeric chars + 64 continuous graphic chars + 64 seperated graphic chars = 224 chars in total
+   for (int i = 0; i < (96 + 64 + 64) * CHAR_HEIGHT_ORIG; i+=CHAR_HEIGHT_ORIG) 
+   { 
+      linePixelsPrev = 0;
+      linePixels = 0;
+      linePixelsNext = SAA5050_fnt[i] << CHAR_WIDTH_ORIG;
+      for (int j = 0; j < CHAR_HEIGHT_ORIG; ++j) 
+      {
+         linePixelsPrev = linePixels >> CHAR_WIDTH_ORIG;
+         linePixels = linePixelsNext >> CHAR_WIDTH_ORIG;
+         linePixelsNext = j < (CHAR_HEIGHT_ORIG-1) ? SAA5050_fnt[i + j + 1] : 0;
+         for (int k = 0; k < CHAR_WIDTH_ORIG; ++k)
+         {
+            if (linePixels & 0x20) // bit 6 set = pixel set
+               *p = *(p+1) = *(p+CHAR_WIDTH) = *(p+CHAR_WIDTH+1) = 0xff;
+            else if (i < 96 * CHAR_HEIGHT_ORIG) // character rounding (only for alphanumeric chars)
+            { 
+               // for character rounding, look at 8 pixels around current pixel
+               pixelN = linePixelsPrev & 0x20;
+               pixelE = linePixels & 0x10;
+               pixelS = linePixelsNext & 0x20;
+               pixelW = linePixels & 0x40;
+               pixelNE = linePixelsPrev & 0x10;
+               pixelSE = linePixelsNext & 0x10;
+               pixelSW = linePixelsNext & 0x40;
+               pixelNW = linePixelsPrev & 0x40;
+               // rounding in NW direction
+               if (pixelN && pixelW && !pixelNW)
+                  *p = 0xff;
+               // rounding in NE direction
+               if (pixelN && pixelE && !pixelNE)
+                  *(p+1) = 0xff;
+               // rounding in SE direction
+               if (pixelS && pixelE && !pixelSE)
+                  *(p+CHAR_WIDTH+1) = 0xff;
+               // rounding in SW direction
+               if (pixelS && pixelW && !pixelSW)
+                  *(p+CHAR_WIDTH) = 0xff;
+            }
+            //process next pixel to the right
+            p += 2;
+            linePixelsPrev<<=1;
+            linePixels<<=1;
+            linePixelsNext<<=1;
+         }
+         p += CHAR_WIDTH;
+      }
+   }
+}
+
 void retro_init(void)
 {
-   frame_buf = calloc(240 * 240, sizeof(uint32_t));
-
-   log_cb(RETRO_LOG_INFO, "Hallo!");
+   //log_cb(RETRO_LOG_INFO, "M2000 Init");
+   frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
+   font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT, sizeof(byte));
+   load_SAA5050_font();
 }
 
 void retro_deinit(void)
 {
    free(frame_buf);
+   free(font_buf);
    frame_buf = NULL;
+   font_buf = NULL;
 }
 
 unsigned retro_api_version(void)
@@ -60,12 +131,10 @@ static retro_environment_t environ_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 
-//input_auto_game_focus = "1"
-
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    float aspect = 4.0f / 3.0f;
-   float sampling_rate = 30000.0f; //44100
+   float sampling_rate = 30000.0f; //44100 ?
 
    info->timing = (struct retro_system_timing) {
       .fps = 50.0,
@@ -73,10 +142,8 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    };
 
    info->geometry = (struct retro_game_geometry) {
-      .base_width   = 240,
-      .base_height  = 240,
-      .max_width    = 240,
-      .max_height   = 240,
+      .base_width   = VIDEO_BUFFER_WIDTH,
+      .base_height  = VIDEO_BUFFER_HEIGHT,
       .aspect_ratio = aspect,
    };
 }
@@ -120,15 +187,10 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
    video_cb = cb;
 }
 
-static unsigned x_coord;
-static unsigned y_coord;
-static int mouse_rel_x;
-static int mouse_rel_y;
-
 void retro_reset(void)
 {
-   x_coord = 0;
-   y_coord = 0;
+   //x_coord = 0;
+   //y_coord = 0;
 }
 
 static void update_input(void)
@@ -141,19 +203,14 @@ static void update_input(void)
    }
 }
 
-static bool rendered = false;
-
 static void render(void)
 {
-   if (rendered)
-      return;
-   
    /* Try rendering straight into VRAM if we can. */
    uint32_t *buf = NULL;
    unsigned stride = 0;
    struct retro_framebuffer fb = {0};
-   fb.width = 240;
-   fb.height = 240;
+   fb.width = VIDEO_BUFFER_WIDTH;
+   fb.height = VIDEO_BUFFER_HEIGHT;
    fb.access_flags = RETRO_MEMORY_ACCESS_WRITE;
    if (environ_cb(RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER, &fb) && fb.format == RETRO_PIXEL_FORMAT_XRGB8888)
    {
@@ -163,30 +220,34 @@ static void render(void)
    else
    {
       buf = frame_buf;
-      stride = 320;
+      stride = VIDEO_BUFFER_WIDTH;
    }
 
    uint32_t color_r = 0xff << 16;
    uint32_t color_g = 0xff <<  8;
+   uint32_t color_b = 0xff;
 
    uint32_t *line = buf;
-   for (unsigned y = 0; y < 240; y++, line += stride)
+   for (unsigned y = 0; y < VIDEO_BUFFER_HEIGHT; y++, line += stride)
    {
-      unsigned index_y = ((y - y_coord) >> 4) & 1;
-      for (unsigned x = 0; x < 240; x++)
+      unsigned index_y = (y >> 4) & 1;
+      for (unsigned x = 0; x < VIDEO_BUFFER_WIDTH; x++)
       {
-         unsigned index_x = ((x - x_coord) >> 4) & 1;
+         unsigned index_x = (x >> 4) & 1;
          line[x] = (index_y ^ index_x) ? color_r : color_g;
       }
    }
 
-   //draw mouse?
-   for (unsigned y = mouse_rel_y - 5; y <= mouse_rel_y + 5; y++)
-      for (unsigned x = mouse_rel_x - 5; x <= mouse_rel_x + 5; x++)
-         buf[y * stride + x] = 0xff;
+   byte *p = font_buf + 33 * CHAR_WIDTH * CHAR_HEIGHT;
+   for (unsigned y=0;y<CHAR_HEIGHT;y++)
+   {
+      for (unsigned x = 0; x < CHAR_WIDTH; x++)
+      {
+         buf[x + y * VIDEO_BUFFER_WIDTH] = *p++ ? color_b : 0;
+      }
+   }
 
-   video_cb(buf, 240, 240, stride << 2);
-   rendered = true;
+   video_cb(buf, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT, stride << 2);
 }
 
 static void check_variables(void)
@@ -240,14 +301,9 @@ unsigned retro_get_region(void)
    return RETRO_REGION_PAL;
 }
 
-//what is this??
 bool retro_load_game_special(unsigned type, const struct retro_game_info *info, size_t num)
 {
-   if (type != 0x200)
-      return false;
-   if (num != 2)
-      return false;
-   return retro_load_game(NULL);
+   return false;
 }
 
 size_t retro_serialize_size(void)
@@ -261,8 +317,8 @@ bool retro_serialize(void *data_, size_t size)
       return false;
 
    uint8_t *data = data_;
-   data[0] = x_coord;
-   data[1] = y_coord;
+   data[0] = 0; //x_coord;
+   data[1] = 0; //y_coord;
    return true;
 }
 
@@ -271,9 +327,9 @@ bool retro_unserialize(const void *data_, size_t size)
    if (size < 2)
       return false;
 
-   const uint8_t *data = data_;
-   x_coord = data[0] & 31;
-   y_coord = data[1] & 31;
+   //const uint8_t *data = data_;
+   // x_coord = data[0] & 31;
+   // y_coord = data[1] & 31;
    return true;
 }
 
