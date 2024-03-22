@@ -6,20 +6,44 @@
         {
             "label": "Make",
             "type": "shell",
-            "command": "make libretro",
+            "command": "make",
             "group": "build",
             "problemMatcher": []
         },
         {
             "label": "Build and Run",
             "type": "shell",
-            "command": "C:/RetroArch-Win64/retroarch.exe",
+            "command": "./M2000",
             "args": [
-                "-L", "./src/Libretro/m2000_libretro.dll",
-                "--verbose"
+                //"test/SAA5050.cas"
             ],
             "dependsOn": [
                 "Make"
+            ],
+            "group": {
+                "kind": "build",
+                //"isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Make Libretro",
+            "type": "shell",
+            "command": "make libretro",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Build and Run RetroArch",
+            "type": "shell",
+            "command": "C:/RetroArch-Win64/retroarch.exe",
+            "args": [
+                "-L",
+                "./src/Libretro/m2000_libretro.dll",
+                "--verbose"
+            ],
+            "dependsOn": [
+                "Make Libretro"
             ],
             "group": {
                 "kind": "build",

@@ -427,12 +427,12 @@ int Z80_Interrupt(void)
  static int UCount=1;
  Keyboard ();
  FlushSound ();
- SyncEmulation();
  if (!--UCount)
  {
   UCount=UPeriod;
   RefreshScreen ();
  }
+ SyncEmulation();
  return (OutputReg&0x40)? 0x00FF:Z80_IGNORE_INT;
 }
 

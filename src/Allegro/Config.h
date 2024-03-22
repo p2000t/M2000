@@ -70,9 +70,6 @@ void ParseConfig()
   Verbose         = atoi(al_get_config_value(config, "Debug",     "verbose"));
   Debug           = al_get_config_value(config, "Debug", "debug") ?
                       (strcmp(al_get_config_value(config, "Debug", "debug"), "on") == 0) : 0;
-
-  if (Debug && al_get_config_value(config, "Debug", "trap"))
-    sscanf(al_get_config_value(config, "Debug", "trap"), "%X", &Z80_Trap);
 }
 
 void InitConfig() 
@@ -195,7 +192,6 @@ void InitConfig()
   al_add_config_comment(config, "Debug",      "                      1 - Debug messages");
   al_add_config_comment(config, "Debug",      "                      4 - Debug and Tape messages");
   al_add_config_comment(config, "Debug",      "debug=on|off          Set debugging mode [off]");
-  al_add_config_comment(config, "Debug",      "trap=<address>        Trap execution when PC reaches specified address [-1]");
   al_set_config_value  (config, "Debug",      "verbose", "0");
 
   al_set_path_filename(docPath, CONFIG_FILENAME);

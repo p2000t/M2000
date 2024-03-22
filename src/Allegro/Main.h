@@ -28,6 +28,7 @@ int videomode, optimalVideomode;
 int scanlines;
 int smoothing;
 int audiofilter = 1;
+int Debug      = 0;
 
 ALLEGRO_CONFIG *config = NULL;
 

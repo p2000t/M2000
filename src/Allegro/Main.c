@@ -742,7 +742,10 @@ void Keyboard(void)
     if (pausePressed) { // pressing Ctrl-P toggles pause
       al_get_keyboard_state(&kbdstate);
       if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_P)) {
-        pausePressed = Z80_Trace = 0;
+        pausePressed = 0;
+#ifdef Z80_DEBUG
+        Z80_Trace = 0;
+#endif
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
       if (al_key_up(&kbdstate, ALLEGRO_KEY_RIGHT)) {
@@ -1071,11 +1074,13 @@ void Keyboard(void)
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   }
 
+#ifdef Z80_DEBUG
   /* press F5 to enable trace in DEBUG mode */
-  if (Debug && al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
+  if (al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
     Z80_Trace = 1;
     pausePressed = 1;
   }
+#endif
 
   // handle joystick
   if (joymode && joyDetected) {

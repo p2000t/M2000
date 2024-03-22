@@ -23,7 +23,7 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 
 void retro_init(void)
 {
-   frame_buf = calloc(320 * 240, sizeof(uint32_t));
+   frame_buf = calloc(240 * 240, sizeof(uint32_t));
 
    log_cb(RETRO_LOG_INFO, "Hallo!");
 }
@@ -47,10 +47,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
-   info->library_name     = "M2000";
-   info->library_version  = "v1";
+   info->library_name     = "M2000 - Philips P2000T Emulator";
+   info->library_version  = "v0.9";
    info->need_fullpath    = false;
-   info->valid_extensions = "cas";
+   info->valid_extensions = "cas|p2000t";
 }
 
 static retro_video_refresh_t video_cb;
@@ -60,10 +60,12 @@ static retro_environment_t environ_cb;
 static retro_input_poll_t input_poll_cb;
 static retro_input_state_t input_state_cb;
 
+//input_auto_game_focus = "1"
+
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    float aspect = 4.0f / 3.0f;
-   float sampling_rate = 30000.0f;
+   float sampling_rate = 30000.0f; //44100
 
    info->timing = (struct retro_system_timing) {
       .fps = 50.0,
@@ -71,9 +73,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    };
 
    info->geometry = (struct retro_game_geometry) {
-      .base_width   = 320,
+      .base_width   = 240,
       .base_height  = 240,
-      .max_width    = 320,
+      .max_width    = 240,
       .max_height   = 240,
       .aspect_ratio = aspect,
    };
@@ -139,13 +141,18 @@ static void update_input(void)
    }
 }
 
-static void render_checkered(void)
+static bool rendered = false;
+
+static void render(void)
 {
+   if (rendered)
+      return;
+   
    /* Try rendering straight into VRAM if we can. */
    uint32_t *buf = NULL;
    unsigned stride = 0;
    struct retro_framebuffer fb = {0};
-   fb.width = 320;
+   fb.width = 240;
    fb.height = 240;
    fb.access_flags = RETRO_MEMORY_ACCESS_WRITE;
    if (environ_cb(RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER, &fb) && fb.format == RETRO_PIXEL_FORMAT_XRGB8888)
@@ -166,7 +173,7 @@ static void render_checkered(void)
    for (unsigned y = 0; y < 240; y++, line += stride)
    {
       unsigned index_y = ((y - y_coord) >> 4) & 1;
-      for (unsigned x = 0; x < 320; x++)
+      for (unsigned x = 0; x < 240; x++)
       {
          unsigned index_x = ((x - x_coord) >> 4) & 1;
          line[x] = (index_y ^ index_x) ? color_r : color_g;
@@ -178,7 +185,8 @@ static void render_checkered(void)
       for (unsigned x = mouse_rel_x - 5; x <= mouse_rel_x + 5; x++)
          buf[y * stride + x] = 0xff;
 
-   video_cb(buf, 320, 240, stride << 2);
+   video_cb(buf, 240, 240, stride << 2);
+   rendered = true;
 }
 
 static void check_variables(void)
@@ -199,7 +207,7 @@ static void audio(void)
 void retro_run(void)
 {
    update_input();
-   render_checkered();
+   render();
    audio();
 
    bool updated = false;
