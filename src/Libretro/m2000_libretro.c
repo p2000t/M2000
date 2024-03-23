@@ -5,9 +5,13 @@
 #include <string.h>
 #include <math.h>
 
+#include "libretro.h"
+#include "../../libretro-common/include/retro_timers.h"
+
 #include "p2000t_roms.h"
 #include "../Z80.h"
-#include "libretro.h"
+#include "../P2000.h"
+#include "../Common.h"
 
 #define VIDEO_BUFFER_WIDTH 480
 #define VIDEO_BUFFER_HEIGHT 480
@@ -33,14 +37,26 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
-void load_SAA5050_font()
+/**
+  * P2000 required function implementations
+ **/
+void SyncEmulation(void) // not needed, as frontend will take care of syncing
+{
+}
+
+void Pause(int ms) 
+{
+   retro_sleep(ms);
+}
+
+int LoadFont(const char *filename)
 {
    byte *p = font_buf;
    int linePixelsPrev, linePixels, linePixelsNext;
    int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
    // Stretch 6x10 characters to 12x20, so we can do character rounding 
-   // 96 alphanumeric chars + 64 continuous graphic chars + 64 seperated graphic chars = 224 chars in total
-   for (int i = 0; i < (96 + 64 + 64) * CHAR_HEIGHT_ORIG; i+=CHAR_HEIGHT_ORIG) 
+   // 96 alphanum chars + 64 cont. graphic chars + 64 sep. graphic chars
+   for (int i = 0; i < (96 + 64 + 64) * CHAR_HEIGHT_ORIG; i += CHAR_HEIGHT_ORIG) 
    { 
       linePixelsPrev = 0;
       linePixels = 0;
@@ -87,6 +103,7 @@ void load_SAA5050_font()
          p += CHAR_WIDTH;
       }
    }
+   return 1;
 }
 
 void retro_init(void)
@@ -94,7 +111,7 @@ void retro_init(void)
    //log_cb(RETRO_LOG_INFO, "M2000 Init");
    frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
    font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT, sizeof(byte));
-   load_SAA5050_font();
+   LoadFont(NULL);
 }
 
 void retro_deinit(void)

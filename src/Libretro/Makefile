@@ -111,16 +111,15 @@ else
    CFLAGS += -O3
 endif
 
-OBJECTS := m2000_libretro.o
-CFLAGS += -I../../libretro-common/include -Wall -pedantic $(fpic)
+VPATH = ../
+OBJECTS := P2000.o Z80.o m2000_libretro.o
+CFLAGS += -I../../libretro-common/include -Wall $(fpic)
 
 ifneq (,$(findstring qnx,$(platform)))
 CFLAGS += -Wc,-std=c99
 else
 CFLAGS += -std=gnu99
 endif
-
-CFLAGS += -I../../libretro-common/include
 
 all: $(TARGET)
 
