@@ -1,13 +1,7 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-
 #include "libretro.h"
 #include "../../libretro-common/include/retro_timers.h"
-
 #include "p2000t_roms.h"
 #include "../Z80.h"
 #include "../P2000.h"
@@ -15,7 +9,7 @@
 
 #define VIDEO_BUFFER_WIDTH 480
 #define VIDEO_BUFFER_HEIGHT 480
-
+#define SAMPLE_RATE 30000
 #define NUMBER_OF_CHARS 224
 #define CHAR_WIDTH 12
 #define CHAR_HEIGHT 20
@@ -24,18 +18,25 @@
 
 static uint32_t *frame_buf;
 static byte *font_buf;
+static signed char *soundbuf = NULL;
+static int16_t *audioOutBuffer;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
-static unsigned phase;
+static int *OldCharacter;          /* Holds characters on the screen        */
+static int buf_size;
 
-static void fallback_log(enum retro_log_level level, const char *fmt, ...)
-{
-   (void)level;
-   va_list va;
-   va_start(va, fmt);
-   vfprintf(stderr, fmt, va);
-   va_end(va);
-}
+static retro_video_refresh_t video_cb;
+static retro_audio_sample_t audio_cb;
+static retro_audio_sample_batch_t audio_batch_cb;
+static retro_environment_t environ_cb;
+static retro_input_poll_t input_poll_cb;
+static retro_input_state_t input_state_cb;
+
+void retro_set_audio_sample(retro_audio_sample_t cb) { audio_cb = cb; }
+void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
+void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
+void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
+void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 
 /**
   * P2000 required function implementations
@@ -82,17 +83,13 @@ int LoadFont(const char *filename)
                pixelSW = linePixelsNext & 0x40;
                pixelNW = linePixelsPrev & 0x40;
                // rounding in NW direction
-               if (pixelN && pixelW && !pixelNW)
-                  *p = 0xff;
+               if (pixelN && pixelW && !pixelNW) *p = 0xff;
                // rounding in NE direction
-               if (pixelN && pixelE && !pixelNE)
-                  *(p+1) = 0xff;
+               if (pixelN && pixelE && !pixelNE) *(p+1) = 0xff;
                // rounding in SE direction
-               if (pixelS && pixelE && !pixelSE)
-                  *(p+CHAR_WIDTH+1) = 0xff;
+               if (pixelS && pixelE && !pixelSE) *(p+CHAR_WIDTH+1) = 0xff;
                // rounding in SW direction
-               if (pixelS && pixelW && !pixelSW)
-                  *(p+CHAR_WIDTH) = 0xff;
+               if (pixelS && pixelW && !pixelSW) *(p+CHAR_WIDTH) = 0xff;
             }
             //process next pixel to the right
             p += 2;
@@ -106,20 +103,99 @@ int LoadFont(const char *filename)
    return 1;
 }
 
+/****************************************************************************/
+/*** This function is called when the sound register is written to        ***/
+/****************************************************************************/
+void Sound(int toggle)
+{
+   static int last=-1;
+   int pos,val;
+
+   if (toggle!=last) {
+      last=toggle;
+      pos=(buf_size-1)-((buf_size-1)*Z80_ICount/Z80_IPeriod);
+      val=(toggle)? -1 : 1;
+      soundbuf[pos]=val;
+   }
+}
+
+/****************************************************************************/
+/*** This function is called every interrupt to flush sound pipes and     ***/
+/*** sync emulation                                                       ***/
+/****************************************************************************/
+void FlushSound(void)
+{
+   static int soundstate = 0;
+   static int smooth = 0;
+
+   for (int i=0; i<buf_size; ++i) 
+   {
+      if (soundbuf[i]) 
+      {
+         soundstate = soundbuf[i] << 14;
+         soundbuf[i] = 0;
+      }
+      //low pass filtering
+      smooth = (smooth << 1) + soundstate - smooth; 
+      smooth >>= 1;
+      audioOutBuffer[2*i] = audioOutBuffer[2*i+1] = smooth;
+   }
+   soundstate >>= 1;
+   audio_batch_cb(audioOutBuffer, buf_size);
+}
+
+void Keyboard(void) 
+{
+   // not yet implemented
+}
+
+void PutImage (void)
+{
+   video_cb(frame_buf, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT, VIDEO_BUFFER_WIDTH << 2);
+}
+
+/****************************************************************************/
+/*** Put a character in the display buffer                                ***/
+/****************************************************************************/
+void PutChar(int x, int y, int c, int fg, int bg, int si)
+{
+   int K = c + (fg << 8) + (bg << 16) + (si << 24);
+   if (K == OldCharacter[y * 40 + x])
+      return;
+
+   OldCharacter[y * 40 + x] = K;
+   uint32_t *buf = frame_buf;
+   byte *p = font_buf + c * CHAR_WIDTH * CHAR_HEIGHT + (si >> 1) * CHAR_WIDTH * CHAR_HEIGHT/2;
+
+   for (unsigned j = 0; j < CHAR_HEIGHT; j++)
+   {
+      for (unsigned i = 0; i < CHAR_WIDTH; i++)
+         buf[(x * CHAR_WIDTH + i) + (y * CHAR_HEIGHT + j) * VIDEO_BUFFER_WIDTH] = *p++ ? PalXRGB[fg] : PalXRGB[bg];
+      if (si && (j & 1) == 0)
+         p -= CHAR_WIDTH;
+   }
+}
+
 void retro_init(void)
 {
-   //log_cb(RETRO_LOG_INFO, "M2000 Init");
+   log_cb(RETRO_LOG_INFO, "retro_init\n");
    frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
    font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT, sizeof(byte));
-   LoadFont(NULL);
+   OldCharacter = calloc(80 * 24, sizeof(int));
+   buf_size = SAMPLE_RATE / IFreq;
+   soundbuf = calloc(buf_size, sizeof(char));
+   audioOutBuffer = calloc(buf_size * 2, sizeof(int16_t)); // 2 for stereo
+   InitP2000(monitor_rom, BasicNL_rom);
 }
 
 void retro_deinit(void)
 {
+   TrashP2000();
    free(frame_buf);
    free(font_buf);
-   frame_buf = NULL;
-   font_buf = NULL;
+   free(soundbuf);
+   free(audioOutBuffer);
+   free(OldCharacter);
 }
 
 unsigned retro_api_version(void)
@@ -137,40 +213,37 @@ void retro_get_system_info(struct retro_system_info *info)
    memset(info, 0, sizeof(*info));
    info->library_name     = "M2000 - Philips P2000T Emulator";
    info->library_version  = "v0.9";
-   info->need_fullpath    = false;
-   info->valid_extensions = "cas|p2000t";
+   info->need_fullpath    = true;
+   info->valid_extensions = "cas";
 }
-
-static retro_video_refresh_t video_cb;
-static retro_audio_sample_t audio_cb;
-static retro_audio_sample_batch_t audio_batch_cb;
-static retro_environment_t environ_cb;
-static retro_input_poll_t input_poll_cb;
-static retro_input_state_t input_state_cb;
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   float aspect = 4.0f / 3.0f;
-   float sampling_rate = 30000.0f; //44100 ?
-
    info->timing = (struct retro_system_timing) {
       .fps = 50.0,
-      .sample_rate = sampling_rate,
+      .sample_rate = (float)SAMPLE_RATE,
    };
 
    info->geometry = (struct retro_game_geometry) {
       .base_width   = VIDEO_BUFFER_WIDTH,
       .base_height  = VIDEO_BUFFER_HEIGHT,
-      .aspect_ratio = aspect,
+      .aspect_ratio =  4.0f / 3.0f,
    };
+}
+
+static void fallback_log(enum retro_log_level level, const char *fmt, ...)
+{
+   (void)level;
+   va_list va;
+   va_start(va, fmt);
+   vfprintf(stderr, fmt, va);
+   va_end(va);
 }
 
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
-
    bool no_content = true;
-
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
@@ -179,123 +252,39 @@ void retro_set_environment(retro_environment_t cb)
       log_cb = fallback_log;
 }
 
-void retro_set_audio_sample(retro_audio_sample_t cb)
-{
-   audio_cb = cb;
-}
-
-void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb)
-{
-   audio_batch_cb = cb;
-}
-
-void retro_set_input_poll(retro_input_poll_t cb)
-{
-   input_poll_cb = cb;
-}
-
-void retro_set_input_state(retro_input_state_t cb)
-{
-   input_state_cb = cb;
-}
-
-void retro_set_video_refresh(retro_video_refresh_t cb)
-{
-   video_cb = cb;
-}
-
 void retro_reset(void)
 {
+   log_cb(RETRO_LOG_INFO, "retro_reset\n");
    //x_coord = 0;
    //y_coord = 0;
 }
 
-static void update_input(void)
-{
-   input_poll_cb();
+// static void update_input(void)
+// {
+//    input_poll_cb();
 
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-   {
-      /* Stub */
-   }
-}
-
-static void render(void)
-{
-   /* Try rendering straight into VRAM if we can. */
-   uint32_t *buf = NULL;
-   unsigned stride = 0;
-   struct retro_framebuffer fb = {0};
-   fb.width = VIDEO_BUFFER_WIDTH;
-   fb.height = VIDEO_BUFFER_HEIGHT;
-   fb.access_flags = RETRO_MEMORY_ACCESS_WRITE;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER, &fb) && fb.format == RETRO_PIXEL_FORMAT_XRGB8888)
-   {
-      buf = fb.data;
-      stride = fb.pitch >> 2;
-   }
-   else
-   {
-      buf = frame_buf;
-      stride = VIDEO_BUFFER_WIDTH;
-   }
-
-   uint32_t color_r = 0xff << 16;
-   uint32_t color_g = 0xff <<  8;
-   uint32_t color_b = 0xff;
-
-   uint32_t *line = buf;
-   for (unsigned y = 0; y < VIDEO_BUFFER_HEIGHT; y++, line += stride)
-   {
-      unsigned index_y = (y >> 4) & 1;
-      for (unsigned x = 0; x < VIDEO_BUFFER_WIDTH; x++)
-      {
-         unsigned index_x = (x >> 4) & 1;
-         line[x] = (index_y ^ index_x) ? color_r : color_g;
-      }
-   }
-
-   byte *p = font_buf + 33 * CHAR_WIDTH * CHAR_HEIGHT;
-   for (unsigned y=0;y<CHAR_HEIGHT;y++)
-   {
-      for (unsigned x = 0; x < CHAR_WIDTH; x++)
-      {
-         buf[x + y * VIDEO_BUFFER_WIDTH] = *p++ ? color_b : 0;
-      }
-   }
-
-   video_cb(buf, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT, stride << 2);
-}
+//    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+//    {
+//       /* Stub */
+//    }
+// }
 
 static void check_variables(void)
 {
 }
 
-static void audio(void)
-{
-   for (unsigned i = 0; i < 30000 / 50; i++, phase++)
-   {
-      int16_t val = 0x800 * sinf(2.0f * 3.14159265 * phase * 300.0f / 30000.0f);
-      audio_cb(val, val);
-   }
-
-   phase %= 100;
-}
-
 void retro_run(void)
 {
-   update_input();
-   render();
-   audio();
+   Z80_Execute();
 
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
 }
 
-
 bool retro_load_game(const struct retro_game_info *info)
 {
+   log_cb(RETRO_LOG_INFO, "retro_load_game\n");
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
@@ -304,13 +293,13 @@ bool retro_load_game(const struct retro_game_info *info)
    }
 
    check_variables();
-
-   (void)info;
+   InsertCassette(info->path, fopen(info->path, "rb"), true);
    return true;
 }
 
 void retro_unload_game(void)
 {
+   log_cb(RETRO_LOG_INFO, "retro_unload_game\n");
 }
 
 unsigned retro_get_region(void)

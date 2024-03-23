@@ -1119,7 +1119,7 @@ void DrawTileScanlines(int tileX, int tileY)
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
-static void PutImage (void)
+void PutImage (void)
 {
   al_flip_display();
 }
@@ -1127,12 +1127,16 @@ static void PutImage (void)
 /****************************************************************************/
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar(int x, int y, int c, int fg, int bg, int si)
+void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
+
+  if (c > 0) {
+    printf("PutChar (%i,%i,%i,%i,%i,%i);\n", x, y, c, fg, bg, si);
+  }
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(

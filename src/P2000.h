@@ -58,6 +58,8 @@ extern int CpuSpeed;            /* default 100                              */
 /****************************************************************************/
 int StartP2000(void);
 
+int InitP2000 (byte* monitor_rom, byte *cartridge_rom);
+
 /*** (re)Allocate RAM memory ***/
 int InitRAM(void);
 

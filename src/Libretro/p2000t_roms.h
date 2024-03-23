@@ -1905,3 +1905,15 @@ unsigned char SAA5050_fnt[] = {
   0x00, 0x1b, 0x1b, 0x1b, 0x00, 0x1b, 0x1b, 0x00
 };
 unsigned int SAA5050_fnt_len = 2240;
+
+uint32_t PalXRGB[8] =     /* SAA5050 palette                       */
+{
+  0x00000000, //black
+  0x00FF0000, //red
+  0x0000FF00, //green
+  0x00FFFF00, //yellow
+  0x000000FF, //blue
+  0x00FF00FF, //magenta
+  0x0000FFFF, //cyan
+  0x00FFFFFF  //white
+};

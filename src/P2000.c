@@ -32,7 +32,7 @@
 #define TAPE_32_BYTE_HEADER_SIZE 32
 #define TAPE_32_BYTE_HEADER_OFFSET 0
 
-byte Verbose     = 1;
+byte Verbose     = 0;
 const char *ROMName    = "P2000ROM.bin";
 const char *CartName   = "BASIC.bin";
 const char *FontName   = "Default.fnt";
@@ -47,7 +47,7 @@ int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
 int CpuSpeed     = 100;
-int TapeBootEnabled = 0;
+int TapeBootEnabled = 1;
 int PrnType      = 0;
 int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
@@ -238,7 +238,7 @@ int InitRAM()
 /*** the emulation. This function returns 0 in case of a failure            ***/
 /******************************************************************************/
 word Exit_PC;
-int StartP2000 (void)
+int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
 {
   FILE *f;
   int i,j;
@@ -271,17 +271,23 @@ int StartP2000 (void)
 
   if (!InitRAM()) return 0;
 
-  if (Verbose) printf ("Loading ROMs:\n");
-  if (Verbose) printf ("  Opening %s... ",ROMName);
-  j=0;
-  f=fopen(ROMName,"rb");
-  if(f)
+  if (monitor_rom)
+    memcpy (ROM,monitor_rom,0x1000);
+  else
   {
-   if(fread(ROM,1,0x1000,f)==0x1000) j=1;
-   fclose (f);
+    if (Verbose) printf ("Loading ROMs:\n");
+    if (Verbose) printf ("  Opening %s... ",ROMName);
+    j=0;
+    f=fopen(ROMName,"rb");
+    if(f)
+    {
+    if(fread(ROM,1,0x1000,f)==0x1000) j=1;
+    fclose (f);
+    }
+    if(Verbose) puts(j? "OK":"FAILED");
+    if(!j) return 0;
   }
-  if(Verbose) puts(j? "OK":"FAILED");
-  if(!j) return 0;
+
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
@@ -290,40 +296,49 @@ int StartP2000 (void)
    ROM[ROMPatches[j]+1]=0xFE;
    ROM[ROMPatches[j]+2]=0xC9;
   }
-  if(Verbose) printf(" OK\n  Opening %s... ",CartName);
-  j=0;
-  f=fopen(CartName,"rb");
-  if (f)
-  {
-   if (fread(ROM+0x1000,1,0x4000,f)) j=1;
-   fclose(f);
-  }
-  if(Verbose) puts (j? "OK":"FAILED");
-  /*  if(!j) return 0; */
 
-  if (TapeName) {
-    // first try open for update, then try create then try read-only
-    if ((f = fopen(TapeName,"r+b")) == NULL) f = fopen(TapeName, "w+b");
-    InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
+  if (cartridge_rom) 
+  {
+      memcpy (ROM+0x1000,cartridge_rom,0x4000);
+  }
+  else 
+  {
+    if(Verbose) printf(" OK\n  Opening %s... ",CartName);
+    j=0;
+    f=fopen(CartName,"rb");
+    if (f)
+    {
+    if (fread(ROM+0x1000,1,0x4000,f)) j=1;
+    fclose(f);
+    }
+    if(Verbose) puts (j? "OK":"FAILED");
+    /*  if(!j) return 0; */
   }
 
   if (!LoadFont(FontName)) 
     return 0;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
-
-  if (Verbose) puts ("Starting P2000 emulation...");
   Z80_Reset ();
+  
+  return 1;
+}
+
+int StartP2000 (void)
+{
+  if (Verbose) puts ("Starting P2000 emulation...");
   Exit_PC=Z80 ();
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
   return 1;
 }
 
 /****************************************************************************/
-/*** Free memory allocated by StartP2000()                                ***/
+/*** Free memory allocated by InitP2000()                                 ***/
 /****************************************************************************/
 void TrashP2000 (void)
 {
+ if (TapeStream) fclose (TapeStream);
+ if (PrnStream) fclose (PrnStream);
  if (ROM) free (ROM);
  if (VRAM) free (VRAM);
  if (RAM) free (RAM);
