@@ -28,10 +28,3 @@ all:    m2000
 
 m2000:	$(OBJECTS)
 	$(CC) $(LDFLAGS) -o ../../M2000 $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog
-
-M2000.o:    M2000.c P2000.h Z80.h Z80IO.h
-P2000.o:    P2000.c P2000.h Z80.h Z80IO.h
-Z80.o:      Z80.c Z80.h Z80DAA.h Z80IO.h
-#Z80Debug.o: Z80Debug.c Z80.h Z80IO.h Z80Dasm.h
-Main.o: 	*.c *.h Common.h P2000.h Z80.h Z80IO.h
-

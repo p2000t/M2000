@@ -176,10 +176,7 @@ void CreateEmulatorMenu()
   UpdateVolumeMenu();
   UpdateAudioFilterMenu();
   UpdateCpuSpeedMenu();
-  if (P2000_Mode) 
-    al_remove_menu_item(menu, HARDWARE_MENU_ID);
-  else 
-    UpdateMemoryMenu();
+  UpdateMemoryMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
 #if defined(__linux__)

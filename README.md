@@ -30,7 +30,7 @@ Installation of M2000 depends on your platform:
 
 ## What's emulated
 
--  P2000T or P2000M model (P2000M emulation is experimental)
+-  Philips P2000T home computer
 -  Support for a single ROM cartridge
 -  User-definable amount of RAM
 -  One tape drive

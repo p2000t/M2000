@@ -43,7 +43,6 @@ int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
-int P2000_Mode   = 0;
 int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
@@ -108,10 +107,6 @@ void Z80_Out (byte Port, byte Value)
   case 6:       /* Reserved for I/O cartridge */
    break;
   case 7:       /* DISAS (M-version only) */
-   /* If bit 1 is set, Video refresh is
-      disabled when CPU accesses video RAM */
-   if (P2000_Mode)
-    DISAReg=Value;
    return;
  }
  switch (Port)
@@ -170,8 +165,7 @@ byte Z80_In (byte Port)
    return inputstatus;
   }
   case 3:       /* Scroll Register (T-version only) */
-   if (!P2000_Mode)
-    return ScrollReg;
+   return ScrollReg;
   case 4:       /* Reserved for I/O cartridge */
    break;
   case 5:       /* Beeper */
@@ -179,8 +173,6 @@ byte Z80_In (byte Port)
   case 6:       /* Reserved for I/O cartridge */
    break;
   case 7:       /* DISAS (M-version only) */
-   if (P2000_Mode)
-    return DISAReg;
    break;
  }
  switch (Port)
@@ -274,11 +266,7 @@ int StartP2000 (void)
    ReadPage[i>>8]=ROM+i;
    WritePage[i>>8]=NoRAMWrite;
   }
-  if (P2000_Mode)
-   for (i=0x0000;i<0x1000;i+=256)
-    ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
-  else
-   for (i=0x0000;i<0x0800;i+=256)
+  for (i=0x0000;i<0x0800;i+=256)
     ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
 
   if (!InitRAM()) return 0;
@@ -628,7 +616,6 @@ void Z80_Patch (Z80_Regs *R)
     *************************************************************************/
     case 6:
     {
-     static int delay_next_load=0;
      i=Z80_RDWORD(fileleng);
      i=(i-1)&0xFFFF;
      i=(i/0x400)+1;
@@ -662,21 +649,9 @@ void Z80_Patch (Z80_Regs *R)
          if (!Z80_Running) return;
          Pause (200);
         }
-        delay_next_load=1;
        }
        else
        {
-        if (delay_next_load)
-        {
-         delay_next_load=0;
-         for (j=0;j<60;++j)
-         {
-          /* Maybe someone wants a screen shot */
-          Keyboard ();
-          if (!Z80_Running) break;
-          Pause (50);
-         }
-        }
         for (j=0;j<l;++j)
          Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+TapeHeaderSize]);
        }

@@ -43,7 +43,6 @@ extern byte SoundReg;           /* Reg #0x50                                */
 extern byte ScrollReg;          /* Reg #0x30                                */
 extern byte OutputReg;          /* Reg #0x20                                */
 extern byte KeyMap[10];         /* Keyboard map                             */
-extern int P2000_Mode;          /* 0=P2000T, 1=P2000M                       */
 extern int TapeBootEnabled;     /* 1 if booting enabled                     */
 extern int ColdBoot;            /* 1 if cold boot                           */
 extern int TapeProtect;         /* 1 if tape is write-protected             */

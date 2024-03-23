@@ -25,15 +25,14 @@
 #define SPACE 32 // space character
 #define M2000_VERSION "0.9-SNAPSHOT"
 
-static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si);
-static inline void PutChar_M(int x, int y, int c, int eor, int ul);
+static inline void PutChar(int x, int y, int c, int fg, int bg, int si);
 static void PutImage(void);
 
 // when doblank is 1, flashing characters are not displayed this refresh
 static int doblank=1;
 
 /****************************************************************************/
-/*** Refresh screen for T-model emulation                                 ***/
+/*** Refresh screen (P2000T model)                                        ***/
 /****************************************************************************/
 void RefreshScreen_T(void)
 {
@@ -217,7 +216,7 @@ void RefreshScreen_T(void)
         BG = BG ^ 7;
       }
       /* Put the character in the screen buffer */
-      PutChar_T(x, y, c - 32, FG, BG, (si ? found_si : 0));
+      PutChar(x, y, c - 32, FG, BG, (si ? found_si : 0));
 
       // update HG mode
       hg_active = (hg && gr);
@@ -246,41 +245,9 @@ void RefreshScreen_T(void)
 }
 
 /****************************************************************************/
-/*** Refresh screen for M-model emulation                                 ***/
-/****************************************************************************/
-void RefreshScreen_M(void)
-{
-  byte *S;
-  int a, c;
-  int x, y;
-  int eor, ul;
-  S = VRAM;
-  for (y = 0; y < 24; ++y, S += 80)
-    for (x = 0; x < 80; ++x)
-    {
-      // Get character
-      c = S[x] & 127;
-      // If bit seven is set, underline is on
-      ul = S[x] & 128;
-      // Get attributes
-      a = S[x + 2048];
-      // bit 3 = inverse video
-      eor = a & 8;
-      // Bit 0 = graphics
-      if ((a & 1) && (c & 0x20))
-        c += (c & 0x40) ? 64 : 96;
-      // If invalid character or blanking is on, display a space character
-      if (c < 32 || ((a & 16) && doblank))
-        c = 32;
-      // Put the character in the screen buffer
-      PutChar_M(x, y, c - 32, eor, ul);
-    }
-}
-
-/****************************************************************************/
 /*** Refresh screen. This function updates the blanking state and then    ***/
-/*** calls either RefreshScreen_T() or RefreshScreen_M() and finally it   ***/
-/*** calls PutImage() to copy the off-screen buffer to the actual display ***/
+/*** calls RefreshScreen_T() and finally it calls PutImage() to copy the  ***/
+/*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
 void RefreshScreen(void)
 {
@@ -291,10 +258,7 @@ void RefreshScreen(void)
   if (BCount == 48 / UPeriod) doblank = 1;
   if (BCount == 64 / UPeriod) doblank = BCount = 0;
   // Update the screen buffer
-  if (!P2000_Mode)
-    RefreshScreen_T();
-  else
-    RefreshScreen_M();
+  RefreshScreen_T();
   // Put the image on the screen
   PutImage();
 }
