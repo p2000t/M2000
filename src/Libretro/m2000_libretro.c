@@ -1,7 +1,12 @@
+// Open issues:
+// - Keyboard input not yet implemented
+// - Save states broken
+// - .cas extensions not picked up
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "libretro.h"
-#include "../../libretro-common/include/retro_timers.h"
+#include "libretro-common/include/retro_timers.h"
 #include "p2000t_roms.h"
 #include "../Z80.h"
 #include "../P2000.h"
@@ -24,6 +29,7 @@ static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static int *OldCharacter;          /* Holds characters on the screen        */
 static int buf_size;
+static Z80_Regs registers;
 
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
@@ -70,14 +76,16 @@ int LoadFont(const char *filename)
          for (int k = 0; k < CHAR_WIDTH_ORIG; ++k)
          {
             if (linePixels & 0x20) // bit 6 set = pixel set
+            {
                *p = *(p+1) = *(p+CHAR_WIDTH) = *(p+CHAR_WIDTH+1) = 0xff;
+            }
             else if (i < 96 * CHAR_HEIGHT_ORIG) // character rounding (only for alphanumeric chars)
             { 
                // for character rounding, look at 8 pixels around current pixel
-               pixelN = linePixelsPrev & 0x20;
-               pixelE = linePixels & 0x10;
-               pixelS = linePixelsNext & 0x20;
-               pixelW = linePixels & 0x40;
+               pixelN  = linePixelsPrev & 0x20;
+               pixelE  = linePixels     & 0x10;
+               pixelS  = linePixelsNext & 0x20;
+               pixelW  = linePixels     & 0x40;
                pixelNE = linePixelsPrev & 0x10;
                pixelSE = linePixelsNext & 0x10;
                pixelSW = linePixelsNext & 0x40;
@@ -210,11 +218,12 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
+   printf(">>> retro_get_system_info\n");
    memset(info, 0, sizeof(*info));
    info->library_name     = "M2000 - Philips P2000T Emulator";
    info->library_version  = "v0.9";
    info->need_fullpath    = true;
-   info->valid_extensions = "cas";
+   info->valid_extensions = "cas|p2000t";
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -227,6 +236,8 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry = (struct retro_game_geometry) {
       .base_width   = VIDEO_BUFFER_WIDTH,
       .base_height  = VIDEO_BUFFER_HEIGHT,
+      .max_width    = VIDEO_BUFFER_WIDTH,
+      .max_height   = VIDEO_BUFFER_HEIGHT,
       .aspect_ratio =  4.0f / 3.0f,
    };
 }
@@ -243,8 +254,11 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
+
    bool no_content = true;
    cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
+
+   //TODO: pass M2000 variables
 
    if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
       log_cb = logging.log;
@@ -254,9 +268,7 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_reset(void)
 {
-   log_cb(RETRO_LOG_INFO, "retro_reset\n");
-   //x_coord = 0;
-   //y_coord = 0;
+   Z80_Reset();
 }
 
 // static void update_input(void)
@@ -293,7 +305,8 @@ bool retro_load_game(const struct retro_game_info *info)
    }
 
    check_variables();
-   InsertCassette(info->path, fopen(info->path, "rb"), true);
+   if (info && info->path)
+      InsertCassette(info->path, fopen(info->path, "rb"), true);
    return true;
 }
 
@@ -314,28 +327,43 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 
 size_t retro_serialize_size(void)
 {
-   return 2;
+   log_cb(RETRO_LOG_INFO, "retro_serialize_size\n");
+   return sizeof(registers) + 0x5000 + 0x1000 + RAMSizeKb * 1024;
 }
 
 bool retro_serialize(void *data_, size_t size)
 {
-   if (size < 2)
+   log_cb(RETRO_LOG_INFO, "retro_serialize\n");
+   if (size != retro_serialize_size())
       return false;
 
+   Z80_GetRegs(&registers);  
    uint8_t *data = data_;
-   data[0] = 0; //x_coord;
-   data[1] = 0; //y_coord;
+   memcpy(data, &registers, sizeof(registers));
+   data += sizeof(registers);
+   memcpy(data, ROM, 0x5000);
+   data += 0x5000;
+   memcpy(data, VRAM, 0x1000);
+   data += 0x1000;
+   memcpy(data, RAM, RAMSizeKb * 1024);
    return true;
 }
 
 bool retro_unserialize(const void *data_, size_t size)
 {
-   if (size < 2)
+   log_cb(RETRO_LOG_INFO, "retro_unserialize\n");
+   if (size != retro_serialize_size())
       return false;
 
-   //const uint8_t *data = data_;
-   // x_coord = data[0] & 31;
-   // y_coord = data[1] & 31;
+   const uint8_t *data = data_;
+   memcpy(&registers, data, sizeof(registers));
+   data += sizeof(registers);
+   memcpy(ROM, data, 0x5000);
+   data += 0x5000;
+   memcpy(VRAM, data, 0x1000);
+   data += 0x1000;
+   memcpy(RAM, data, RAMSizeKb * 1024);
+   Z80_SetRegs(&registers);
    return true;
 }
 

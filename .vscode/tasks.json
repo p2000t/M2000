@@ -39,10 +39,10 @@
             "command": "C:/RetroArch-Win64/retroarch.exe",
             "args": [
                 "--verbose",
-                "-L",
-                "./src/Libretro/m2000_libretro.dll",
-                //"./test/SAA5050.cas"
-                "./test/sound.cas"
+                "--set-shader", "C:/RetroArch-Win64/shaders/shaders_slang/crt/crt-pi.slangp",
+                "-L", "./src/Libretro/m2000_libretro.dll",
+                "./test/SAA5050.cas"
+                //"./test/sound.cas"
             ],
             "dependsOn": [
                 "Make Libretro"

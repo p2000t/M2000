@@ -113,7 +113,7 @@ endif
 
 VPATH = ../
 OBJECTS := P2000.o Z80.o m2000_libretro.o
-CFLAGS += -I../../libretro-common/include -Wall $(fpic)
+CFLAGS += -I./libretro-common/include -Wall $(fpic)
 
 ifneq (,$(findstring qnx,$(platform)))
 CFLAGS += -Wc,-std=c99
