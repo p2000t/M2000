@@ -18,13 +18,13 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 
-int keymask[] =
+int key_map[] =
 {
    RETROK_LEFT,      -1,               RETROK_UP,        RETROK_q,         -1,               -1,               -1,               -1,
    RETROK_TAB,       RETROK_h,         RETROK_z,         RETROK_s,         RETROK_d,         RETROK_g,         RETROK_j,         RETROK_f,
    RETROK_PERIOD,    RETROK_SPACE,     -1,               RETROK_0,         -1,               RETROK_DOWN,      RETROK_COMMA,     RETROK_RIGHT,
    RETROK_CAPSLOCK,  RETROK_n,         -1,               RETROK_x,         RETROK_c,         RETROK_b,         RETROK_m,         RETROK_v,
-   -1,               RETROK_y,         RETROK_a,         RETROK_w,         RETROK_e,         RETROK_t,         RETROK_u,         RETROK_r,
+   RETROK_BACKQUOTE, RETROK_y,         RETROK_a,         RETROK_w,         RETROK_e,         RETROK_t,         RETROK_u,         RETROK_r,
    -1,               -1,               -1,               -1,               RETROK_BACKSPACE, -1,               -1,               RETROK_MINUS,
    RETROK_9,         RETROK_o,         RETROK_8,         RETROK_7,         RETROK_RETURN,    RETROK_p,         -1,               -1,
    RETROK_3,         -1,               RETROK_2,         RETROK_1,         -1,               -1,               RETROK_k,         RETROK_QUOTE,
@@ -32,4 +32,4 @@ int keymask[] =
    RETROK_LSHIFT,    -1,               -1,               -1,               -1,               -1,               -1,               RETROK_RSHIFT
 };
 
-unsigned int keymask_len = 80;
+unsigned int key_map_len = 80;

@@ -29,4 +29,4 @@ needs_fullpath = "true"
 disk_control = "false"
 is_experimental = "true"
 
-description = "M2000 - Philips P2000T home computer emulator. Note that the keyboard works best in 'Game Focus' mode. Special keys: [ZOEK] = Shift + 1, [START] = Shift + 3 and [STOP] = Shift + period."
+description = "M2000 - Philips P2000T home computer emulator. Note that the keyboard works best in 'Game Focus' mode. Special keys: <ZOEK>: Shift + 1, <START>: Shift + 3 / Joypad Start, <STOP>: Shift + period / Joypad Select."

@@ -1,7 +1,21 @@
-// Open issues:
-// - Keyboard input not yet implemented
-// - Save states broken (-> needs Core info)
-// - .cas extensions not picked up (-> needs Core info)
+/******************************************************************************/
+/*                             M2000 - the Philips                            */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                ████████|████████|████████|████████|████████                */
+/*                ███||███|███||███|███||███|███||███|███||███                */
+/*                ███||███||||||███|███||███|███||███|███||███                */
+/*                ████████|||||███||███||███|███||███|███||███                */
+/*                ███|||||||||███|||███||███|███||███|███||███                */
+/*                ███|||||||███|||||███||███|███||███|███||███                */
+/*                ███||||||████████|████████|████████|████████                */
+/*                ||||||||||||||||||||||||||||||||||||||||||||                */
+/*                                  emulator                                  */
+/*                                                                            */
+/*   Copyright (C) 1996-2023 by the M2000 team.                               */
+/*                                                                            */
+/*   See the file "LICENSE" for information on usage and redistribution of    */
+/*   this file, and for a DISCLAIMER OF ALL WARRANTIES.                       */
+/******************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +35,15 @@
 #define CHAR_HEIGHT 20
 #define CHAR_WIDTH_ORIG 6
 #define CHAR_HEIGHT_ORIG 10
+
+#define P2000_KEYCODE_UP 2
+#define P2000_KEYCODE_DOWN 21
+#define P2000_KEYCODE_LEFT 0
+#define P2000_KEYCODE_RIGHT 23
+#define P2000_KEYCODE_SPACE 17
+#define P2000_KEYCODE_LSHIFT 72
+#define P2000_KEYCODE_NUM_3 56
+#define P2000_KEYCODE_NUM_PERIOD 16
 
 static uint32_t *frame_buf;
 static byte *font_buf;
@@ -46,11 +69,11 @@ void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 
 /****************************************************************************/
-/*** Sync emulation                                                       ***/
-/*** This function is called on every interrupt                           ***/
+/*** Sync emulation on every interrupt                                    ***/
 /****************************************************************************/
-void SyncEmulation(void) // not needed, as frontend will take care of syncing
+void SyncEmulation(void) 
 {
+   // not needed, as frontend (e.g. RetroArch) will take care of syncing
 }
 
 /****************************************************************************/
@@ -62,7 +85,7 @@ void Pause(int ms)
 }
 
 /****************************************************************************/
-/*** This function loads a font and converts it if necessary              ***/
+/*** This function creates the SAA5050 font with character rounding       ***/
 /****************************************************************************/
 int LoadFont(const char *filename)
 {
@@ -120,17 +143,17 @@ int LoadFont(const char *filename)
 }
 
 /****************************************************************************/
-/*** This function is called when the sound register is written to        ***/
+/*** This function is called when the P2000T's sound register is written  ***/
 /****************************************************************************/
 void Sound(int toggle)
 {
-   static int last=-1;
+   static int last = -1;
    int pos,val;
 
-   if (toggle!=last) {
-      last=toggle;
-      pos=(buf_size-1)-((buf_size-1)*Z80_ICount/Z80_IPeriod);
-      val=(toggle)? -1 : 1;
+   if (toggle != last) {
+      last = toggle;
+      pos  = (buf_size-1) - ((buf_size-1)*Z80_ICount/Z80_IPeriod);
+      val  =( toggle)? -1 : 1;
       sound_buf[pos]=val;
    }
 }
@@ -160,6 +183,20 @@ void FlushSound(void)
    audio_batch_cb(audio_batch_buf, buf_size);
 }
 
+static void PushKey(byte p2000KeyCode)
+{
+  byte mRow = p2000KeyCode / 8;
+  byte mCol = 1 << (p2000KeyCode % 8);
+  if (mRow < 10) KeyMap[mRow] &= ~mCol;
+}
+
+static void ReleaseKey(byte p2000KeyCode)
+{
+  byte mRow = p2000KeyCode / 8;
+  byte mCol = 1 << (p2000KeyCode % 8);
+  if (mRow < 10) KeyMap[mRow] |= mCol;
+}
+
 /****************************************************************************/
 /*** Poll the keyboard on every interrupt                                 ***/
 /****************************************************************************/
@@ -167,20 +204,54 @@ void Keyboard(void)
 {
    input_poll_cb();
 
+   /*************************/
+   /* handle keyboard input */
+   /*************************/
    bool shiftPressed = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LSHIFT) || input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RSHIFT);
-
-   for (int i = 0; i < keymask_len; i++) 
+   for (int i = 0; i < key_map_len; i++) 
    {
-      int k = i / 8;
-      int j = 1 << (i % 8);
-      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, keymask[i]))
+      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, key_map[i]))
       {
-         if (keymask[i] != RETROK_QUOTE || shiftPressed)
-         KeyMap[k] &= ~j;
+         if (key_map[i] != RETROK_QUOTE || shiftPressed)
+         PushKey(i);
       }
       else
-         KeyMap[k] |= j;
+         ReleaseKey(i);
    }
+
+   /***********************************/
+   /* map joypad input to key presses */
+   /***********************************/
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
+      PushKey(P2000_KEYCODE_UP); // Fraxxon uses Up-key for moving spaceship to the right 
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+      PushKey(P2000_KEYCODE_DOWN);
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2))
+      PushKey(P2000_KEYCODE_LEFT);
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R)
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
+      PushKey(P2000_KEYCODE_RIGHT);
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A) 
+      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+      PushKey(P2000_KEYCODE_SPACE);
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+   {
+      //emulate <START> key press
+      PushKey(P2000_KEYCODE_LSHIFT);
+      PushKey(P2000_KEYCODE_NUM_3);
+   }
+   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+   {
+      //emulate <STOP> key press
+      PushKey(P2000_KEYCODE_LSHIFT);
+      PushKey(P2000_KEYCODE_NUM_PERIOD);
+   }
+
 }
 
 /****************************************************************************/
@@ -309,6 +380,23 @@ void retro_run(void)
 bool retro_load_game(const struct retro_game_info *info)
 {
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+
+   static const struct retro_input_descriptor desc[] = {
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up key"      },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down key"    },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left key"    },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right key"   },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Space key"   },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Space key"   },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Left key"    },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Right/Up key"},
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Left key"    },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "Right/Up key"},
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "<Stop> key"  },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "<Start> key" },
+   };
+   environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)desc);
+
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
       log_cb(RETRO_LOG_INFO, "XRGB8888 is not supported.\n");

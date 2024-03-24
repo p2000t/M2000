@@ -55,11 +55,11 @@
             "type": "shell",
             "command": "C:/RetroArch-Win64/retroarch.exe",
             "args": [
-                "--verbose",
+                //"--verbose",
                 "--set-shader", "shaders_slang/crt/crt-pi.slangp",
                 "-L", "m2000_libretro.dll",
-                "./test/SAA5050.cas"
-                //"./test/sound.cas"
+                "./test/games/Ghosthunt.cas"
+                //"./test/SAA5050/SAA5050.cas"
             ],
             "dependsOn": [
                 "Make Libretro",
