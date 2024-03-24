@@ -18,7 +18,10 @@
 /******************************************************************************/
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
 #include "libretro.h"
 #include "retro_timers.h"
 #include "m2000_roms.h"
