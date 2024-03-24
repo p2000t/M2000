@@ -1,12 +1,12 @@
 // Open issues:
 // - Keyboard input not yet implemented
-// - Save states broken
-// - .cas extensions not picked up
+// - Save states broken (-> needs Core info)
+// - .cas extensions not picked up (-> needs Core info)
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "libretro.h"
-#include "libretro-common/include/retro_timers.h"
+#include "retro_timers.h"
 #include "p2000t_roms.h"
 #include "../Z80.h"
 #include "../P2000.h"
@@ -151,10 +151,17 @@ void FlushSound(void)
    soundstate >>= 1;
    audio_batch_cb(audioOutBuffer, buf_size);
 }
-
 void Keyboard(void) 
 {
-   // not yet implemented
+   input_poll_cb();
+   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_p))
+   {
+      KeyMap[29 / 8] &= ~(1 << (29 % 8));
+   }
+   else 
+   {
+      KeyMap[29 / 8] |= (1 << (29 % 8));  
+   }
 }
 
 void PutImage (void)
@@ -220,7 +227,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    printf(">>> retro_get_system_info\n");
    memset(info, 0, sizeof(*info));
-   info->library_name     = "M2000 - Philips P2000T Emulator";
+   info->library_name     = "M2000";
    info->library_version  = "v0.9";
    info->need_fullpath    = true;
    info->valid_extensions = "cas|p2000t";
@@ -228,16 +235,15 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
+   printf(">>> retro_get_system_av_info\n");
    info->timing = (struct retro_system_timing) {
       .fps = 50.0,
       .sample_rate = (float)SAMPLE_RATE,
    };
 
    info->geometry = (struct retro_game_geometry) {
-      .base_width   = VIDEO_BUFFER_WIDTH,
-      .base_height  = VIDEO_BUFFER_HEIGHT,
-      .max_width    = VIDEO_BUFFER_WIDTH,
-      .max_height   = VIDEO_BUFFER_HEIGHT,
+      .base_width   = 320,
+      .base_height  = 240,
       .aspect_ratio =  4.0f / 3.0f,
    };
 }
@@ -271,27 +277,17 @@ void retro_reset(void)
    Z80_Reset();
 }
 
-// static void update_input(void)
+// static void check_variables(void)
 // {
-//    input_poll_cb();
-
-//    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-//    {
-//       /* Stub */
-//    }
 // }
-
-static void check_variables(void)
-{
-}
 
 void retro_run(void)
 {
    Z80_Execute();
 
-   bool updated = false;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      check_variables();
+   // bool updated = false;
+   // if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+   //    check_variables();
 }
 
 bool retro_load_game(const struct retro_game_info *info)
@@ -304,7 +300,7 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   check_variables();
+   //check_variables();
    if (info && info->path)
       InsertCassette(info->path, fopen(info->path, "rb"), true);
    return true;

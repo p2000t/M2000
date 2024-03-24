@@ -11,6 +11,7 @@
 /*.bmp
 /*.bin
 /*.cfg
+/**/*.state
 /M2000
 /M2000.EXE
 /Printer.out
