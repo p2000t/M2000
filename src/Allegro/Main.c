@@ -43,7 +43,6 @@
 #include <allegro5/allegro_native_dialog.h> 
 #include "../P2000.h"
 #include "../M2000.h"
-#include "../Common.h"
 #include "Main.h"
 #include "Keyboard.h"
 #include "Menu.h"
@@ -1095,7 +1094,7 @@ void Keyboard(void)
 }
 
 /****************************************************************************/
-/*** Pause specified ammount of time                                      ***/
+/*** Pauses a specified ammount of milliseconds                           ***/
 /****************************************************************************/
 void Pause(int ms) 
 {

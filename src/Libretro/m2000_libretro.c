@@ -7,14 +7,15 @@
 #include <stdlib.h>
 #include "libretro.h"
 #include "retro_timers.h"
-#include "p2000t_roms.h"
+#include "m2000_roms.h"
+#include "m2000_keyboard.h"
 #include "../Z80.h"
 #include "../P2000.h"
-#include "../Common.h"
 
 #define VIDEO_BUFFER_WIDTH 480
 #define VIDEO_BUFFER_HEIGHT 480
 #define SAMPLE_RATE 30000
+#define P2000T_VRAM_SIZE 0x1000
 #define NUMBER_OF_CHARS 224
 #define CHAR_WIDTH 12
 #define CHAR_HEIGHT 20
@@ -23,11 +24,11 @@
 
 static uint32_t *frame_buf;
 static byte *font_buf;
-static signed char *soundbuf = NULL;
-static int16_t *audioOutBuffer;
+static signed char *sound_buf = NULL;
+static int16_t *audio_batch_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
-static int *OldCharacter;          /* Holds characters on the screen        */
+static int *display_char_buf;
 static int buf_size;
 static Z80_Regs registers;
 
@@ -44,18 +45,25 @@ void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 
-/**
-  * P2000 required function implementations
- **/
+/****************************************************************************/
+/*** Sync emulation                                                       ***/
+/*** This function is called on every interrupt                           ***/
+/****************************************************************************/
 void SyncEmulation(void) // not needed, as frontend will take care of syncing
 {
 }
 
+/****************************************************************************/
+/*** Pauses a specified ammount of milliseconds                           ***/
+/****************************************************************************/
 void Pause(int ms) 
 {
    retro_sleep(ms);
 }
 
+/****************************************************************************/
+/*** This function loads a font and converts it if necessary              ***/
+/****************************************************************************/
 int LoadFont(const char *filename)
 {
    byte *p = font_buf;
@@ -123,7 +131,7 @@ void Sound(int toggle)
       last=toggle;
       pos=(buf_size-1)-((buf_size-1)*Z80_ICount/Z80_IPeriod);
       val=(toggle)? -1 : 1;
-      soundbuf[pos]=val;
+      sound_buf[pos]=val;
    }
 }
 
@@ -138,35 +146,41 @@ void FlushSound(void)
 
    for (int i=0; i<buf_size; ++i) 
    {
-      if (soundbuf[i]) 
+      if (sound_buf[i]) 
       {
-         soundstate = soundbuf[i] << 14;
-         soundbuf[i] = 0;
+         soundstate = sound_buf[i] << 14;
+         sound_buf[i] = 0;
       }
       //low pass filtering
       smooth = (smooth << 1) + soundstate - smooth; 
       smooth >>= 1;
-      audioOutBuffer[2*i] = audioOutBuffer[2*i+1] = smooth;
+      audio_batch_buf[2*i] = audio_batch_buf[2*i+1] = smooth;
    }
    soundstate >>= 1;
-   audio_batch_cb(audioOutBuffer, buf_size);
+   audio_batch_cb(audio_batch_buf, buf_size);
 }
+
+/****************************************************************************/
+/*** Poll the keyboard on every interrupt                                 ***/
+/****************************************************************************/
 void Keyboard(void) 
 {
    input_poll_cb();
-   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_p))
-   {
-      KeyMap[29 / 8] &= ~(1 << (29 % 8));
-   }
-   else 
-   {
-      KeyMap[29 / 8] |= (1 << (29 % 8));  
-   }
-}
 
-void PutImage (void)
-{
-   video_cb(frame_buf, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT, VIDEO_BUFFER_WIDTH << 2);
+   bool shiftPressed = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LSHIFT) || input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RSHIFT);
+
+   for (int i = 0; i < keymask_len; i++) 
+   {
+      int k = i / 8;
+      int j = 1 << (i % 8);
+      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, keymask[i]))
+      {
+         if (keymask[i] != RETROK_QUOTE || shiftPressed)
+         KeyMap[k] &= ~j;
+      }
+      else
+         KeyMap[k] |= j;
+   }
 }
 
 /****************************************************************************/
@@ -175,10 +189,10 @@ void PutImage (void)
 void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
    int K = c + (fg << 8) + (bg << 16) + (si << 24);
-   if (K == OldCharacter[y * 40 + x])
+   if (K == display_char_buf[y * 40 + x]) //skip if character is already on screen
       return;
 
-   OldCharacter[y * 40 + x] = K;
+   display_char_buf[y * 40 + x] = K;
    uint32_t *buf = frame_buf;
    byte *p = font_buf + c * CHAR_WIDTH * CHAR_HEIGHT + (si >> 1) * CHAR_WIDTH * CHAR_HEIGHT/2;
 
@@ -191,15 +205,23 @@ void PutChar(int x, int y, int c, int fg, int bg, int si)
    }
 }
 
+/****************************************************************************/
+/*** Push the display buffer for actual rendering on every interrupt      ***/
+/****************************************************************************/
+void PutImage (void)
+{
+   video_cb(frame_buf, VIDEO_BUFFER_WIDTH, VIDEO_BUFFER_HEIGHT, VIDEO_BUFFER_WIDTH << 2);
+}
+
 void retro_init(void)
 {
-   log_cb(RETRO_LOG_INFO, "retro_init\n");
+   //log_cb(RETRO_LOG_INFO, "retro_init called\n");
    frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
    font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT, sizeof(byte));
-   OldCharacter = calloc(80 * 24, sizeof(int));
+   display_char_buf = calloc(80 * 24, sizeof(int));
    buf_size = SAMPLE_RATE / IFreq;
-   soundbuf = calloc(buf_size, sizeof(char));
-   audioOutBuffer = calloc(buf_size * 2, sizeof(int16_t)); // 2 for stereo
+   sound_buf = calloc(buf_size, sizeof(char));
+   audio_batch_buf = calloc(buf_size * 2, sizeof(int16_t)); // * 2 for stereo
    InitP2000(monitor_rom, BasicNL_rom);
 }
 
@@ -208,9 +230,9 @@ void retro_deinit(void)
    TrashP2000();
    free(frame_buf);
    free(font_buf);
-   free(soundbuf);
-   free(audioOutBuffer);
-   free(OldCharacter);
+   free(sound_buf);
+   free(audio_batch_buf);
+   free(display_char_buf);
 }
 
 unsigned retro_api_version(void)
@@ -225,7 +247,6 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   printf(">>> retro_get_system_info\n");
    memset(info, 0, sizeof(*info));
    info->library_name     = "M2000";
    info->library_version  = "v0.9";
@@ -235,7 +256,6 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   printf(">>> retro_get_system_av_info\n");
    info->timing = (struct retro_system_timing) {
       .fps = 50.0,
       .sample_rate = (float)SAMPLE_RATE,
@@ -244,6 +264,8 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry = (struct retro_game_geometry) {
       .base_width   = 320,
       .base_height  = 240,
+      .max_width    = 320,
+      .max_height   = 240,
       .aspect_ratio =  4.0f / 3.0f,
    };
 }
@@ -262,11 +284,13 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb = cb;
 
    bool no_content = true;
-   cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
-   //TODO: pass M2000 variables
+   // create empty keyboard callback, to allow for "Game Focus" detection
+   struct retro_keyboard_callback cb_kb = { NULL };
+   environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb_kb);
 
-   if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
       log_cb = logging.log;
    else
       log_cb = fallback_log;
@@ -277,22 +301,13 @@ void retro_reset(void)
    Z80_Reset();
 }
 
-// static void check_variables(void)
-// {
-// }
-
 void retro_run(void)
 {
    Z80_Execute();
-
-   // bool updated = false;
-   // if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-   //    check_variables();
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
-   log_cb(RETRO_LOG_INFO, "retro_load_game\n");
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
@@ -300,15 +315,17 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   //check_variables();
-   if (info && info->path)
+   // Load the cassette file (read-only)
+   if (info && info->path) 
+   {
       InsertCassette(info->path, fopen(info->path, "rb"), true);
+   }
    return true;
 }
 
 void retro_unload_game(void)
 {
-   log_cb(RETRO_LOG_INFO, "retro_unload_game\n");
+   RemoveCassette();
 }
 
 unsigned retro_get_region(void)
@@ -323,13 +340,11 @@ bool retro_load_game_special(unsigned type, const struct retro_game_info *info, 
 
 size_t retro_serialize_size(void)
 {
-   log_cb(RETRO_LOG_INFO, "retro_serialize_size\n");
-   return sizeof(registers) + 0x5000 + 0x1000 + RAMSizeKb * 1024;
+   return sizeof(registers) + P2000T_VRAM_SIZE + RAMSizeKb * 1024;
 }
 
 bool retro_serialize(void *data_, size_t size)
 {
-   log_cb(RETRO_LOG_INFO, "retro_serialize\n");
    if (size != retro_serialize_size())
       return false;
 
@@ -337,27 +352,22 @@ bool retro_serialize(void *data_, size_t size)
    uint8_t *data = data_;
    memcpy(data, &registers, sizeof(registers));
    data += sizeof(registers);
-   memcpy(data, ROM, 0x5000);
-   data += 0x5000;
-   memcpy(data, VRAM, 0x1000);
-   data += 0x1000;
+   memcpy(data, VRAM, P2000T_VRAM_SIZE);
+   data += P2000T_VRAM_SIZE;
    memcpy(data, RAM, RAMSizeKb * 1024);
    return true;
 }
 
 bool retro_unserialize(const void *data_, size_t size)
 {
-   log_cb(RETRO_LOG_INFO, "retro_unserialize\n");
    if (size != retro_serialize_size())
       return false;
 
    const uint8_t *data = data_;
    memcpy(&registers, data, sizeof(registers));
    data += sizeof(registers);
-   memcpy(ROM, data, 0x5000);
-   data += 0x5000;
-   memcpy(VRAM, data, 0x1000);
-   data += 0x1000;
+   memcpy(VRAM, data, P2000T_VRAM_SIZE);
+   data += P2000T_VRAM_SIZE;
    memcpy(RAM, data, RAMSizeKb * 1024);
    Z80_SetRegs(&registers);
    return true;
