@@ -174,7 +174,7 @@ void FlushSound(void)
    {
       if (sound_buf[i]) 
       {
-         soundstate = sound_buf[i] << 13;
+         soundstate = sound_buf[i] << 10;
          sound_buf[i] = 0;
       }
       //low pass filtering
