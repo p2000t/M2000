@@ -213,10 +213,13 @@ void Keyboard(void)
    bool shiftPressed = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LSHIFT) || input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RSHIFT);
    for (int i = 0; i < key_map_len; i++) 
    {
-      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, key_map[i]))
+      int retro_key = key_map[i] & 0xffff;
+      int retro_key_alt = key_map[i] >> 16;
+      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key)
+         || (retro_key_alt && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key_alt)))
       {
-         if (key_map[i] != RETROK_QUOTE || shiftPressed)
-         PushKey(i);
+         if (retro_key != RETROK_QUOTE || shiftPressed)
+            PushKey(i);
       }
       else
          ReleaseKey(i);

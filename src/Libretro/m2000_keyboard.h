@@ -18,18 +18,30 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 
+#define BOTH_K_0      (RETROK_0 | (RETROK_KP0 << 16))
+#define BOTH_K_1      (RETROK_1 | (RETROK_KP1 << 16))
+#define BOTH_K_2      (RETROK_2 | (RETROK_KP2 << 16))
+#define BOTH_K_3      (RETROK_3 | (RETROK_KP3 << 16))
+#define BOTH_K_4      (RETROK_4 | (RETROK_KP4 << 16))
+#define BOTH_K_5      (RETROK_5 | (RETROK_KP5 << 16))
+#define BOTH_K_6      (RETROK_6 | (RETROK_KP6 << 16))
+#define BOTH_K_7      (RETROK_7 | (RETROK_KP7 << 16))
+#define BOTH_K_8      (RETROK_8 | (RETROK_KP8 << 16))
+#define BOTH_K_9      (RETROK_9 | (RETROK_KP9 << 16))
+#define BOTH_K_PERIOD (RETROK_PERIOD | (RETROK_KP_PERIOD << 16))
+
 int key_map[] =
 {
-   RETROK_LEFT,      -1,               RETROK_UP,        RETROK_q,         -1,               -1,               -1,               -1,
-   -1,               RETROK_h,         RETROK_z,         RETROK_s,         RETROK_d,         RETROK_g,         RETROK_j,         RETROK_f,
-   RETROK_PERIOD,    RETROK_SPACE,     -1,               RETROK_0,         -1,               RETROK_DOWN,      RETROK_COMMA,     RETROK_RIGHT,
-   RETROK_CAPSLOCK,  RETROK_n,         -1,               RETROK_x,         RETROK_c,         RETROK_b,         RETROK_m,         RETROK_v,
-   RETROK_BACKQUOTE, RETROK_y,         RETROK_a,         RETROK_w,         RETROK_e,         RETROK_t,         RETROK_u,         RETROK_r,
-   -1,               -1,               -1,               -1,               RETROK_BACKSPACE, -1,               -1,               RETROK_MINUS,
-   RETROK_9,         RETROK_o,         RETROK_8,         RETROK_7,         RETROK_RETURN,    RETROK_p,         -1,               -1,
-   RETROK_3,         -1,               RETROK_2,         RETROK_1,         -1,               -1,               RETROK_k,         RETROK_QUOTE,
-   RETROK_6,         RETROK_l,         RETROK_5,         RETROK_4,         -1,               -1,               RETROK_i,         -1,
-   RETROK_LSHIFT,    -1,               -1,               -1,               -1,               -1,               -1,               RETROK_RSHIFT
+   RETROK_LEFT,      -1,           RETROK_UP, RETROK_q, -1,               -1,          -1,           -1,
+   -1,               RETROK_h,     RETROK_z,  RETROK_s, RETROK_d,         RETROK_g,    RETROK_j,     RETROK_f,
+   BOTH_K_PERIOD,    RETROK_SPACE, -1,        BOTH_K_0, -1,               RETROK_DOWN, RETROK_COMMA, RETROK_RIGHT,
+   RETROK_CAPSLOCK,  RETROK_n,     -1,        RETROK_x, RETROK_c,         RETROK_b,    RETROK_m,     RETROK_v,
+   RETROK_BACKQUOTE, RETROK_y,     RETROK_a,  RETROK_w, RETROK_e,         RETROK_t,    RETROK_u,     RETROK_r,
+   -1,               -1,           -1,        -1,       RETROK_BACKSPACE, -1,          -1,           RETROK_MINUS,
+   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, RETROK_RETURN,    RETROK_p,    -1,           -1,
+   BOTH_K_3,         -1,           BOTH_K_2,  BOTH_K_1, -1,               -1,          RETROK_k,     RETROK_QUOTE,
+   BOTH_K_6,         RETROK_l,     BOTH_K_5,  BOTH_K_4, -1,               -1,          RETROK_i,     -1,
+   RETROK_LSHIFT,    -1,           -1,        -1,       -1,               -1,          -1,           RETROK_RSHIFT
 };
 
 unsigned int key_map_len = 80;
