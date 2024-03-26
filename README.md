@@ -149,7 +149,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 :point_right: For P2000T documentation, please go to: https://github.com/p2000t/documentation
 
-:point_right: For P2000T games, please go to: [https://github.com/p2000t/software/cassette/games](https://github.com/p2000t/software/tree/master/cassettes/games)
+:point_right: To download P2000T games, please go to: [https://github.com/p2000t/software/cassette/games](https://github.com/p2000t/software/tree/master/cassettes/games)
 
 ### P2000 documentation
 * A large collection of (scanned) P2000 documents, P2000gg and Nat.Lab. newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
