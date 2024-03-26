@@ -16,7 +16,7 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
     - name: Build
       shell: bash
-      run: make allegro \
+      run: make \
           CFLAGS="-Wall -O2 -I${{ github.workspace }}/allegro/include" \
           LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib ../icons/icon64.res"
     - name: Create installer
@@ -41,7 +41,7 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
     - name: Build
       shell: bash
-      run: make allegro \
+      run: make \
           CC=C:/ProgramData/chocolatey/lib/winlibs/tools/mingw32/bin/gcc \
           CFLAGS="-Wall -O2 -m32 -I${{ github.workspace }}/allegro/include" \
           LDFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib ../icons/icon32.res"
@@ -63,7 +63,7 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
     - uses: actions/checkout@v4
     - name: Build
-      run: make allegro
+      run: make
     - name: Copy files
       run: |
         mkdir -p package/M2000_amd64/usr/bin/
@@ -98,7 +98,7 @@ jobs:
         brew install dylibbundler
     - uses: actions/checkout@v4
     - name: Build
-      run: make allegro
+      run: make
     - name: Copy files
       run: |
         cp M2000 package/M2000.app/Contents/MacOS/
