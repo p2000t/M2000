@@ -2,6 +2,8 @@
 /src/**/*.map
 /src/**/*.dll
 /src/**/*.a
+/src/**/*.dylib
+/src/**/*.so
 /*.cas
 /*.vram
 /*.png
