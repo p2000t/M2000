@@ -186,25 +186,29 @@ void FlushSound(void)
    audio_batch_cb(audio_batch_buf, buf_size);
 }
 
-static void PushKey(byte p2000KeyCode)
-{
-  byte mRow = p2000KeyCode / 8;
-  byte mCol = 1 << (p2000KeyCode % 8);
-  if (mRow < 10) KeyMap[mRow] &= ~mCol;
-}
-
-static void ReleaseKey(byte p2000KeyCode)
-{
-  byte mRow = p2000KeyCode / 8;
-  byte mCol = 1 << (p2000KeyCode % 8);
-  if (mRow < 10) KeyMap[mRow] |= mCol;
-}
+#define PUSHKEY(code) KeyMap[code / 8] &= ~(1 << (code % 8))
+#define RELEASEKEY(code) KeyMap[code / 8] |= (1 << (code % 8))
 
 /****************************************************************************/
 /*** Poll the keyboard on every interrupt                                 ***/
 /****************************************************************************/
 void Keyboard(void) 
 {
+   static int comboKey = 0;
+   static int comboSourceDevice = 0;
+   static int comboSourceId = 0;
+   if (comboKey) 
+   {
+      //press second key in a combo
+      PUSHKEY(comboKey);
+      //skip handling of other keys until source key/button is released
+      if (!input_state_cb(0, comboSourceDevice, 0, comboSourceId))
+         comboKey = comboSourceDevice = comboSourceId = 0;
+      else
+         return;
+   }
+
+   //poll latest keyboard state
    input_poll_cb();
 
    /*************************/
@@ -219,10 +223,10 @@ void Keyboard(void)
          || (retro_key_alt && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key_alt)))
       {
          if (retro_key != RETROK_QUOTE || shiftPressed)
-            PushKey(i);
+            PUSHKEY(i);
       }
       else
-         ReleaseKey(i);
+         RELEASEKEY(i);
    }
 
    /***********************************/
@@ -231,33 +235,36 @@ void Keyboard(void)
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
-      PushKey(P2000_KEYCODE_UP); // Fraxxon uses Up-key for moving spaceship to the right 
+      PUSHKEY(P2000_KEYCODE_UP); // Fraxxon uses up-key for moving spaceship to the right 
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
-      PushKey(P2000_KEYCODE_DOWN);
+      PUSHKEY(P2000_KEYCODE_DOWN);
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2))
-      PushKey(P2000_KEYCODE_LEFT);
+      PUSHKEY(P2000_KEYCODE_LEFT);
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R)
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
-      PushKey(P2000_KEYCODE_RIGHT);
+      PUSHKEY(P2000_KEYCODE_RIGHT);
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A) 
       || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
-      PushKey(P2000_KEYCODE_SPACE);
+      PUSHKEY(P2000_KEYCODE_SPACE);
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
    {
-      //emulate <START> key press
-      PushKey(P2000_KEYCODE_LSHIFT);
-      PushKey(P2000_KEYCODE_NUM_3);
+      //emulate <START> key press = Shift + numpad 3
+      PUSHKEY(P2000_KEYCODE_LSHIFT);
+      comboKey = P2000_KEYCODE_NUM_3;
+      comboSourceDevice = RETRO_DEVICE_JOYPAD;
+      comboSourceId = RETRO_DEVICE_ID_JOYPAD_START;
    }
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
    {
-      //emulate <STOP> key press
-      PushKey(P2000_KEYCODE_LSHIFT);
-      PushKey(P2000_KEYCODE_NUM_PERIOD);
+      //emulate <STOP> key press = Shift + numpad period
+      PUSHKEY(P2000_KEYCODE_LSHIFT);
+      comboKey = P2000_KEYCODE_NUM_PERIOD;
+      comboSourceDevice = RETRO_DEVICE_JOYPAD;
+      comboSourceId = RETRO_DEVICE_ID_JOYPAD_SELECT;
    }
-
 }
 
 /****************************************************************************/
