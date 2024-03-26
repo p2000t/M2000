@@ -29,7 +29,7 @@
         {
             "label": "Make Libretro",
             "type": "shell",
-            "command": "make libretro",
+            "command": "make -f Makefile.libretro",
             "group": "build",
             "problemMatcher": []
         },
@@ -58,6 +58,7 @@
                 //"--verbose",
                 "--set-shader", "shaders_slang/crt/crt-pi.slangp",
                 "-L", "m2000_libretro.dll",
+                "input_enable_hotkey", "ctrl",
                 "./test/games/Ghosthunt.cas"
                 //"./test/SAA5050/SAA5050.cas"
             ],

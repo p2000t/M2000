@@ -29,6 +29,7 @@
 #define BOTH_K_8      (RETROK_8 | (RETROK_KP8 << 16))
 #define BOTH_K_9      (RETROK_9 | (RETROK_KP9 << 16))
 #define BOTH_K_PERIOD (RETROK_PERIOD | (RETROK_KP_PERIOD << 16))
+#define BOTH_K_ENTER  (RETROK_RETURN | (RETROK_KP_ENTER << 16))
 
 int key_map[] =
 {
@@ -38,7 +39,7 @@ int key_map[] =
    RETROK_CAPSLOCK,  RETROK_n,     -1,        RETROK_x, RETROK_c,         RETROK_b,    RETROK_m,     RETROK_v,
    RETROK_BACKQUOTE, RETROK_y,     RETROK_a,  RETROK_w, RETROK_e,         RETROK_t,    RETROK_u,     RETROK_r,
    -1,               -1,           -1,        -1,       RETROK_BACKSPACE, -1,          -1,           RETROK_MINUS,
-   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, RETROK_RETURN,    RETROK_p,    -1,           -1,
+   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, BOTH_K_ENTER,    RETROK_p,    -1,           -1,
    BOTH_K_3,         -1,           BOTH_K_2,  BOTH_K_1, -1,               -1,          RETROK_k,     RETROK_QUOTE,
    BOTH_K_6,         RETROK_l,     BOTH_K_5,  BOTH_K_4, -1,               -1,          RETROK_i,     -1,
    RETROK_LSHIFT,    -1,           -1,        -1,       -1,               -1,          -1,           RETROK_RSHIFT
