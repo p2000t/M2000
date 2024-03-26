@@ -7,8 +7,8 @@
 # Core definitions
 .core-defs:
   variables:
-    MAKEFILE_PATH: src/libretro
     CORENAME: m2000
+    MAKEFILE: Makefile.libretro
 
 # Inclusion templates, required for the build to work
 include:
@@ -36,6 +36,11 @@ include:
   # MacOS ARM 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-arm64.yml'
+
+  #################################### MISC ##################################
+  # Emscripten
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/emscripten-static.yml'
 
 # Stages for building
 stages:
@@ -83,4 +88,10 @@ libretro-build-osx-arm64:
   extends:
     - .libretro-osx-arm64-make-default
     - .core-defs
-    
+
+#################################### MISC ##################################
+# Emscripten
+libretro-build-emscripten:
+  extends:
+    - .libretro-emscripten-static-retroarch-master
+    - .core-defs
