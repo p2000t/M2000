@@ -201,11 +201,10 @@ void Keyboard(void)
    {
       //press second key in a combo
       PUSHKEY(comboKey);
-      //skip handling of other keys until source key/button is released
-      if (!input_state_cb(0, comboSourceDevice, 0, comboSourceId))
-         comboKey = comboSourceDevice = comboSourceId = 0;
-      else
+      //skip handling of other keys while source key/button is pressed
+      if (input_state_cb(0, comboSourceDevice, 0, comboSourceId))
          return;
+      comboKey = comboSourceDevice = comboSourceId = 0;
    }
 
    //poll latest keyboard state
