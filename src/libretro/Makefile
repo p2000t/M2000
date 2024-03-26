@@ -121,7 +121,7 @@ else
 CFLAGS += -std=gnu99
 endif
 
-all: $(TARGET)
+all: clean $(TARGET)
 
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)

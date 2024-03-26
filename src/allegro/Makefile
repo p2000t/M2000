@@ -25,7 +25,7 @@ VPATH = ../
 OBJECTS = M2000.o P2000.o Z80.o Main.o
 TARGET = ../../M2000
 
-all:    m2000
+all: clean m2000
 
 m2000:	$(OBJECTS)
 	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJECTS) -lallegro -lallegro_main -lallegro_primitives -lallegro_image -lallegro_audio -lallegro_dialog

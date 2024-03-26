@@ -29,7 +29,7 @@
         {
             "label": "Make Libretro",
             "type": "shell",
-            "command": "make -f Makefile.libretro",
+            "command": "make -C src/libretro",
             "group": "build",
             "problemMatcher": []
         },
