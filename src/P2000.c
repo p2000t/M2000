@@ -572,12 +572,9 @@ void Z80_Patch (Z80_Regs *R)
     *************************************************************************/
     case 4:
      if (Verbose&4) puts ("EOT");
-     if (TapeStream && !TapeProtect)
-     {
-      /* Truncate the tape image */
-      ftruncate (fileno(TapeStream),ftell(TapeStream));
+     /* Truncate the tape image */
+     if (TapeStream && !TapeProtect && ftruncate(fileno(TapeStream),ftell(TapeStream)))
       Z80_WRMEM (caserror,0);
-     }
      else
       Z80_WRMEM (caserror,(TapeStream)? 0x47:0x41);
      break;
