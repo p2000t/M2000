@@ -19,7 +19,9 @@
 
 all: build
 
-build:
+build: allegro libretro
+
+allegro:
 	$(MAKE) -C src/allegro all
 
 libretro:
