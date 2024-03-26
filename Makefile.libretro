@@ -20,9 +20,9 @@
 all: build
 
 build:
-	$(MAKE) -C src/allegro all
-
+	$(MAKE) -C src/libretro all
+	
 clean:
-	$(MAKE) -C src/allegro clean
+	$(MAKE) -C src/libretro clean
 
-.PHONY: clean allegro
+.PHONY: clean libretro
