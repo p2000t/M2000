@@ -30,3 +30,5 @@ libretro:
 clean:
 	$(MAKE) -C src/allegro clean
 	$(MAKE) -C src/libretro clean
+
+.PHONY: clean allegro libretro
