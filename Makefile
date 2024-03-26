@@ -25,4 +25,4 @@ build:
 clean:
 	$(MAKE) -C src/allegro clean
 
-.PHONY: clean allegro
+.PHONY: clean

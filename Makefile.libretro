@@ -25,4 +25,4 @@ build:
 clean:
 	$(MAKE) -C src/libretro clean
 
-.PHONY: clean libretro
+.PHONY: clean
