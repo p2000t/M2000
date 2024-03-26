@@ -43,7 +43,6 @@
 #include <allegro5/allegro_native_dialog.h> 
 #include "../P2000.h"
 #include "../M2000.h"
-#include "../Common.h"
 #include "Main.h"
 #include "Keyboard.h"
 #include "Menu.h"
@@ -293,11 +292,6 @@ int InitMachine(void)
   //al_register_event_source(eventQueue, al_get_keyboard_event_source());
   al_register_event_source(eventQueue, al_get_default_menu_event_source());
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
-
-  if (P2000_Mode) { /* M-mode uses black and white palette */
-    Pal[0] = Pal[1] = Pal[2] = 0;
-    Pal[3] = Pal[4] = Pal[5] = 255;
-  }
 
   if (Verbose) printf("  Allocating cache buffers... ");
   OldCharacter = malloc(80 * 24 * sizeof(int));
@@ -742,7 +736,7 @@ void Keyboard(void)
     if (pausePressed) { // pressing Ctrl-P toggles pause
       al_get_keyboard_state(&kbdstate);
       if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_P)) {
-        pausePressed = Z80_Trace = 0;
+        pausePressed = 0;
         al_set_menu_item_flags(menu, SPEED_PAUSE, ALLEGRO_MENU_ITEM_CHECKBOX);
       }
       if (al_key_up(&kbdstate, ALLEGRO_KEY_RIGHT)) {
@@ -1071,12 +1065,6 @@ void Keyboard(void)
     al_set_menu_item_flags(menu, OPTIONS_SOUND_ID, soundmode ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   }
 
-  /* press F5 to enable trace in DEBUG mode */
-  if (Debug && al_key_up(&kbdstate, ALLEGRO_KEY_F5)) {
-    Z80_Trace = 1;
-    pausePressed = 1;
-  }
-
   // handle joystick
   if (joymode && joyDetected) {
     al_get_joystick_state(joystick, &joyState);
@@ -1095,7 +1083,7 @@ void Keyboard(void)
 }
 
 /****************************************************************************/
-/*** Pause specified ammount of time                                      ***/
+/*** Pauses a specified ammount of milliseconds                           ***/
 /****************************************************************************/
 void Pause(int ms) 
 {
@@ -1119,44 +1107,24 @@ void DrawTileScanlines(int tileX, int tileY)
 /*** This function is called by the screen refresh drivers to copy the    ***/
 /*** off-screen buffer to the actual display                              ***/
 /****************************************************************************/
-static void PutImage (void)
+void PutImage (void)
 {
   al_flip_display();
 }
 
 /****************************************************************************/
-/*** Put a character in the display buffer for P2000M emulation mode      ***/
-/****************************************************************************/
-static inline void PutChar_M(int x, int y, int c, int eor, int ul) 
-{
-  int K = c + (eor << 8) + (ul << 16);
-  if (K == OldCharacter[y * 80 + x])
-    return;
-  OldCharacter[y * 80 + x] = K;
-
-  al_set_target_bitmap(al_get_backbuffer(display));
-  al_draw_scaled_bitmap(
-    eor ? (smoothing ? smFontBuf_bk : FontBuf_bk) : (smoothing ? smFontBuf : FontBuf), 
-    c * (CHAR_TILE_WIDTH + CHAR_TILE_SPACE), 0.0, CHAR_TILE_WIDTH, CHAR_TILE_HEIGHT, 
-    DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + y * DisplayTileHeight, 
-    0.5 * DisplayTileWidth, DisplayTileHeight, 0);
-  if (ul)
-    al_draw_filled_rectangle(
-      DisplayHBorder + 0.5 * x * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 2.0, 
-      DisplayHBorder + 0.5 * (x + 1) * DisplayTileWidth, DisplayVBorder + (y + 1) * DisplayTileHeight - 1.0, 
-      al_map_rgb(255, 255, 255));
-  if (scanlines) DrawTileScanlines(x, y);
-}
-
-/****************************************************************************/
 /*** Put a character in the display buffer for P2000T emulation mode      ***/
 /****************************************************************************/
-static inline void PutChar_T(int x, int y, int c, int fg, int bg, int si)
+void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
   if (K == OldCharacter[y * 40 + x])
     return;
   OldCharacter[y * 40 + x] = K;
+
+  if (c > 0) {
+    printf("PutChar (%i,%i,%i,%i,%i,%i);\n", x, y, c, fg, bg, si);
+  }
 
   al_set_target_bitmap(al_get_backbuffer(display));
   al_draw_tinted_scaled_bitmap(

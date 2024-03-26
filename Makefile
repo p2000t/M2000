@@ -19,11 +19,16 @@
 
 all: build
 
-build:
-	$(MAKE) -C src all
+build: allegro libretro
 
-# test: build
-# 	$(MAKE) -C test all
+allegro:
+	$(MAKE) -C src/allegro all
+
+libretro:
+	$(MAKE) -C src/libretro all
 	
 clean:
-	$(MAKE) -C src clean
+	$(MAKE) -C src/allegro clean
+	$(MAKE) -C src/libretro clean
+
+.PHONY: clean allegro libretro

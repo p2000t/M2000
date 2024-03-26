@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include "Z80.h"            /* Z80 emulation declarations    */
 
+#define EMULATOR_VERSION "0.9-prerelease"
+
 #if defined(_WIN32) // Windows
 #define PATH_SEPARATOR '\\'
 #else // Linux and others
@@ -43,7 +45,6 @@ extern byte SoundReg;           /* Reg #0x50                                */
 extern byte ScrollReg;          /* Reg #0x30                                */
 extern byte OutputReg;          /* Reg #0x20                                */
 extern byte KeyMap[10];         /* Keyboard map                             */
-extern int P2000_Mode;          /* 0=P2000T, 1=P2000M                       */
 extern int TapeBootEnabled;     /* 1 if booting enabled                     */
 extern int ColdBoot;            /* 1 if cold boot                           */
 extern int TapeProtect;         /* 1 if tape is write-protected             */
@@ -58,6 +59,8 @@ extern int CpuSpeed;            /* default 100                              */
 /*** the emulation. This function returns 0 in case of a failure          ***/
 /****************************************************************************/
 int StartP2000(void);
+
+int InitP2000 (byte* monitor_rom, byte *cartridge_rom);
 
 /*** (re)Allocate RAM memory ***/
 int InitRAM(void);
@@ -88,9 +91,24 @@ void InsertCartridge(const char *filename, FILE *f);
 void RemoveCartridge(void);
 
 /****************************************************************************/
+/*** Refresh the screen (calls PutChar and PutImage)                      ***/
+/****************************************************************************/
+void RefreshScreen (void);
+
+/****************************************************************************/
 /*** Allocate resources needed by the machine-dependent code              ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 int InitMachine(void);
+
+/****************************************************************************/
+/*** Puts a character in the display buffer                               ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+void PutChar(int x, int y, int c, int fg, int bg, int si);
+
+/****************************************************************************/
+/*** Copy the off-screen buffer to the actual display                     ***/
+/************************************************** TO BE WRITTEN BY USER ***/
+void PutImage(void);
 
 /****************************************************************************/
 /*** Deallocate all resources taken by InitMachine()                      ***/
@@ -120,13 +138,10 @@ void FlushSound(void);
 /************************************************** TO BE WRITTEN BY USER ***/
 void SyncEmulation(void);
 
-/****************************************************************************/
-/*** Refresh the screen                                                   ***/
-/************************************************** TO BE WRITTEN BY USER ***/
-void RefreshScreen (void);
+
 
 /****************************************************************************/
-/*** Pause a while                                                        ***/
+/*** Pauses a specified ammount of milliseconds                           ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void Pause (int ms);
 

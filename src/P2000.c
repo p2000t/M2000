@@ -31,8 +31,9 @@
 #define TAPE_256_BYTE_HEADER_OFFSET 48
 #define TAPE_32_BYTE_HEADER_SIZE 32
 #define TAPE_32_BYTE_HEADER_OFFSET 0
+#define SPACE 32 // space character
 
-byte Verbose     = 1;
+byte Verbose     = 0;
 const char *ROMName    = "P2000ROM.bin";
 const char *CartName   = "BASIC.bin";
 const char *FontName   = "Default.fnt";
@@ -43,12 +44,11 @@ int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
-int P2000_Mode   = 0;
 int UPeriod      = 1;
 int IFreq        = 50;
 int Sync         = 1;
 int CpuSpeed     = 100;
-int TapeBootEnabled = 0;
+int TapeBootEnabled = 1;
 int PrnType      = 0;
 int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
@@ -108,10 +108,6 @@ void Z80_Out (byte Port, byte Value)
   case 6:       /* Reserved for I/O cartridge */
    break;
   case 7:       /* DISAS (M-version only) */
-   /* If bit 1 is set, Video refresh is
-      disabled when CPU accesses video RAM */
-   if (P2000_Mode)
-    DISAReg=Value;
    return;
  }
  switch (Port)
@@ -170,8 +166,7 @@ byte Z80_In (byte Port)
    return inputstatus;
   }
   case 3:       /* Scroll Register (T-version only) */
-   if (!P2000_Mode)
-    return ScrollReg;
+   return ScrollReg;
   case 4:       /* Reserved for I/O cartridge */
    break;
   case 5:       /* Beeper */
@@ -179,8 +174,6 @@ byte Z80_In (byte Port)
   case 6:       /* Reserved for I/O cartridge */
    break;
   case 7:       /* DISAS (M-version only) */
-   if (P2000_Mode)
-    return DISAReg;
    break;
  }
  switch (Port)
@@ -246,7 +239,7 @@ int InitRAM()
 /*** the emulation. This function returns 0 in case of a failure            ***/
 /******************************************************************************/
 word Exit_PC;
-int StartP2000 (void)
+int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
 {
   FILE *f;
   int i,j;
@@ -274,26 +267,28 @@ int StartP2000 (void)
    ReadPage[i>>8]=ROM+i;
    WritePage[i>>8]=NoRAMWrite;
   }
-  if (P2000_Mode)
-   for (i=0x0000;i<0x1000;i+=256)
-    ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
-  else
-   for (i=0x0000;i<0x0800;i+=256)
+  for (i=0x0000;i<0x0800;i+=256)
     ReadPage[(i+0x5000)>>8]=WritePage[(i+0x5000)>>8]=VRAM+i;
 
   if (!InitRAM()) return 0;
 
-  if (Verbose) printf ("Loading ROMs:\n");
-  if (Verbose) printf ("  Opening %s... ",ROMName);
-  j=0;
-  f=fopen(ROMName,"rb");
-  if(f)
+  if (monitor_rom)
+    memcpy (ROM,monitor_rom,0x1000);
+  else
   {
-   if(fread(ROM,1,0x1000,f)==0x1000) j=1;
-   fclose (f);
+    if (Verbose) printf ("Loading ROMs:\n");
+    if (Verbose) printf ("  Opening %s... ",ROMName);
+    j=0;
+    f=fopen(ROMName,"rb");
+    if(f)
+    {
+    if(fread(ROM,1,0x1000,f)==0x1000) j=1;
+    fclose (f);
+    }
+    if(Verbose) puts(j? "OK":"FAILED");
+    if(!j) return 0;
   }
-  if(Verbose) puts(j? "OK":"FAILED");
-  if(!j) return 0;
+
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
@@ -302,40 +297,49 @@ int StartP2000 (void)
    ROM[ROMPatches[j]+1]=0xFE;
    ROM[ROMPatches[j]+2]=0xC9;
   }
-  if(Verbose) printf(" OK\n  Opening %s... ",CartName);
-  j=0;
-  f=fopen(CartName,"rb");
-  if (f)
-  {
-   if (fread(ROM+0x1000,1,0x4000,f)) j=1;
-   fclose(f);
-  }
-  if(Verbose) puts (j? "OK":"FAILED");
-  /*  if(!j) return 0; */
 
-  if (TapeName) {
-    // first try open for update, then try create then try read-only
-    if ((f = fopen(TapeName,"r+b")) == NULL) f = fopen(TapeName, "w+b");
-    InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
+  if (cartridge_rom) 
+  {
+      memcpy (ROM+0x1000,cartridge_rom,0x4000);
+  }
+  else 
+  {
+    if(Verbose) printf(" OK\n  Opening %s... ",CartName);
+    j=0;
+    f=fopen(CartName,"rb");
+    if (f)
+    {
+    if (fread(ROM+0x1000,1,0x4000,f)) j=1;
+    fclose(f);
+    }
+    if(Verbose) puts (j? "OK":"FAILED");
+    /*  if(!j) return 0; */
   }
 
   if (!LoadFont(FontName)) 
     return 0;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
-
-  if (Verbose) puts ("Starting P2000 emulation...");
   Z80_Reset ();
+  
+  return 1;
+}
+
+int StartP2000 (void)
+{
+  if (Verbose) puts ("Starting P2000 emulation...");
   Exit_PC=Z80 ();
   if (Verbose) printf("EXITED at PC = %Xh\n",Exit_PC);
   return 1;
 }
 
 /****************************************************************************/
-/*** Free memory allocated by StartP2000()                                ***/
+/*** Free memory allocated by InitP2000()                                 ***/
 /****************************************************************************/
 void TrashP2000 (void)
 {
+ if (TapeStream) fclose (TapeStream);
+ if (PrnStream) fclose (PrnStream);
  if (ROM) free (ROM);
  if (VRAM) free (VRAM);
  if (RAM) free (RAM);
@@ -427,12 +431,12 @@ int Z80_Interrupt(void)
  static int UCount=1;
  Keyboard ();
  FlushSound ();
- SyncEmulation();
  if (!--UCount)
  {
   UCount=UPeriod;
   RefreshScreen ();
  }
+ SyncEmulation();
  return (OutputReg&0x40)? 0x00FF:Z80_IGNORE_INT;
 }
 
@@ -628,7 +632,6 @@ void Z80_Patch (Z80_Regs *R)
     *************************************************************************/
     case 6:
     {
-     static int delay_next_load=0;
      i=Z80_RDWORD(fileleng);
      i=(i-1)&0xFFFF;
      i=(i/0x400)+1;
@@ -662,21 +665,9 @@ void Z80_Patch (Z80_Regs *R)
          if (!Z80_Running) return;
          Pause (200);
         }
-        delay_next_load=1;
        }
        else
        {
-        if (delay_next_load)
-        {
-         delay_next_load=0;
-         for (j=0;j<60;++j)
-         {
-          /* Maybe someone wants a screen shot */
-          Keyboard ();
-          if (!Z80_Running) break;
-          Pause (50);
-         }
-        }
         for (j=0;j<l;++j)
          Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+TapeHeaderSize]);
        }
@@ -744,3 +735,237 @@ void Z80_Patch (Z80_Regs *R)
  }
 }
 
+// when doblank is 1, flashing characters are not displayed this refresh
+static int doblank=1;
+
+/****************************************************************************/
+/*** Refresh screen (P2000T model)                                        ***/
+/****************************************************************************/
+void RefreshScreen_T(void)
+{
+  byte *S;
+  int fg, bg, si, gr, fl, cg, FG, BG, conceal;
+  int hg, hg_active, hg_c, hg_fg, hg_cg, hg_conceal;
+  int x, y;
+  int c;
+  int lastcolor;
+  int eor;
+  int found_si;
+
+  S = VRAM + ScrollReg;
+  found_si = 0; // init to no double height codes found
+
+  for (y = 0; y < 24; ++y)
+  {
+    /* Initial values:
+       foreground=7 (white)
+       background=0 (black)
+       normal height
+       graphics off
+       flashing off
+       contiguous graphics
+       hold graphics off
+       reveal display */
+    fg = 7;
+    bg = 0;
+    si = 0;
+    gr = 0;
+    fl = 0;
+    cg = 1;
+    hg = 0;
+    conceal = 0;
+    hg_active = hg; // init the HG mode settings
+    hg_c = SPACE;
+    hg_cg = cg;
+    hg_fg = fg;
+    hg_conceal = conceal;
+    lastcolor = fg;
+    for (x = 0; x < 40; ++x)
+    {
+      /* Get character */
+      c = S[x] & 0x7f;
+      /* If bit 7 is set, invert the colours */
+      eor = S[x] & 0x80;
+      if (!(c & 0x60))
+      {
+        /* Control code found. Parse it */
+        switch (c & 0x1f)
+        {
+        /* New text colour () */
+        case 0x01: // red
+        case 0x02: // green
+        case 0x03: // yellow
+        case 0x04: // blue
+        case 0x05: // magenta
+        case 0x06: // cyan
+        case 0x07: // white
+          fg = lastcolor = c & 0x0f;
+          gr = conceal = hg = 0;
+          break;
+        /* New graphics colour */
+        case 0x11: // red
+        case 0x12: // green
+        case 0x13: // yellow
+        case 0x14: // blue
+        case 0x15: // magenta
+        case 0x16: // cyan
+        case 0x17: // white
+          fg = lastcolor = c & 0x0f;
+          gr = 1;
+          conceal = 0;
+          break;
+        /* Flash */
+        case 0x08:
+          fl = 1;
+          break;
+        /* Steady */
+        case 0x09:
+          fl = 0;
+          break;
+        /* End box (?) */
+        case 0x0a:
+          break;
+        /* Start box (?) */
+        case 0x0b:
+          break;
+        /* Normal height */
+        case 0x0c:
+          if (si)
+            hg = 0;
+          si = 0;
+          break;
+        /* Double height */
+        case 0x0d:
+          if (!si)
+            hg = 0;
+          si = 1;
+          if (!found_si)
+            found_si = 1;
+          break;
+        /* reserved for compatability reasons; these are still graphic mode */
+        case 0x00:
+        case 0x0e:
+        case 0x0f:
+        case 0x10:
+        case 0x1b:
+          break;
+        /* conceal display */
+        case 0x18:
+          conceal = 1;
+          break;
+        /* contiguous graphics */
+        case 0x19:
+          cg = 1;
+          break;
+        /* separated graphics */
+        case 0x1a:
+          cg = 0;
+          break;
+        /* black background */
+        case 0x1c:
+          bg = 0;
+          break;
+        /* new background */
+        case 0x1d:
+          bg = lastcolor;
+          break;
+        /* hold graphics */
+        case 0x1e:
+          if (!hg)
+          {
+            hg = 1;
+            if (gr) 
+            {
+              hg_active = 1;
+              hg_fg = fg;
+            }
+          }
+          break;
+        /* release graphics */
+        case 0x1f:
+          hg = 0;
+          break;
+        }
+        c = SPACE; // control chars are displayed as space by default
+      }
+      else 
+      {
+        hg_c = c;
+        hg_cg = cg; // hold display of seperated/contiguous mode
+        hg_conceal = conceal;
+      }
+
+      if (hg_active)
+        c = hg_c;
+
+      /* Check for flashing characters and concealed display */
+      if ((fl && doblank) || (hg_active ? hg_conceal : conceal))
+        c = SPACE;
+
+      /* Check if graphics are on */
+      if ((gr || hg_active) && (c & 0x20)) // c from 32..63
+      {
+        c += (c & 0x40) ? 64 : 96;
+        if (!(hg_active ? hg_cg : cg))
+          c += 64;
+      }
+      /* If double height code on previous line and double height
+         is not set, display a space character */
+      if (found_si == 2 && !si)
+        c = SPACE;
+
+      /* Get the foreground and background colours */
+      FG = (hg_active ? hg_fg : fg);
+      BG = bg;
+      if (eor)
+      {
+        FG = FG ^ 7;
+        BG = BG ^ 7;
+      }
+      /* Put the character in the screen buffer */
+      PutChar(x, y, c - 32, FG, BG, (si ? found_si : 0));
+
+      // update HG mode
+      hg_active = (hg && gr);
+      if (gr)
+      {
+        hg_fg = fg;
+        hg_conceal = conceal;
+      }
+    }
+
+    /* Update the double height state
+       If there was a double height code on this line, do not
+       update the character pointer. If there was one on the
+       previous line, add two lines to the character pointer */
+    if (found_si)
+    {
+      if (++found_si == 3)
+      {
+        S += 160;
+        found_si = 0;
+      }
+    }
+    else
+      S += 80; // move to next line in VRAM
+  }
+}
+
+/****************************************************************************/
+/*** Refresh screen. This function updates the blanking state and then    ***/
+/*** calls RefreshScreen_T() and finally it calls PutImage() to copy the  ***/
+/*** off-screen buffer to the actual display                              ***/
+/****************************************************************************/
+void RefreshScreen(void)
+{
+  static int BCount = 0;
+  // Update blanking count
+  // flashing is on for 48 cycles and off for 16 cycles (64-48)
+  BCount++;
+  if (BCount == 48 / UPeriod) doblank = 1;
+  if (BCount == 64 / UPeriod) doblank = BCount = 0;
+  // Update the screen buffer
+  RefreshScreen_T();
+  // Put the image on the screen
+  PutImage();
+}

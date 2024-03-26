@@ -71,15 +71,6 @@ typedef struct
   unsigned IFF1,IFF2,HALT,IM,I,R,R2;
 } Z80_Regs;
 
-/****************************************************************************/
-/* Set Z80_Trace to 1 when PC==Z80_Trap. When trace is on, Z80_Debug() is   */
-/* called after every instruction                                           */
-/****************************************************************************/
-extern int Debug;
-extern int Z80_Trace;
-extern int Z80_Trap;
-void Z80_Debug(Z80_Regs *R);
-
 extern int Z80_Running;      /* When 0, emulation terminates                */
 extern int Z80_IPeriod;      /* Number of T-states per interrupt            */
 extern int Z80_ICount;       /* T-state count                               */

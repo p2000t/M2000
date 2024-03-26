@@ -9,23 +9,23 @@ jobs:
   build-win64:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: |
         Invoke-WebRequest -Uri https://github.com/liballeg/allegro5/releases/download/5.2.9.0/allegro-x86_64-w64-mingw32-gcc-13.2.0-posix-seh-static-5.2.9.0.zip -OutFile allegro.zip
         Expand-Archive allegro.zip -DestinationPath .
     - name: Build
       shell: bash
-      run: make \
+      run: make allegro \
           CFLAGS="-Wall -O2 -I${{ github.workspace }}/allegro/include" \
-          LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib icons/icon64.res"
+          LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib ../icons/icon64.res"
     - name: Create installer
       shell: cmd
       run: |
         cd package/WiX
         build64.bat
     - name: Upload package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with: 
         name: M2000-snapshot-win64
         path: package/WiX/M2000-installer.msi
@@ -33,7 +33,7 @@ jobs:
   build-win32:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: |
         choco install winlibs --x86 
@@ -41,17 +41,17 @@ jobs:
         Expand-Archive allegro.zip -DestinationPath .
     - name: Build
       shell: bash
-      run: make \
+      run: make allegro \
           CC=C:/ProgramData/chocolatey/lib/winlibs/tools/mingw32/bin/gcc \
           CFLAGS="-Wall -O2 -m32 -I${{ github.workspace }}/allegro/include" \
-          LDFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib icons/icon32.res"
+          LDFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib ../icons/icon32.res"
     - name: Create installer
       shell: cmd
       run: |
         cd package/WiX
         build32.bat
     - name: Upload package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with: 
         name: M2000-snapshot-win32
         path: package/WiX/M2000-installer.msi
@@ -61,9 +61,9 @@ jobs:
     steps:
     - name: Install dependencies
       run: sudo apt-get update && sudo apt-get install -y build-essential liballegro5-dev
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build
-      run: make
+      run: make allegro
     - name: Copy files
       run: |
         mkdir -p package/M2000_amd64/usr/bin/
@@ -82,7 +82,7 @@ jobs:
         cd package
         dpkg-deb --build M2000_amd64
     - name: Upload package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: M2000-snapshot-ubuntu
         path: package/M2000_amd64.deb
@@ -96,9 +96,9 @@ jobs:
       run: |
         brew install allegro
         brew install dylibbundler
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Build
-      run: make
+      run: make allegro
     - name: Copy files
       run: |
         cp M2000 package/M2000.app/Contents/MacOS/
@@ -119,7 +119,7 @@ jobs:
         cd package
         zip -vr M2000.zip M2000.app
     - name: Upload package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: M2000-snapshot-macos
         path: package/M2000.zip
