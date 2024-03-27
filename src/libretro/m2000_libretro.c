@@ -194,17 +194,17 @@ void FlushSound(void)
 /****************************************************************************/
 void Keyboard(void) 
 {
-   static int comboKey = 0;
-   static int comboSourceDevice = 0;
-   static int comboSourceId = 0;
-   if (comboKey) 
+   static int comboKey = -1;
+   static int comboSourceDevice = -1;
+   static int comboSourceId = -1;
+   if (comboKey >= 0) 
    {
       //press second key in a combo
       PUSHKEY(comboKey);
       //skip handling of other keys while source key/button is pressed
       if (input_state_cb(0, comboSourceDevice, 0, comboSourceId))
          return;
-      comboKey = comboSourceDevice = comboSourceId = 0;
+      comboKey = comboSourceDevice = comboSourceId = -1;
    }
 
    //poll latest keyboard state
