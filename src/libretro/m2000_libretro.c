@@ -221,9 +221,9 @@ void Keyboard(void)
    for (int i = 0; i < key_map_len; i++) 
    {
       int retro_key = key_map[i] & 0xffff;
-      int retro_key_alt = key_map[i] >> 16;
+      int retro_key_combi = key_map[i] >> 16;
       if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key)
-         || (retro_key_alt && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key_alt)))
+         || (retro_key_combi && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key_combi)))
       {
          if (retro_key != RETROK_QUOTE || shiftPressed)
             PUSHKEY(i);

@@ -33,16 +33,16 @@
 
 int key_map[] =
 {
-   RETROK_LEFT,      -1,           RETROK_UP, RETROK_q, -1,               -1,          -1,           -1,
-   -1,               RETROK_h,     RETROK_z,  RETROK_s, RETROK_d,         RETROK_g,    RETROK_j,     RETROK_f,
-   BOTH_K_PERIOD,    RETROK_SPACE, -1,        BOTH_K_0, -1,               RETROK_DOWN, RETROK_COMMA, RETROK_RIGHT,
-   RETROK_CAPSLOCK,  RETROK_n,     -1,        RETROK_x, RETROK_c,         RETROK_b,    RETROK_m,     RETROK_v,
-   RETROK_BACKQUOTE, RETROK_y,     RETROK_a,  RETROK_w, RETROK_e,         RETROK_t,    RETROK_u,     RETROK_r,
-   -1,               -1,           -1,        -1,       RETROK_BACKSPACE, -1,          -1,           RETROK_MINUS,
-   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, BOTH_K_ENTER,    RETROK_p,    -1,           -1,
-   BOTH_K_3,         -1,           BOTH_K_2,  BOTH_K_1, -1,               -1,          RETROK_k,     RETROK_QUOTE,
-   BOTH_K_6,         RETROK_l,     BOTH_K_5,  BOTH_K_4, -1,               -1,          RETROK_i,     -1,
-   RETROK_LSHIFT,    -1,           -1,        -1,       -1,               -1,          -1,           RETROK_RSHIFT
+   RETROK_LEFT,      -1,           RETROK_UP, RETROK_q, -1,               -1,           -1,           -1,
+   -1,               RETROK_h,     RETROK_z,  RETROK_s, RETROK_d,         RETROK_g,     RETROK_j,     RETROK_f,
+   BOTH_K_PERIOD,    RETROK_SPACE, -1,        BOTH_K_0, -1,               RETROK_DOWN,  RETROK_COMMA, RETROK_RIGHT,
+   RETROK_CAPSLOCK,  RETROK_n,     -1,        RETROK_x, RETROK_c,         RETROK_b,     RETROK_m,     RETROK_v,
+   RETROK_BACKQUOTE, RETROK_y,     RETROK_a,  RETROK_w, RETROK_e,         RETROK_t,     RETROK_u,     RETROK_r,
+   -1,               -1,           -1,        -1,       RETROK_BACKSPACE, -1,           -1,           RETROK_MINUS,
+   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, BOTH_K_ENTER,     RETROK_p,     -1,           -1,
+   BOTH_K_3,         -1,           BOTH_K_2,  BOTH_K_1, -1,               RETROK_SLASH, RETROK_k,     RETROK_QUOTE,
+   BOTH_K_6,         RETROK_l,     BOTH_K_5,  BOTH_K_4, -1,               -1,           RETROK_i,     -1,
+   RETROK_LSHIFT,    -1,           -1,        -1,       -1,               -1,           -1,           RETROK_RSHIFT
 };
 
 unsigned int key_map_len = 80;
