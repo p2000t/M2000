@@ -56,7 +56,7 @@
             "command": "C:/RetroArch-Win64/retroarch.exe",
             "args": [
                 //"--verbose",
-                "--set-shader", "shaders_slang/crt/crt-pi.slangp",
+                "--set-shader", "shaders_slang/anti-aliasing/smaa.slangp",
                 "-L", "m2000_libretro.dll",
                 "./test/games/Ghosthunt.cas"
                 //"./test/SAA5050/SAA5050.cas"
