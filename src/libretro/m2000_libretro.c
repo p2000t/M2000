@@ -39,15 +39,6 @@
 #define CHAR_WIDTH_ORIG 6
 #define CHAR_HEIGHT_ORIG 10
 
-#define P2000_KEYCODE_UP 2
-#define P2000_KEYCODE_DOWN 21
-#define P2000_KEYCODE_LEFT 0
-#define P2000_KEYCODE_RIGHT 23
-#define P2000_KEYCODE_SPACE 17
-#define P2000_KEYCODE_LSHIFT 72
-#define P2000_KEYCODE_NUM_3 56
-#define P2000_KEYCODE_NUM_PERIOD 16
-
 static uint32_t *frame_buf;
 static byte *font_buf;
 static signed char *sound_buf = NULL;
@@ -190,17 +181,26 @@ void FlushSound(void)
    audio_batch_cb(audio_batch_buf, buf_size);
 }
 
-#define PUSHKEY(code) KeyMap[code / 8] &= ~(1 << (code % 8))
-#define RELEASEKEY(code) KeyMap[code / 8] |= (1 << (code % 8))
-
 /****************************************************************************/
 /*** Poll the keyboard on every interrupt                                 ***/
 /****************************************************************************/
+
+#define PUSHKEY(code) KeyMap[code / 8] &= ~(1 << (code % 8))
+#define RELEASEKEY(code) KeyMap[code / 8] |= (1 << (code % 8))
+
+static int comboKey = -1;
+static int comboSourceDevice = -1;
+static int comboSourceId = -1;
+void PushComboKey(int key, int sourceDevice, int sourceId) 
+{
+   PUSHKEY(P2000_KEYCODE_LSHIFT);
+   comboKey = key;
+   comboSourceDevice = sourceDevice;
+   comboSourceId = sourceId;
+}
+
 void Keyboard(void) 
 {
-   static int comboKey = -1;
-   static int comboSourceDevice = -1;
-   static int comboSourceId = -1;
    if (comboKey >= 0) 
    {
       //press second key in a combo
@@ -221,15 +221,34 @@ void Keyboard(void)
    for (int i = 0; i < key_map_len; i++) 
    {
       int retro_key = key_map[i] & 0xffff;
-      int retro_key_combi = key_map[i] >> 16;
+      int retro_key2 = key_map[i] >> 16;
       if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key)
-         || (retro_key_combi && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key_combi)))
+         || (retro_key2 && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key2)))
       {
          if (retro_key != RETROK_QUOTE || shiftPressed)
             PUSHKEY(i);
       }
       else
          RELEASEKEY(i);
+   }
+
+   /*************************************************/
+   /* map F1 to <START>, F2 to <STOP>, F3 to <ZOEK> */
+   /*************************************************/
+   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F1))
+   {
+      //emulate <START> key press = Shift + numpad 3
+      PushComboKey(P2000_KEYCODE_NUM_3, RETRO_DEVICE_KEYBOARD, RETROK_F1);
+   }
+   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F2))
+   {
+      //emulate <STOP> key press = Shift + numpad period .
+      PushComboKey(P2000_KEYCODE_NUM_PERIOD, RETRO_DEVICE_KEYBOARD, RETROK_F2);
+   }
+   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F3))
+   {
+      //emulate <ZOEK> key press = Shift + numpad 1
+      PushComboKey(P2000_KEYCODE_NUM_1, RETRO_DEVICE_KEYBOARD, RETROK_F3);
    }
 
    /***********************************/
@@ -249,18 +268,12 @@ void Keyboard(void)
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
    {
       //emulate <START> key press = Shift + numpad 3
-      PUSHKEY(P2000_KEYCODE_LSHIFT);
-      comboKey = P2000_KEYCODE_NUM_3;
-      comboSourceDevice = RETRO_DEVICE_JOYPAD;
-      comboSourceId = RETRO_DEVICE_ID_JOYPAD_START;
+      PushComboKey(P2000_KEYCODE_NUM_3, RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_START);
    }
    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
    {
-      //emulate <STOP> key press = Shift + numpad period
-      PUSHKEY(P2000_KEYCODE_LSHIFT);
-      comboKey = P2000_KEYCODE_NUM_PERIOD;
-      comboSourceDevice = RETRO_DEVICE_JOYPAD;
-      comboSourceId = RETRO_DEVICE_ID_JOYPAD_SELECT;
+      //emulate <STOP> key press = Shift + numpad period .
+      PushComboKey(P2000_KEYCODE_NUM_PERIOD, RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_SELECT);
    }
 }
 
@@ -396,14 +409,14 @@ bool retro_load_game(const struct retro_game_info *info)
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
 
    static const struct retro_input_descriptor desc[] = {
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up key"         },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down key"       },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left key"       },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right key"      },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Space/fire key" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Space/fire key" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "<START> key"    },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "<STOP> key"     },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up key"     },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down key"   },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left key"   },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right key"  },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Space key"  },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Space key"  },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "<START> key"},
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "<STOP> key" },
    };
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)desc);
 

@@ -18,6 +18,16 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 
+#define P2000_KEYCODE_UP 2
+#define P2000_KEYCODE_DOWN 21
+#define P2000_KEYCODE_LEFT 0
+#define P2000_KEYCODE_RIGHT 23
+#define P2000_KEYCODE_SPACE 17
+#define P2000_KEYCODE_LSHIFT 72
+#define P2000_KEYCODE_NUM_1 59
+#define P2000_KEYCODE_NUM_3 56
+#define P2000_KEYCODE_NUM_PERIOD 16
+
 #define BOTH_K_0      (RETROK_0 | (RETROK_KP0 << 16))
 #define BOTH_K_1      (RETROK_1 | (RETROK_KP1 << 16))
 #define BOTH_K_2      (RETROK_2 | (RETROK_KP2 << 16))
