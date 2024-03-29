@@ -34,7 +34,7 @@
 #define VIDEO_BUFFER_HEIGHT 480
 #define SAMPLE_RATE 30000
 #define P2000T_VRAM_SIZE 0x1000
-#define NUMBER_OF_CHARS (224 + SAA5050_EXTRA_CHARS)
+#define NUMBER_OF_CHARS (96 + 64 + 64)
 #define CHAR_WIDTH 12
 #define CHAR_HEIGHT 20
 #define CHAR_WIDTH_ORIG 6
@@ -42,6 +42,8 @@
 #define OSK_TOTAL_CHARS 36
 #define OSK_HIGHLIGHT_XPOS 19
 #define OSK_LINE_YPOS 23
+#define DEBOUNCE_NORMAL 30
+#define DEBOUNCE_FAST 5
 
 static uint32_t *frame_buf;
 static byte *font_buf;
@@ -97,7 +99,6 @@ int LoadFont(const char *filename)
    byte *p = font_buf;
    int linePixelsPrev, linePixels, linePixelsNext;
    int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
-   bool isFakeChar;
    // Stretch 6x10 characters to 12x20, so we can do character rounding 
    // 96 alphanum chars + 64 cont. graphic chars + 64 sep. graphic chars
    for (int i = 0; i < NUMBER_OF_CHARS * CHAR_HEIGHT_ORIG; i += CHAR_HEIGHT_ORIG) 
@@ -105,7 +106,6 @@ int LoadFont(const char *filename)
       linePixelsPrev = 0;
       linePixels = 0;
       linePixelsNext = SAA5050_fnt[i] << CHAR_WIDTH_ORIG;
-      isFakeChar = i >= 224 * CHAR_HEIGHT_ORIG;
       for (int j = 0; j < CHAR_HEIGHT_ORIG; ++j) 
       {
          linePixelsPrev = linePixels >> CHAR_WIDTH_ORIG;
@@ -118,7 +118,7 @@ int LoadFont(const char *filename)
                *p = *(p+1) = *(p+CHAR_WIDTH) = *(p+CHAR_WIDTH+1) = 0xff;
             }
             // character rounding (only for alphanumeric chars)
-            else if (i < 96 * CHAR_HEIGHT_ORIG || isFakeChar)
+            else if (i < 96 * CHAR_HEIGHT_ORIG)
             { 
                // for character rounding, look at 8 pixels around current pixel
                pixelN  = linePixelsPrev & 0x20;
@@ -129,8 +129,6 @@ int LoadFont(const char *filename)
                pixelSE = linePixelsNext & 0x10;
                pixelSW = linePixelsNext & 0x40;
                pixelNW = linePixelsPrev & 0x40;
-               if (isFakeChar && k < CHAR_WIDTH_ORIG-2)
-                  pixelSE = pixelNE = 0; //hack
 
                // rounding in NW direction
                if (pixelN && pixelW && !pixelNW) *p = 0xff;
@@ -150,6 +148,7 @@ int LoadFont(const char *filename)
          p += CHAR_WIDTH;
       }
    }
+   memcpy(p, SAA5050_fnt_extra, SAA5050_fnt_extra_size);
    return 1;
 }
 
@@ -197,22 +196,11 @@ void FlushSound(void)
 /****************************************************************************/
 /*** Poll the keyboard on every interrupt                                 ***/
 /****************************************************************************/
-
-#define DEBOUNCE_NORMAL 30
-#define DEBOUNCE_FAST 5
 static int comboKey = -1;
 static int debounceDevice = -1;
 static int debounceId = -1;
 static int debounceCount = 0;
 static int debounceInit = DEBOUNCE_NORMAL;
-static bool show_help_bar;
-static int show_help_bar_timout;
-
-void InitHelpBar()
-{
-   show_help_bar = true;
-   show_help_bar_timout = 300;
-}
 
 void SetDebounce(int device, int id) 
 {
@@ -224,7 +212,6 @@ void SetDebounce(int device, int id)
 void PushKey(int code) 
 {
    KeyMap[code / 8] &= ~(1 << (code % 8));
-   show_help_bar = false;
 }
 
 void PushComboKey(int code) 
@@ -261,8 +248,6 @@ void Keyboard(void)
    osk_visible = PAD_0(RETRO_DEVICE_ID_JOYPAD_L) || PAD_0(RETRO_DEVICE_ID_JOYPAD_L2);
    if (osk_visible)
    {
-      show_help_bar = false;
-
       //handle OSK left/down
       if (PAD_0(RETRO_DEVICE_ID_JOYPAD_LEFT) || PAD_0(RETRO_DEVICE_ID_JOYPAD_DOWN))
       {
@@ -372,14 +357,6 @@ void Keyboard(void)
       PushComboKey(P2000_KEYCODE_NUM_PERIOD);
       SetDebounce(RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_SELECT);
    }
-
-   char *help_message = "Left Bumper/Trigger ] On-Screen Keyboard";
-   if (show_help_bar && --show_help_bar_timout > 0)
-   {
-      osk_visible = true;
-      memcpy(osk_display, help_message, 40);
-      show_help_bar = (bool)show_help_bar_timout;
-   }
 }
 
 /****************************************************************************/
@@ -394,11 +371,6 @@ void PutChar(int x, int y, int c, int fg, int bg, int si)
       fg = P2000T_BLACK;
       bg = x == OSK_HIGHLIGHT_XPOS ? P2000T_YELLOW : P2000T_CYAN;
       si = 0;
-      if (show_help_bar) 
-      { 
-         c -= 32;
-         bg = P2000T_MAGENTA;
-      }
    }
 
    int K = c + (fg << 8) + (bg << 16) + (si << 24);
@@ -435,7 +407,7 @@ void retro_init(void)
 {
    //log_cb(RETRO_LOG_INFO, "retro_init called\n");
    frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
-   font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT, sizeof(byte));
+   font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT + SAA5050_fnt_extra_size, sizeof(byte));
    display_char_buf = calloc(80 * 24, sizeof(int));
    buf_size = SAMPLE_RATE / IFreq;
    sound_buf = calloc(buf_size, sizeof(char));
@@ -519,7 +491,6 @@ void retro_set_environment(retro_environment_t cb)
 void retro_reset(void)
 {
    Z80_Reset();
-   InitHelpBar();
 }
 
 void retro_run(void)
@@ -532,16 +503,16 @@ bool retro_load_game(const struct retro_game_info *info)
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
 
    static const struct retro_input_descriptor desc[] = {
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up"                 },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down"               },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"               },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right"              },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Fire"               },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Trigger"            },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "<START>"            },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "<STOP>"             },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "On-Screen Keyboard" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "On-Screen Keyboard" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up"           },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down"         },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"         },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right"        },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Fire"         },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Fire"         },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "<START>"      },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "<STOP>"       },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Key Selector" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Key Selector" },
    };
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, (void*)desc);
 
@@ -556,7 +527,6 @@ bool retro_load_game(const struct retro_game_info *info)
    {
       InsertCassette(info->path, fopen(info->path, "rb"), true);
    }
-   InitHelpBar();
    return true;
 }
 
