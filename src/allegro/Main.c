@@ -1122,7 +1122,7 @@ void PutChar(int x, int y, int c, int fg, int bg, int si)
     return;
   OldCharacter[y * 40 + x] = K;
 
-  if (c > 0) {
+  if (c > 0 && Debug) {
     printf("PutChar (%i,%i,%i,%i,%i,%i);\n", x, y, c, fg, bg, si);
   }
 

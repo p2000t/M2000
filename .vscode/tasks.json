@@ -55,15 +55,14 @@
             "type": "shell",
             "command": "C:/RetroArch-Win64/retroarch.exe",
             "args": [
-                //"--verbose",
+                "--verbose",
                 "--set-shader", "shaders_slang/anti-aliasing/smaa.slangp",
                 "-L", "m2000_libretro.dll",
-                "./test/games/Ghosthunt.cas"
+                //"./test/games/Ghosthunt.cas"
                 //"./test/SAA5050/SAA5050.cas"
             ],
             "dependsOn": [
-                "Make Libretro",
-                "Copy Core info",
+                //"Copy Core info",
                 "Copy Core binary"
             ],
             "group": {
