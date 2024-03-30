@@ -408,6 +408,7 @@ void retro_init(void)
    audio_batch_buf = calloc(buf_size * 2, sizeof(int16_t)); // * 2 for stereo
    osk_display = calloc(OSK_TOTAL_CHARS, sizeof(char));
    InitP2000(monitor_rom, BasicNL_rom);
+   PrnName = NULL; //disable printing
 }
 
 void retro_deinit(void)
@@ -465,12 +466,6 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
-// static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
-// {
-//    log_cb(RETRO_LOG_INFO, "Down: %s, Code: %d, Char: %u, Mod: %u.\n",
-//       down ? "yes" : "no", keycode, character, mod);
-// }
-
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
@@ -479,7 +474,7 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    // create empty keyboard callback, to allow for "Game Focus" detection
-   struct retro_keyboard_callback cb_kb = { NULL }; // keyboard_cb
+   struct retro_keyboard_callback cb_kb = { NULL };
    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb_kb);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
@@ -522,11 +517,13 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   // Load the cassette file
+   // Load the cassette file (read-only)
    if (info && info->path) 
    {
-      FILE *f = fopen(info->path,"r+b"); //try opening in read/write mode first
-      InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
+      InsertCassette(info->path, fopen(info->path, "rb"), true); 
+      // try opening in read/write mode first
+      // FILE *f = fopen(info->path,"r+b");
+      // InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
    }
    return true;
 }
