@@ -517,13 +517,12 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   // Load the cassette file (read-only)
+   // Load the cassette file
    if (info && info->path) 
    {
-      InsertCassette(info->path, fopen(info->path, "rb"), true); 
-      // try opening in read/write mode first
-      // FILE *f = fopen(info->path,"r+b");
-      // InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
+      // try opening in read/write mode first; if that fails then read-only
+      FILE *f = fopen(info->path,"r+b");
+      InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
    }
    return true;
 }
