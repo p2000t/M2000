@@ -47,7 +47,7 @@
 
 static uint32_t *frame_buf;
 static byte *font_buf;
-static byte *osk_display;
+static byte *osks_display;
 static signed char *sound_buf = NULL;
 static int16_t *audio_batch_buf;
 static struct retro_log_callback logging;
@@ -55,8 +55,8 @@ static retro_log_printf_t log_cb;
 static int *display_char_buf;
 static int buf_size;
 static Z80_Regs registers;
-static bool osk_visible = false;
-static int osk_index = 0;
+static bool osks_visible = false;
+static int osks_index = 0;
 
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
@@ -245,23 +245,23 @@ void Keyboard(void)
    for (int i = 0; i < 10; i++)
       KeyMap[i] = 0xff;
 
-   // On-Screen Keyboard (OSK) handling
-   osk_visible = JOY_0(RETRO_DEVICE_ID_JOYPAD_L) || JOY_0(RETRO_DEVICE_ID_JOYPAD_L2);
-   if (osk_visible)
+   // On-Screen Key Selector (OSKS) handling
+   osks_visible = JOY_0(RETRO_DEVICE_ID_JOYPAD_L) || JOY_0(RETRO_DEVICE_ID_JOYPAD_L2);
+   if (osks_visible)
    {
       //handle OSK left/down
       if (JOY_0(RETRO_DEVICE_ID_JOYPAD_LEFT) || JOY_0(RETRO_DEVICE_ID_JOYPAD_DOWN))
       {
-         if (--osk_index < 0)
-            osk_index = osk_map_length -1;
+         if (--osks_index < 0)
+            osks_index = osks_map_length -1;
          SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_LEFT) 
             ? RETRO_DEVICE_ID_JOYPAD_LEFT : RETRO_DEVICE_ID_JOYPAD_DOWN);
       }
       // handle OSK right/up
       if (JOY_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) || JOY_0(RETRO_DEVICE_ID_JOYPAD_UP))
       {
-         if (++osk_index >= osk_map_length)
-            osk_index = 0;
+         if (++osks_index >= osks_map_length)
+            osks_index = 0;
          SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) 
             ? RETRO_DEVICE_ID_JOYPAD_RIGHT : RETRO_DEVICE_ID_JOYPAD_UP);
       }
@@ -269,8 +269,8 @@ void Keyboard(void)
       //handle OSK fire/trigger
       if (JOY_0(RETRO_DEVICE_ID_JOYPAD_A) || JOY_0(RETRO_DEVICE_ID_JOYPAD_B))
       {
-         unsigned p2000KeyCode = osk_ascii_map[osk_index][1];
-         if (osk_ascii_map[osk_index][2])
+         unsigned p2000KeyCode = osks_ascii_map[osks_index][1];
+         if (osks_ascii_map[osks_index][2])
             PushComboKey(p2000KeyCode);
          else
             PushKey(p2000KeyCode);
@@ -279,16 +279,16 @@ void Keyboard(void)
       }
 
       //prepare OSK display array
-      unsigned (*p)[3] = osk_ascii_map;
-      p += osk_index;
-      if (osk_index < OSK_HIGHLIGHT_XPOS)
-         p += osk_map_length;
+      unsigned (*p)[3] = osks_ascii_map;
+      p += osks_index;
+      if (osks_index < OSK_HIGHLIGHT_XPOS)
+         p += osks_map_length;
       p -= OSK_HIGHLIGHT_XPOS;
       for (int i = 0; i < 40; i++, p++)
       {
          if (!(*p)[0])
-            p = osk_ascii_map;
-         osk_display[i] = (*p)[0] -32;
+            p = osks_ascii_map;
+         osks_display[i] = (*p)[0] -32;
       }
       return;
    }
@@ -359,9 +359,9 @@ void Keyboard(void)
 void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
    //display OSK on bottom line
-   if (osk_visible && y == OSK_LINE_YPOS) 
+   if (osks_visible && y == OSK_LINE_YPOS) 
    {
-      c = osk_display[x];
+      c = osks_display[x];
       fg = P2000T_BLACK;
       bg = x == OSK_HIGHLIGHT_XPOS ? P2000T_YELLOW : P2000T_CYAN;
       si = 0;
@@ -406,7 +406,7 @@ void retro_init(void)
    buf_size = SAMPLE_RATE / IFreq;
    sound_buf = calloc(buf_size, sizeof(char));
    audio_batch_buf = calloc(buf_size * 2, sizeof(int16_t)); // * 2 for stereo
-   osk_display = calloc(OSK_TOTAL_CHARS, sizeof(char));
+   osks_display = calloc(OSK_TOTAL_CHARS, sizeof(char));
    InitP2000(monitor_rom, BasicNL_rom);
    PrnName = NULL; //disable printing
 }
@@ -419,7 +419,7 @@ void retro_deinit(void)
    free(sound_buf);
    free(audio_batch_buf);
    free(display_char_buf);
-   free(osk_display);
+   free(osks_display);
 }
 
 unsigned retro_api_version(void)
@@ -466,6 +466,14 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
+#ifdef DEBUG
+static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
+{
+   log_cb(RETRO_LOG_INFO, "Down: %s, Code: %d, Char: %u, Mod: %u.\n",
+      down ? "yes" : "no", keycode, character, mod);
+}
+#endif
+
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
@@ -474,7 +482,12 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    // create empty keyboard callback, to allow for "Game Focus" detection
-   struct retro_keyboard_callback cb_kb = { NULL };
+   struct retro_keyboard_callback cb_kb = 
+#ifdef DEBUG
+      { keyboard_cb };
+#else
+      { NULL };
+#endif
    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb_kb);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))

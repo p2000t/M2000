@@ -62,7 +62,8 @@
                 //"./test/SAA5050/SAA5050.cas"
             ],
             "dependsOn": [
-                //"Copy Core info",
+                "Copy Core info",
+                "Make Libretro",
                 "Copy Core binary"
             ],
             "group": {

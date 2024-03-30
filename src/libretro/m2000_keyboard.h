@@ -28,25 +28,26 @@
 #define P2000_KEYCODE_NUM_3 56
 #define P2000_KEYCODE_NUM_PERIOD 16
 
-#define P2000_LESS     (RETROK_OEM_102 | (RETROK_DELETE << 16))
+#define P2000_LESS_GREATER    (RETROK_OEM_102 | (RETROK_DELETE << 16))
+#define P2000_KP_MIN          (RETROK_NUMLOCK | (RETROK_ESCAPE << 16))
 
 int key_map[] =
 {
-   RETROK_LEFT,        RETROK_6,      RETROK_UP,        RETROK_q,       RETROK_3,            RETROK_5,         RETROK_7,     RETROK_4,
-   RETROK_TAB,         RETROK_h,      RETROK_z,         RETROK_s,       RETROK_d,            RETROK_g,         RETROK_j,     RETROK_f,
-   RETROK_KP_ENTER,    RETROK_SPACE,  RETROK_KP_PERIOD, RETROK_KP0,     RETROK_BACKSLASH,    RETROK_DOWN,      RETROK_COMMA, RETROK_RIGHT,
-   RETROK_CAPSLOCK,    RETROK_n,      P2000_LESS,       RETROK_x,       RETROK_c,            RETROK_b,         RETROK_m,     RETROK_v,
-   RETROK_BACKQUOTE,   RETROK_y,      RETROK_a,         RETROK_w,       RETROK_e,            RETROK_t,         RETROK_u,     RETROK_r,
-   RETROK_KP_MULTIPLY, RETROK_9,      RETROK_KP_DIVIDE, RETROK_NUMLOCK, RETROK_BACKSPACE,    RETROK_0,         RETROK_1,     RETROK_MINUS,
-   RETROK_KP9,         RETROK_o,      RETROK_KP8,       RETROK_KP7,     RETROK_RETURN,       RETROK_p,         RETROK_8,     RETROK_LEFTBRACKET,
-   RETROK_KP3,         RETROK_PERIOD, RETROK_KP2,       RETROK_KP1,     RETROK_RIGHTBRACKET, RETROK_SLASH,     RETROK_k,     RETROK_2,
-   RETROK_KP6,         RETROK_l,      RETROK_KP5,       RETROK_KP4,     RETROK_EQUALS,       RETROK_SEMICOLON, RETROK_i,     RETROK_QUOTE,
-   RETROK_LSHIFT,      -1,            -1,               -1,             -1,                  -1,               -1,           RETROK_RSHIFT
+   RETROK_LEFT,        RETROK_6,      RETROK_UP,          RETROK_q,     RETROK_3,            RETROK_5,         RETROK_7,     RETROK_4,
+   RETROK_TAB,         RETROK_h,      RETROK_z,           RETROK_s,     RETROK_d,            RETROK_g,         RETROK_j,     RETROK_f,
+   RETROK_KP_ENTER,    RETROK_SPACE,  RETROK_KP_PERIOD,   RETROK_KP0,   RETROK_BACKSLASH,    RETROK_DOWN,      RETROK_COMMA, RETROK_RIGHT,
+   RETROK_CAPSLOCK,    RETROK_n,      P2000_LESS_GREATER, RETROK_x,     RETROK_c,            RETROK_b,         RETROK_m,     RETROK_v,
+   RETROK_BACKQUOTE,   RETROK_y,      RETROK_a,           RETROK_w,     RETROK_e,            RETROK_t,         RETROK_u,     RETROK_r,
+   RETROK_KP_MULTIPLY, RETROK_9,      RETROK_KP_DIVIDE,   P2000_KP_MIN, RETROK_BACKSPACE,    RETROK_0,         RETROK_1,     RETROK_MINUS,
+   RETROK_KP9,         RETROK_o,      RETROK_KP8,         RETROK_KP7,   RETROK_RETURN,       RETROK_p,         RETROK_8,     RETROK_LEFTBRACKET,
+   RETROK_KP3,         RETROK_PERIOD, RETROK_KP2,         RETROK_KP1,   RETROK_RIGHTBRACKET, RETROK_SLASH,     RETROK_k,     RETROK_2,
+   RETROK_KP6,         RETROK_l,      RETROK_KP5,         RETROK_KP4,   RETROK_EQUALS,       RETROK_SEMICOLON, RETROK_i,     RETROK_QUOTE,
+   RETROK_LSHIFT,      -1,            -1,                 -1,           -1,                  -1,               -1,           RETROK_RSHIFT
 };
 unsigned key_map_len = 80;
 
 //maps ASCII characters to P2000T keycodes
-unsigned osk_ascii_map[][3] = 
+unsigned osks_ascii_map[][3] = 
 { 
    // { ASCII code, P2000T code, shift }
    { 257, 56, 1 }, // <START>
@@ -103,8 +104,11 @@ unsigned osk_ascii_map[][3] =
    { 120, 27, 0 }, // x
    { 121, 33, 0 }, // y
    { 122, 10, 0 }, // z
+   {  40, 54, 1 }, // Left parenthesis (
+   {  41, 41, 1 }, // Right parenthesis )
    {  64, 55, 0 }, // At @
    {  95, 20, 0 }, // Hash #
+   {  46, 57, 0 }, // Period .
    {  63, 61, 1 }, // Question ?
    {  33, 46, 1 }, // Exclamation !
    {  48, 45, 0 }, // 0
@@ -127,4 +131,4 @@ unsigned osk_ascii_map[][3] =
    {   0,  0, 0 }, // Terminator
 };
 
-unsigned osk_map_length = sizeof(osk_ascii_map) / sizeof(osk_ascii_map[0]) - 1; //exclude terminator
+unsigned osks_map_length = sizeof(osks_ascii_map) / sizeof(osks_ascii_map[0]) - 1; //exclude terminator
