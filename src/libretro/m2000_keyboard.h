@@ -48,7 +48,7 @@ unsigned key_map_len = 80;
 //maps ASCII characters to P2000T keycodes
 unsigned osk_ascii_map[][3] = 
 { 
-   // { ASCII, P2000T code, shift, display-char }
+   // { ASCII code, P2000T code, shift }
    { 257, 56, 1 }, // <START>
    { 256, 52, 0 }, // Enter
    {  65, 34, 1 }, // A
