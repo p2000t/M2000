@@ -108,6 +108,8 @@ unsigned osks_ascii_map[][3] =
    {  41, 41, 1 }, // Right parenthesis )
    {  64, 55, 0 }, // At @
    {  38,  1, 1 }, // Ampersand &
+   {  36,  7, 1 }, // Dollar $
+   {  37,  5, 1 }, // Percent %
    {  95, 20, 0 }, // Hash #
    {  43, 69, 1 }, // Plus +
    {  45, 47, 0 }, // Minus -
@@ -132,9 +134,6 @@ unsigned osks_ascii_map[][3] =
    {  56, 54, 0 }, // 8
    {  57, 41, 0 }, // 9
    { 260, 44, 0 }, // Backspace
-   {  74, 14, 1 }, // J
-   {  47, 61, 0 }, // Slash /
-   {  78, 25, 1 }, // N
    {  32, 17, 0 }, // Space
    { 259, 59, 1 }, // <ZOEK>
    { 258, 16, 1 }, // <STOP>
