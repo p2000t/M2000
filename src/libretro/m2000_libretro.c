@@ -220,7 +220,8 @@ void PushComboKey(int code)
    comboKey = code;
 }
 
-#define PAD_0(id) input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, id)
+#define JOY_0(id) input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, id)
+#define KEYB_0(id) input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, id)
 
 void Keyboard(void) 
 {
@@ -245,35 +246,35 @@ void Keyboard(void)
       KeyMap[i] = 0xff;
 
    // On-Screen Keyboard (OSK) handling
-   osk_visible = PAD_0(RETRO_DEVICE_ID_JOYPAD_L) || PAD_0(RETRO_DEVICE_ID_JOYPAD_L2);
+   osk_visible = JOY_0(RETRO_DEVICE_ID_JOYPAD_L) || JOY_0(RETRO_DEVICE_ID_JOYPAD_L2);
    if (osk_visible)
    {
       //handle OSK left/down
-      if (PAD_0(RETRO_DEVICE_ID_JOYPAD_LEFT) || PAD_0(RETRO_DEVICE_ID_JOYPAD_DOWN))
+      if (JOY_0(RETRO_DEVICE_ID_JOYPAD_LEFT) || JOY_0(RETRO_DEVICE_ID_JOYPAD_DOWN))
       {
          if (--osk_index < 0)
             osk_index = osk_map_length -1;
-         SetDebounce (RETRO_DEVICE_JOYPAD, PAD_0(RETRO_DEVICE_ID_JOYPAD_LEFT) 
+         SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_LEFT) 
             ? RETRO_DEVICE_ID_JOYPAD_LEFT : RETRO_DEVICE_ID_JOYPAD_DOWN);
       }
       // handle OSK right/up
-      if (PAD_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) || PAD_0(RETRO_DEVICE_ID_JOYPAD_UP))
+      if (JOY_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) || JOY_0(RETRO_DEVICE_ID_JOYPAD_UP))
       {
          if (++osk_index >= osk_map_length)
             osk_index = 0;
-         SetDebounce (RETRO_DEVICE_JOYPAD, PAD_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) 
+         SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_RIGHT) 
             ? RETRO_DEVICE_ID_JOYPAD_RIGHT : RETRO_DEVICE_ID_JOYPAD_UP);
       }
 
       //handle OSK fire/trigger
-      if (PAD_0(RETRO_DEVICE_ID_JOYPAD_A) || PAD_0(RETRO_DEVICE_ID_JOYPAD_B))
+      if (JOY_0(RETRO_DEVICE_ID_JOYPAD_A) || JOY_0(RETRO_DEVICE_ID_JOYPAD_B))
       {
          unsigned p2000KeyCode = osk_ascii_map[osk_index][1];
          if (osk_ascii_map[osk_index][2])
             PushComboKey(p2000KeyCode);
          else
             PushKey(p2000KeyCode);
-         SetDebounce (RETRO_DEVICE_JOYPAD, PAD_0(RETRO_DEVICE_ID_JOYPAD_A) 
+         SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_A) 
             ? RETRO_DEVICE_ID_JOYPAD_A : RETRO_DEVICE_ID_JOYPAD_B);
       }
 
@@ -295,36 +296,30 @@ void Keyboard(void)
    /*************************/
    /* handle keyboard input */
    /*************************/
-   bool shiftPressed = input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_LSHIFT) 
-      || input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_RSHIFT);
    for (int i = 0; i < key_map_len; i++) 
    {
       int retro_key = key_map[i] & 0xffff;
       int retro_key2 = key_map[i] >> 16;
-      if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key)
-         || (retro_key2 && input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, retro_key2)))
-      {
-         if (retro_key != RETROK_QUOTE || shiftPressed)
-            PushKey(i);
-      }
+      if (KEYB_0(retro_key) || (retro_key2 && KEYB_0(retro_key2)))
+         PushKey(i);
    }
 
    /*************************************************/
    /* map F1 to <START>, F2 to <STOP>, F3 to <ZOEK> */
    /*************************************************/
-   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F1))
+   if (KEYB_0(RETROK_F1))
    {
       //emulate <START> key press = Shift + numpad 3
       PushComboKey(P2000_KEYCODE_NUM_3);
       SetDebounce(RETRO_DEVICE_KEYBOARD, RETROK_F1);
    }
-   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F2))
+   if (KEYB_0(RETROK_F2))
    {
       //emulate <STOP> key press = Shift + numpad period .
       PushComboKey(P2000_KEYCODE_NUM_PERIOD);
       SetDebounce(RETRO_DEVICE_KEYBOARD, RETROK_F2);
    }
-   if (input_state_cb(0, RETRO_DEVICE_KEYBOARD, 0, RETROK_F3))
+   if (KEYB_0(RETROK_F3))
    {
       //emulate <ZOEK> key press = Shift + numpad 1
       PushComboKey(P2000_KEYCODE_NUM_1);
@@ -334,24 +329,23 @@ void Keyboard(void)
    /***********************************/
    /* map joypad input to key presses */
    /***********************************/
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_UP))
       PushKey(P2000_KEYCODE_UP);
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_DOWN))
       PushKey(P2000_KEYCODE_DOWN);
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_LEFT))
       PushKey(P2000_KEYCODE_LEFT);
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_RIGHT))
       PushKey(P2000_KEYCODE_RIGHT);
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A) 
-      || input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_A) || JOY_0(RETRO_DEVICE_ID_JOYPAD_B))
       PushKey(P2000_KEYCODE_SPACE);
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_START))
    {
       //emulate <START> key press = Shift + numpad 3
       PushComboKey(P2000_KEYCODE_NUM_3);
       SetDebounce(RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_START);
    }
-   if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+   if (JOY_0(RETRO_DEVICE_ID_JOYPAD_SELECT))
    {
       //emulate <STOP> key press = Shift + numpad period .
       PushComboKey(P2000_KEYCODE_NUM_PERIOD);
@@ -471,6 +465,12 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
+// static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
+// {
+//    log_cb(RETRO_LOG_INFO, "Down: %s, Code: %d, Char: %u, Mod: %u.\n",
+//       down ? "yes" : "no", keycode, character, mod);
+// }
+
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
@@ -479,7 +479,7 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    // create empty keyboard callback, to allow for "Game Focus" detection
-   struct retro_keyboard_callback cb_kb = { NULL };
+   struct retro_keyboard_callback cb_kb = { NULL }; // keyboard_cb
    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb_kb);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
@@ -522,10 +522,11 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   // Load the cassette file (read-only)
+   // Load the cassette file
    if (info && info->path) 
    {
-      InsertCassette(info->path, fopen(info->path, "rb"), true);
+      FILE *f = fopen(info->path,"r+b"); //try opening in read/write mode first
+      InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
    }
    return true;
 }

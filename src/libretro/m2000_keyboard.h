@@ -28,117 +28,103 @@
 #define P2000_KEYCODE_NUM_3 56
 #define P2000_KEYCODE_NUM_PERIOD 16
 
-#define BOTH_K_0      (RETROK_0 | (RETROK_KP0 << 16))
-#define BOTH_K_1      (RETROK_1 | (RETROK_KP1 << 16))
-#define BOTH_K_2      (RETROK_2 | (RETROK_KP2 << 16))
-#define BOTH_K_3      (RETROK_3 | (RETROK_KP3 << 16))
-#define BOTH_K_4      (RETROK_4 | (RETROK_KP4 << 16))
-#define BOTH_K_5      (RETROK_5 | (RETROK_KP5 << 16))
-#define BOTH_K_6      (RETROK_6 | (RETROK_KP6 << 16))
-#define BOTH_K_7      (RETROK_7 | (RETROK_KP7 << 16))
-#define BOTH_K_8      (RETROK_8 | (RETROK_KP8 << 16))
-#define BOTH_K_9      (RETROK_9 | (RETROK_KP9 << 16))
-#define BOTH_K_PERIOD (RETROK_PERIOD | (RETROK_KP_PERIOD << 16))
-#define BOTH_K_ENTER  (RETROK_RETURN | (RETROK_KP_ENTER << 16))
+#define P2000_LESS     (RETROK_OEM_102 | (RETROK_DELETE << 16))
 
 int key_map[] =
 {
-   RETROK_LEFT,      -1,           RETROK_UP, RETROK_q, -1,               -1,           -1,           -1,
-   -1,               RETROK_h,     RETROK_z,  RETROK_s, RETROK_d,         RETROK_g,     RETROK_j,     RETROK_f,
-   BOTH_K_PERIOD,    RETROK_SPACE, -1,        BOTH_K_0, -1,               RETROK_DOWN,  RETROK_COMMA, RETROK_RIGHT,
-   RETROK_CAPSLOCK,  RETROK_n,     -1,        RETROK_x, RETROK_c,         RETROK_b,     RETROK_m,     RETROK_v,
-   RETROK_BACKQUOTE, RETROK_y,     RETROK_a,  RETROK_w, RETROK_e,         RETROK_t,     RETROK_u,     RETROK_r,
-   -1,               -1,           -1,        -1,       RETROK_BACKSPACE, -1,           -1,           RETROK_MINUS,
-   BOTH_K_9,         RETROK_o,     BOTH_K_8,  BOTH_K_7, BOTH_K_ENTER,     RETROK_p,     -1,           -1,
-   BOTH_K_3,         -1,           BOTH_K_2,  BOTH_K_1, -1,               RETROK_SLASH, RETROK_k,     RETROK_QUOTE,
-   BOTH_K_6,         RETROK_l,     BOTH_K_5,  BOTH_K_4, -1,               -1,           RETROK_i,     -1,
-   RETROK_LSHIFT,    -1,           -1,        -1,       -1,               -1,           -1,           RETROK_RSHIFT
+   RETROK_LEFT,        RETROK_6,      RETROK_UP,        RETROK_q,       RETROK_3,            RETROK_5,         RETROK_7,     RETROK_4,
+   RETROK_TAB,         RETROK_h,      RETROK_z,         RETROK_s,       RETROK_d,            RETROK_g,         RETROK_j,     RETROK_f,
+   RETROK_KP_ENTER,    RETROK_SPACE,  RETROK_KP_PERIOD, RETROK_KP0,     RETROK_BACKSLASH,    RETROK_DOWN,      RETROK_COMMA, RETROK_RIGHT,
+   RETROK_CAPSLOCK,    RETROK_n,      P2000_LESS,       RETROK_x,       RETROK_c,            RETROK_b,         RETROK_m,     RETROK_v,
+   RETROK_BACKQUOTE,   RETROK_y,      RETROK_a,         RETROK_w,       RETROK_e,            RETROK_t,         RETROK_u,     RETROK_r,
+   RETROK_KP_MULTIPLY, RETROK_9,      RETROK_KP_DIVIDE, RETROK_NUMLOCK, RETROK_BACKSPACE,    RETROK_0,         RETROK_1,     RETROK_MINUS,
+   RETROK_KP9,         RETROK_o,      RETROK_KP8,       RETROK_KP7,     RETROK_RETURN,       RETROK_p,         RETROK_8,     RETROK_LEFTBRACKET,
+   RETROK_KP3,         RETROK_PERIOD, RETROK_KP2,       RETROK_KP1,     RETROK_RIGHTBRACKET, RETROK_SLASH,     RETROK_k,     RETROK_2,
+   RETROK_KP6,         RETROK_l,      RETROK_KP5,       RETROK_KP4,     RETROK_EQUALS,       RETROK_SEMICOLON, RETROK_i,     RETROK_QUOTE,
+   RETROK_LSHIFT,      -1,            -1,               -1,             -1,                  -1,               -1,           RETROK_RSHIFT
 };
-
 unsigned key_map_len = 80;
-
-#define OSK_SHIFT 0x80
 
 //maps ASCII characters to P2000T keycodes
 unsigned osk_ascii_map[][3] = 
 { 
-    // { ASCII, P2000T code, shift, display-char }
-    { 257, 56, 1 }, // <START>
-    { 256, 52, 0 }, // Enter
-    {  65, 34, 1 }, // A
-    {  66, 29, 1 }, // B
-    {  67, 28, 1 }, // C
-    {  68, 12, 1 }, // D
-    {  69, 36, 1 }, // E
-    {  70, 15, 1 }, // F
-    {  71, 13, 1 }, // G
-    {  72,  9, 1 }, // H
-    {  73, 70, 1 }, // I
-    {  74, 14, 1 }, // J
-    {  75, 62, 1 }, // K
-    {  76, 65, 1 }, // L
-    {  77, 30, 1 }, // M
-    {  78, 25, 1 }, // N
-    {  79, 49, 1 }, // O
-    {  80, 53, 1 }, // P
-    {  81,  3, 1 }, // Q
-    {  82, 39, 1 }, // R
-    {  83, 11, 1 }, // S
-    {  84, 37, 1 }, // T
-    {  85, 38, 1 }, // U
-    {  86, 31, 1 }, // V
-    {  87, 35, 1 }, // W
-    {  88, 27, 1 }, // X
-    {  89, 33, 1 }, // Y
-    {  90, 10, 1 }, // Z
-    {  97, 34, 0 }, // a
-    {  98, 29, 0 }, // b
-    {  99, 28, 0 }, // c
-    { 100, 12, 0 }, // d
-    { 101, 36, 0 }, // e
-    { 102, 15, 0 }, // f
-    { 103, 13, 0 }, // g
-    { 104,  9, 0 }, // h
-    { 105, 70, 0 }, // i
-    { 106, 14, 0 }, // j
-    { 107, 62, 0 }, // k
-    { 108, 65, 0 }, // l
-    { 109, 30, 0 }, // m
-    { 110, 25, 0 }, // n
-    { 111, 49, 0 }, // o
-    { 112, 53, 0 }, // p
-    { 113,  3, 0 }, // q
-    { 114, 39, 0 }, // r
-    { 115, 11, 0 }, // s
-    { 116, 37, 0 }, // t
-    { 117, 38, 0 }, // u
-    { 118, 31, 0 }, // v
-    { 119, 35, 0 }, // w
-    { 120, 27, 0 }, // x
-    { 121, 33, 0 }, // y
-    { 122, 10, 0 }, // z
-    {  64, 55, 0 }, // At @
-    {  95, 20, 0 }, // Hash #
-    {  63, 61, 1 }, // Question ?
-    {  33, 46, 1 }, // Exclamation !
-    {  48, 45, 0 }, // 0
-    {  49, 46, 0 }, // 1
-    {  50, 63, 0 }, // 2
-    {  51,  4, 0 }, // 3
-    {  52,  7, 0 }, // 4
-    {  53,  5, 0 }, // 5
-    {  54,  1, 0 }, // 6
-    {  55,  6, 0 }, // 7
-    {  56, 54, 0 }, // 8
-    {  57, 41, 0 }, // 9
-    {  91, 44, 0 }, // Backspace
-    {  74, 14, 1 }, // J
-    {  47, 61, 0 }, // Slash /
-    {  78, 25, 1 }, // N
-    {  32, 17, 0 }, // Space
-    { 259, 59, 1 }, // <ZOEK>
-    { 258, 16, 1 }, // <STOP>
-    {   0,  0, 0 }, // Terminator
+   // { ASCII, P2000T code, shift, display-char }
+   { 257, 56, 1 }, // <START>
+   { 256, 52, 0 }, // Enter
+   {  65, 34, 1 }, // A
+   {  66, 29, 1 }, // B
+   {  67, 28, 1 }, // C
+   {  68, 12, 1 }, // D
+   {  69, 36, 1 }, // E
+   {  70, 15, 1 }, // F
+   {  71, 13, 1 }, // G
+   {  72,  9, 1 }, // H
+   {  73, 70, 1 }, // I
+   {  74, 14, 1 }, // J
+   {  75, 62, 1 }, // K
+   {  76, 65, 1 }, // L
+   {  77, 30, 1 }, // M
+   {  78, 25, 1 }, // N
+   {  79, 49, 1 }, // O
+   {  80, 53, 1 }, // P
+   {  81,  3, 1 }, // Q
+   {  82, 39, 1 }, // R
+   {  83, 11, 1 }, // S
+   {  84, 37, 1 }, // T
+   {  85, 38, 1 }, // U
+   {  86, 31, 1 }, // V
+   {  87, 35, 1 }, // W
+   {  88, 27, 1 }, // X
+   {  89, 33, 1 }, // Y
+   {  90, 10, 1 }, // Z
+   {  97, 34, 0 }, // a
+   {  98, 29, 0 }, // b
+   {  99, 28, 0 }, // c
+   { 100, 12, 0 }, // d
+   { 101, 36, 0 }, // e
+   { 102, 15, 0 }, // f
+   { 103, 13, 0 }, // g
+   { 104,  9, 0 }, // h
+   { 105, 70, 0 }, // i
+   { 106, 14, 0 }, // j
+   { 107, 62, 0 }, // k
+   { 108, 65, 0 }, // l
+   { 109, 30, 0 }, // m
+   { 110, 25, 0 }, // n
+   { 111, 49, 0 }, // o
+   { 112, 53, 0 }, // p
+   { 113,  3, 0 }, // q
+   { 114, 39, 0 }, // r
+   { 115, 11, 0 }, // s
+   { 116, 37, 0 }, // t
+   { 117, 38, 0 }, // u
+   { 118, 31, 0 }, // v
+   { 119, 35, 0 }, // w
+   { 120, 27, 0 }, // x
+   { 121, 33, 0 }, // y
+   { 122, 10, 0 }, // z
+   {  64, 55, 0 }, // At @
+   {  95, 20, 0 }, // Hash #
+   {  63, 61, 1 }, // Question ?
+   {  33, 46, 1 }, // Exclamation !
+   {  48, 45, 0 }, // 0
+   {  49, 46, 0 }, // 1
+   {  50, 63, 0 }, // 2
+   {  51,  4, 0 }, // 3
+   {  52,  7, 0 }, // 4
+   {  53,  5, 0 }, // 5
+   {  54,  1, 0 }, // 6
+   {  55,  6, 0 }, // 7
+   {  56, 54, 0 }, // 8
+   {  57, 41, 0 }, // 9
+   {  91, 44, 0 }, // Backspace
+   {  74, 14, 1 }, // J
+   {  47, 61, 0 }, // Slash /
+   {  78, 25, 1 }, // N
+   {  32, 17, 0 }, // Space
+   { 259, 59, 1 }, // <ZOEK>
+   { 258, 16, 1 }, // <STOP>
+   {   0,  0, 0 }, // Terminator
 };
 
 unsigned osk_map_length = sizeof(osk_ascii_map) / sizeof(osk_ascii_map[0]) - 1; //exclude terminator
