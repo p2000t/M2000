@@ -449,9 +449,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    };
 
    info->geometry = (struct retro_game_geometry) {
-      .base_width   = 320,
+      .base_width   = 240,
       .base_height  = 240,
-      .max_width    = 320,
+      .max_width    = 240,
       .max_height   = 240,
       .aspect_ratio =  4.0f / 3.0f,
    };
