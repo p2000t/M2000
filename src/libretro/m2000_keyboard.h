@@ -116,11 +116,11 @@ unsigned osks_ascii_map[][3] =
    {  42, 71, 1 }, // Asterix *
    {  47, 61, 0 }, // Slash  /
    {  61, 45, 1 }, // Equals =
+   {  46, 57, 0 }, // Period .
+   {  44, 22, 0 }, // Comma ,
    {  58, 71, 0 }, // Colon :
    {  59, 69, 0 }, // Semi Colon ;
    {  34, 63, 1 }, // Double Quote "
-   {  44, 22, 0 }, // Comma ,
-   {  46, 57, 0 }, // Period .
    {  63, 61, 1 }, // Question ?
    {  33, 46, 1 }, // Exclamation !
    {  48, 45, 0 }, // 0
@@ -133,6 +133,7 @@ unsigned osks_ascii_map[][3] =
    {  55,  6, 0 }, // 7
    {  56, 54, 0 }, // 8
    {  57, 41, 0 }, // 9
+   { 261, 32, 0 }, // <CODE>
    { 260, 44, 0 }, // Backspace
    {  32, 17, 0 }, // Space
    { 259, 59, 1 }, // <ZOEK>
