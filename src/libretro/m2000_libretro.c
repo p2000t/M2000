@@ -538,6 +538,7 @@ bool retro_load_game(const struct retro_game_info *info)
    // if path to .cas game is given, load it read-only
    if (info && info->path) 
    {
+      TapeBootEnabled = 1;
       InsertCassette(info->path, fopen(info->path, "rb"), true);
    }
    else 
