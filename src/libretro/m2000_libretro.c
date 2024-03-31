@@ -22,8 +22,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "libretro.h"
-#include "retro_timers.h"
+#include <libretro.h>
+#include <retro_timers.h>
+#include <file/file_path.h>
 #include "m2000_roms.h"
 #include "m2000_keyboard.h"
 #include "m2000_saa5050.h"
@@ -44,6 +45,9 @@
 #define OSK_LINE_YPOS 23
 #define DEBOUNCE_NORMAL 30
 #define DEBOUNCE_FAST 5
+#ifndef MAX_PATH
+   #define MAX_PATH 260
+#endif
 
 static uint32_t *frame_buf;
 static byte *font_buf;
@@ -57,6 +61,7 @@ static int buf_size;
 static Z80_Regs registers;
 static bool osks_visible = false;
 static int osks_index = 0;
+static char default_cas_path[MAX_PATH];
 
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
@@ -530,12 +535,23 @@ bool retro_load_game(const struct retro_game_info *info)
       return false;
    }
 
-   // Load the cassette file
+   // if path to .cas game is given, load it read-only
    if (info && info->path) 
    {
-      // try opening in read/write mode first; if that fails then read-only
-      FILE *f = fopen(info->path,"r+b");
-      InsertCassette(info->path, f ? f : fopen(info->path, "rb"), (f == NULL));
+      InsertCassette(info->path, fopen(info->path, "rb"), true);
+   }
+   else 
+   {
+      // else try to open/create 'default.cas' in Saves folder
+      const char *saves_dir = NULL;
+      if(environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &saves_dir) && saves_dir)
+      {
+         snprintf (default_cas_path, sizeof(default_cas_path), "%s%c%s", saves_dir, PATH_DEFAULT_SLASH_C(), TapeName);
+         // try to open 'default.cas' for update, else create it
+         FILE *f = fopen(default_cas_path,"r+b");
+         TapeBootEnabled = 0;
+         InsertCassette(default_cas_path, f ? f : fopen(default_cas_path, "w+b"), false);
+      }
    }
    return true;
 }
