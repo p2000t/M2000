@@ -1,4 +1,4 @@
-unsigned char SAA5050_fnt[] = {
+unsigned char saa5050_fnt[] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04,
   0x04, 0x04, 0x04, 0x04, 0x00, 0x04, 0x00, 0x00, 0x00, 0x0a, 0x0a, 0x0a,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x09, 0x08, 0x1c, 0x08,
@@ -190,7 +190,7 @@ unsigned char SAA5050_fnt[] = {
 
 #define X 0xff
 #define _ 0x00
-unsigned char SAA5050_fnt_extra[] = {
+unsigned char saa5050_fnt_extra[] = {
   // Enter key fgx
   _,_,_,_,_,_,_,_,_,_,_,_,
   _,_,_,_,_,_,_,_,_,_,_,_,
@@ -318,7 +318,7 @@ unsigned char SAA5050_fnt_extra[] = {
   _,_,_,_,_,_,_,_,_,_,_,_,
   _,_,_,_,_,_,_,_,_,_,_,_,
 };
-signed SAA5050_fnt_extra_size = sizeof(SAA5050_fnt_extra) / sizeof(SAA5050_fnt_extra[0]);
+signed saa5050_fnt_extra_size = sizeof(saa5050_fnt_extra) / sizeof(saa5050_fnt_extra[0]);
 
 #define P2000T_BLACK   0
 #define P2000T_RED     1
@@ -329,7 +329,7 @@ signed SAA5050_fnt_extra_size = sizeof(SAA5050_fnt_extra) / sizeof(SAA5050_fnt_e
 #define P2000T_CYAN    6
 #define P2000T_WHITE   7
 
-uint32_t PalXRGB[8] =     /* SAA5050 palette                       */
+uint32_t pal_xrgb[8] =     /* SAA5050 palette                       */
 {
   0x00000000, //black
   0x00FF0000, //red

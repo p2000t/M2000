@@ -40,13 +40,14 @@
 #define CHAR_HEIGHT 20
 #define CHAR_WIDTH_ORIG 6
 #define CHAR_HEIGHT_ORIG 10
-#define OSK_TOTAL_CHARS 36
-#define OSK_HIGHLIGHT_XPOS 19
-#define OSK_LINE_YPOS 23
+#define OSKS_TOTAL_CHARS 36
+#define OSKS_HIGHLIGHT_XPOS 19
+#define OSKS_LINE_YPOS 23
 #define DEBOUNCE_NORMAL 30
 #define DEBOUNCE_FAST 5
+#define M2000_VARIABLE_KEYBOARD_MAPPING "m2000_keyboard_mapping"
 #ifndef MAX_PATH
-   #define MAX_PATH 260
+#define MAX_PATH 260
 #endif
 
 static uint32_t *frame_buf;
@@ -62,6 +63,7 @@ static Z80_Regs registers;
 static bool osks_visible = false;
 static int osks_index = 0;
 static char default_cas_path[MAX_PATH];
+static int m2000_keyboard_mapping = SYMBOLIC;
 
 static retro_video_refresh_t video_cb;
 static retro_audio_sample_t audio_cb;
@@ -102,23 +104,23 @@ void Pause(int ms)
 int LoadFont(const char *filename)
 {
    byte *p = font_buf;
-   int linePixelsPrev, linePixels, linePixelsNext;
-   int pixelN, pixelE, pixelS, pixelW, pixelSW, pixelSE, pixelNW, pixelNE;
+   int line_pixels_prev, line_pixels, line_pixels_next;
+   int pixel_n, pixel_e, pixel_s, pixel_w, pixel_sw, pixel_se, pixel_nw, pixel_ne;
    // Stretch 6x10 characters to 12x20, so we can do character rounding 
    // 96 alphanum chars + 64 cont. graphic chars + 64 sep. graphic chars
    for (int i = 0; i < NUMBER_OF_CHARS * CHAR_HEIGHT_ORIG; i += CHAR_HEIGHT_ORIG) 
    { 
-      linePixelsPrev = 0;
-      linePixels = 0;
-      linePixelsNext = SAA5050_fnt[i] << CHAR_WIDTH_ORIG;
+      line_pixels_prev = 0;
+      line_pixels = 0;
+      line_pixels_next = saa5050_fnt[i] << CHAR_WIDTH_ORIG;
       for (int j = 0; j < CHAR_HEIGHT_ORIG; ++j) 
       {
-         linePixelsPrev = linePixels >> CHAR_WIDTH_ORIG;
-         linePixels = linePixelsNext >> CHAR_WIDTH_ORIG;
-         linePixelsNext = j < (CHAR_HEIGHT_ORIG-1) ? SAA5050_fnt[i + j + 1] : 0;
+         line_pixels_prev = line_pixels >> CHAR_WIDTH_ORIG;
+         line_pixels = line_pixels_next >> CHAR_WIDTH_ORIG;
+         line_pixels_next = j < (CHAR_HEIGHT_ORIG-1) ? saa5050_fnt[i + j + 1] : 0;
          for (int k = 0; k < CHAR_WIDTH_ORIG; ++k)
          {
-            if (linePixels & 0x20) // bit 6 set = pixel set
+            if (line_pixels & 0x20) // bit 6 set = pixel set
             {
                *p = *(p+1) = *(p+CHAR_WIDTH) = *(p+CHAR_WIDTH+1) = 0xff;
             }
@@ -126,34 +128,34 @@ int LoadFont(const char *filename)
             else if (i < 96 * CHAR_HEIGHT_ORIG)
             { 
                // for character rounding, look at 8 pixels around current pixel
-               pixelN  = linePixelsPrev & 0x20;
-               pixelE  = linePixels     & 0x10;
-               pixelS  = linePixelsNext & 0x20;
-               pixelW  = linePixels     & 0x40;
-               pixelNE = linePixelsPrev & 0x10;
-               pixelSE = linePixelsNext & 0x10;
-               pixelSW = linePixelsNext & 0x40;
-               pixelNW = linePixelsPrev & 0x40;
+               pixel_n  = line_pixels_prev & 0x20;
+               pixel_e  = line_pixels     & 0x10;
+               pixel_s  = line_pixels_next & 0x20;
+               pixel_w  = line_pixels     & 0x40;
+               pixel_ne = line_pixels_prev & 0x10;
+               pixel_se = line_pixels_next & 0x10;
+               pixel_sw = line_pixels_next & 0x40;
+               pixel_nw = line_pixels_prev & 0x40;
 
                // rounding in NW direction
-               if (pixelN && pixelW && !pixelNW) *p = 0xff;
+               if (pixel_n && pixel_w && !pixel_nw) *p = 0xff;
                // rounding in NE direction
-               if (pixelN && pixelE && !pixelNE) *(p+1) = 0xff;
+               if (pixel_n && pixel_e && !pixel_ne) *(p+1) = 0xff;
                // rounding in SE direction
-               if (pixelS && pixelE && !pixelSE) *(p+CHAR_WIDTH+1) = 0xff;
+               if (pixel_s && pixel_e && !pixel_se) *(p+CHAR_WIDTH+1) = 0xff;
                // rounding in SW direction
-               if (pixelS && pixelW && !pixelSW) *(p+CHAR_WIDTH) = 0xff;
+               if (pixel_s && pixel_w && !pixel_sw) *(p+CHAR_WIDTH) = 0xff;
             }
             //process next pixel to the right
             p += 2;
-            linePixelsPrev<<=1;
-            linePixels<<=1;
-            linePixelsNext<<=1;
+            line_pixels_prev<<=1;
+            line_pixels<<=1;
+            line_pixels_next<<=1;
          }
          p += CHAR_WIDTH;
       }
    }
-   memcpy(p, SAA5050_fnt_extra, SAA5050_fnt_extra_size);
+   memcpy(p, saa5050_fnt_extra, saa5050_fnt_extra_size);
    return 1;
 }
 
@@ -179,39 +181,39 @@ void Sound(int toggle)
 /****************************************************************************/
 void FlushSound(void)
 {
-   static int soundstate = 0;
+   static int sound_state = 0;
    static int smooth = 0;
 
    for (int i=0; i<buf_size; ++i) 
    {
       if (sound_buf[i]) 
       {
-         soundstate = sound_buf[i] << 10;
+         sound_state = sound_buf[i] << 10;
          sound_buf[i] = 0;
       }
       //low pass filtering
-      smooth = (smooth << 1) + soundstate - smooth; 
+      smooth = (smooth << 1) + sound_state - smooth; 
       smooth >>= 1;
       audio_batch_buf[2*i] = audio_batch_buf[2*i+1] = smooth;
    }
-   soundstate >>= 1;
+   sound_state >>= 1;
    audio_batch_cb(audio_batch_buf, buf_size);
 }
 
 /****************************************************************************/
 /*** Poll the keyboard on every interrupt                                 ***/
 /****************************************************************************/
-static int comboKey = -1;
-static int debounceDevice = -1;
-static int debounceId = -1;
-static int debounceCount = 0;
-static int debounceInit = DEBOUNCE_NORMAL;
+static int delayed_key = -1;
+static int debounce_device = -1;
+static int debounce_id = -1;
+static int debounce_count = 0;
+static int debounce_init = DEBOUNCE_NORMAL;
 
 void SetDebounce(int device, int id) 
 {
-   debounceDevice = device;
-   debounceId = id;
-   debounceCount = debounceInit; //debounce for 0.5 seconds
+   debounce_device = device;
+   debounce_id = id;
+   debounce_count = debounce_init; //debounce for 0.5 seconds
 }
 
 void PushKey(int code) 
@@ -219,10 +221,13 @@ void PushKey(int code)
    KeyMap[code / 8] &= ~(1 << (code % 8));
 }
 
-void PushComboKey(int code) 
+void PushKeyWithShift(int code, bool shift_pressed_last_frame) 
 {
    PushKey(P2000_KEYCODE_LSHIFT);
-   comboKey = code;
+   if (shift_pressed_last_frame)
+      PushKey(code);
+   else
+      delayed_key = code;
 }
 
 #define JOY_0(id) input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, id)
@@ -230,21 +235,24 @@ void PushComboKey(int code)
 
 void Keyboard(void) 
 {
-   if (comboKey >= 0) 
-      PushKey(comboKey); //press second key in a combo
+   if (delayed_key >= 0) 
+      PushKey(delayed_key); // do delayed key press
+   delayed_key = -1;
 
-   //wait for debounce
-   if (debounceDevice >= 0)
+   // wait for debounce
+   if (debounce_device >= 0)
    {
       //skip handling of other keys while source key/button is pressed
-      if (input_state_cb(0, debounceDevice, 0, debounceId) && --debounceCount > 0)
+      if (input_state_cb(0, debounce_device, 0, debounce_id) && --debounce_count > 0)
          return;
-      debounceInit = debounceCount ? DEBOUNCE_NORMAL : DEBOUNCE_FAST;
-      comboKey = debounceDevice = debounceId = -1;
+      debounce_init = debounce_count ? DEBOUNCE_NORMAL : DEBOUNCE_FAST;
+      debounce_device = debounce_id = -1;
    }
 
    //poll latest keyboard state
    input_poll_cb();
+
+   bool shift_pressed_last_frame = (~KeyMap[9] & 0xff) ? 1 : 0;
 
    //release all P2000T keys
    for (int i = 0; i < 10; i++)
@@ -276,19 +284,17 @@ void Keyboard(void)
       {
          unsigned p2000KeyCode = osks_ascii_map[osks_index][1];
          if (osks_ascii_map[osks_index][2])
-            PushComboKey(p2000KeyCode);
+            PushKeyWithShift(p2000KeyCode, shift_pressed_last_frame);
          else
             PushKey(p2000KeyCode);
-         SetDebounce (RETRO_DEVICE_JOYPAD, JOY_0(RETRO_DEVICE_ID_JOYPAD_A) 
-            ? RETRO_DEVICE_ID_JOYPAD_A : RETRO_DEVICE_ID_JOYPAD_B);
       }
 
       //prepare OSK display array
       unsigned (*p)[3] = osks_ascii_map;
       p += osks_index;
-      if (osks_index < OSK_HIGHLIGHT_XPOS)
+      if (osks_index < OSKS_HIGHLIGHT_XPOS)
          p += osks_map_length;
-      p -= OSK_HIGHLIGHT_XPOS;
+      p -= OSKS_HIGHLIGHT_XPOS;
       for (int i = 0; i < 40; i++, p++)
       {
          if (!(*p)[0])
@@ -301,35 +307,64 @@ void Keyboard(void)
    /*************************/
    /* handle keyboard input */
    /*************************/
-   for (int i = 0; i < key_map_len; i++) 
+   if (m2000_keyboard_mapping == POSITIONAL)
    {
-      int retro_key = key_map[i] & 0xffff;
-      int retro_key2 = key_map[i] >> 16;
-      if (KEYB_0(retro_key) || (retro_key2 && KEYB_0(retro_key2)))
-         PushKey(i);
+      /* positional key mapping */
+      for (int i = 0; i < key_map_len; i++) 
+      {
+         int retro_key = key_map[i] & 0xffff;
+         int retro_key2 = key_map[i] >> 16;
+         if (KEYB_0(retro_key) || (retro_key2 && KEYB_0(retro_key2)))
+            PushKey(i);
+      }
+   }
+   else
+   {
+      /* symbolic key mapping */
+      bool retro_shift_down = KEYB_0(RETROK_LSHIFT) || KEYB_0(RETROK_RSHIFT);
+      bool sym_key_pressed = false;
+      sym_key_mapping_t mapping;
+      for (int i = 0; i < sym_key_map_len; i++)
+      {
+         mapping = sym_key_map[i];
+         if (KEYB_0(mapping.retro_key))
+         {
+            bool simple_mapping = (mapping.p2000_key + LSHIFT == mapping.shifted_p2000_key);
+            if (!simple_mapping && sym_key_pressed)
+               continue;
+
+            unsigned p2000_key = retro_shift_down ? mapping.shifted_p2000_key : mapping.p2000_key;
+            bool p2000_key_needs_shift = p2000_key >= LSHIFT;
+            unsigned p2000_base_key = p2000_key_needs_shift ? p2000_key-LSHIFT : p2000_key;
+
+            if (p2000_key_needs_shift == shift_pressed_last_frame)
+               PushKey(p2000_base_key);
+            else
+               delayed_key = p2000_base_key;
+
+            if (p2000_key_needs_shift)
+               PushKey(P2000_KEYCODE_LSHIFT);
+
+            sym_key_pressed = true;
+            if (!simple_mapping)
+               break;
+         }
+      }
+      if (sym_key_pressed)
+         return;
+      if (retro_shift_down)
+         PushKey(KEYB_0(RETROK_LSHIFT) ? P2000_KEYCODE_LSHIFT : P2000_KEYCODE_RSHIFT);
    }
 
    /*************************************************/
    /* map F1 to <START>, F2 to <STOP>, F3 to <ZOEK> */
    /*************************************************/
    if (KEYB_0(RETROK_F1))
-   {
-      //emulate <START> key press = Shift + numpad 3
-      PushComboKey(P2000_KEYCODE_NUM_3);
-      SetDebounce(RETRO_DEVICE_KEYBOARD, RETROK_F1);
-   }
+      PushKeyWithShift(P2000_KEYCODE_NUM_3, shift_pressed_last_frame);
    if (KEYB_0(RETROK_F2))
-   {
-      //emulate <STOP> key press = Shift + numpad period .
-      PushComboKey(P2000_KEYCODE_NUM_PERIOD);
-      SetDebounce(RETRO_DEVICE_KEYBOARD, RETROK_F2);
-   }
+      PushKeyWithShift(P2000_KEYCODE_NUM_PERIOD, shift_pressed_last_frame);
    if (KEYB_0(RETROK_F3))
-   {
-      //emulate <ZOEK> key press = Shift + numpad 1
-      PushComboKey(P2000_KEYCODE_NUM_1);
-      SetDebounce(RETRO_DEVICE_KEYBOARD, RETROK_F3);
-   }
+      PushKeyWithShift(P2000_KEYCODE_NUM_1, shift_pressed_last_frame);
 
    /***********************************/
    /* map joypad input to key presses */
@@ -345,17 +380,9 @@ void Keyboard(void)
    if (JOY_0(RETRO_DEVICE_ID_JOYPAD_A) || JOY_0(RETRO_DEVICE_ID_JOYPAD_B))
       PushKey(P2000_KEYCODE_SPACE);
    if (JOY_0(RETRO_DEVICE_ID_JOYPAD_START))
-   {
-      //emulate <START> key press = Shift + numpad 3
-      PushComboKey(P2000_KEYCODE_NUM_3);
-      SetDebounce(RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_START);
-   }
+      PushKeyWithShift(P2000_KEYCODE_NUM_3, shift_pressed_last_frame);
    if (JOY_0(RETRO_DEVICE_ID_JOYPAD_SELECT))
-   {
-      //emulate <STOP> key press = Shift + numpad period .
-      PushComboKey(P2000_KEYCODE_NUM_PERIOD);
-      SetDebounce(RETRO_DEVICE_JOYPAD, RETRO_DEVICE_ID_JOYPAD_SELECT);
-   }
+      PushKeyWithShift(P2000_KEYCODE_NUM_PERIOD, shift_pressed_last_frame);
 }
 
 /****************************************************************************/
@@ -363,12 +390,12 @@ void Keyboard(void)
 /****************************************************************************/
 void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
-   //display OSK on bottom line
-   if (osks_visible && y == OSK_LINE_YPOS) 
+   //display OSKS on bottom line
+   if (osks_visible && y == OSKS_LINE_YPOS) 
    {
       c = osks_display[x];
       fg = P2000T_BLACK;
-      bg = x == OSK_HIGHLIGHT_XPOS ? P2000T_YELLOW : P2000T_CYAN;
+      bg = x == OSKS_HIGHLIGHT_XPOS ? P2000T_YELLOW : P2000T_CYAN;
       si = 0;
    }
 
@@ -384,7 +411,7 @@ void PutChar(int x, int y, int c, int fg, int bg, int si)
    {
       for (unsigned i = 0; i < CHAR_WIDTH; i++)
          buf[(x * CHAR_WIDTH + i) + (y * CHAR_HEIGHT + j) * VIDEO_BUFFER_WIDTH] = 
-            *p++ ? PalXRGB[fg] : PalXRGB[bg];
+            *p++ ? pal_xrgb[fg] : pal_xrgb[bg];
       if (si && (j & 1) == 0)
          p -= CHAR_WIDTH;
    }
@@ -406,13 +433,13 @@ void retro_init(void)
 {
    //log_cb(RETRO_LOG_INFO, "retro_init called\n");
    frame_buf = calloc(VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT, sizeof(uint32_t));
-   font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT + SAA5050_fnt_extra_size, sizeof(byte));
+   font_buf = calloc(NUMBER_OF_CHARS * CHAR_WIDTH * CHAR_HEIGHT + saa5050_fnt_extra_size, sizeof(byte));
    display_char_buf = calloc(80 * 24, sizeof(int));
    buf_size = SAMPLE_RATE / IFreq;
    sound_buf = calloc(buf_size, sizeof(char));
    audio_batch_buf = calloc(buf_size * 2, sizeof(int16_t)); // * 2 for stereo
-   osks_display = calloc(OSK_TOTAL_CHARS, sizeof(char));
-   InitP2000(monitor_rom, BasicNL_rom);
+   osks_display = calloc(OSKS_TOTAL_CHARS, sizeof(char));
+   InitP2000(monitor_rom, basic_nl_rom);
    PrnName = NULL; //disable printing
 }
 
@@ -471,13 +498,17 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
    va_end(va);
 }
 
-#ifdef DEBUG
-static void keyboard_cb(bool down, unsigned keycode, uint32_t character, uint16_t mod)
+static void check_variables(void)
 {
-   log_cb(RETRO_LOG_INFO, "Down: %s, Code: %d, Char: %u, Mod: %u.\n",
-      down ? "yes" : "no", keycode, character, mod);
+   struct retro_variable var;
+
+   var.key = M2000_VARIABLE_KEYBOARD_MAPPING;
+   var.value = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      m2000_keyboard_mapping = !strcmp(var.value, "positional") ? POSITIONAL : SYMBOLIC;
+   }
 }
-#endif
 
 void retro_set_environment(retro_environment_t cb)
 {
@@ -487,18 +518,19 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    // create empty keyboard callback, to allow for "Game Focus" detection
-   struct retro_keyboard_callback cb_kb = 
-#ifdef DEBUG
-      { keyboard_cb };
-#else
-      { NULL };
-#endif
+   struct retro_keyboard_callback cb_kb = { NULL };
    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb_kb);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
       log_cb = logging.log;
    else
       log_cb = fallback_log;
+
+   static struct retro_variable variables[] = {
+      { M2000_VARIABLE_KEYBOARD_MAPPING, "Keyboard mapping; symbolic|positional" },
+      { NULL, NULL },
+   };
+   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 }
 
 void retro_reset(void)
@@ -508,6 +540,10 @@ void retro_reset(void)
 
 void retro_run(void)
 {
+   bool updated = false;
+   if(environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+      check_variables();
+
    Z80_Execute();
 }
 
