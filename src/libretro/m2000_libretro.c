@@ -468,7 +468,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
    info->library_name     = "M2000";
-   info->library_version  = "v0.9";
+   info->library_version  = "v0.9.1";
    info->need_fullpath    = true;
    info->valid_extensions = "cas|p2000t";
 }
