@@ -8,6 +8,7 @@ Version 0.9.1
 * Windows
 * Linux
 * macOS
+* RetroArch (Libretro) - in progress
 
 ## Downloads
 
@@ -98,7 +99,7 @@ If you want to compile the M2000 sources yourself, then the instructions below w
   ```
 * Go into the M2000 directory and run make
   ```
-  cd M2000 && make
+  cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
   ```
@@ -117,7 +118,7 @@ Make sure you have both the `Xcode command line tools` and `brew` installed.
   ```
 * Go into the M2000 directory and run make
   ```
-  cd M2000 && make
+  cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
   ```
@@ -138,7 +139,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
   ```
 * Go into the M2000 directory and run make:
   ```
-  cd M2000 && make
+  cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
   ```
