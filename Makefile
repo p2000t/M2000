@@ -17,12 +17,16 @@
 #*   this file, and for a DISCLAIMER OF ALL WARRANTIES.                       *#
 #******************************************************************************#
 
-all: build
+all: allegro libretro
 
-build:
+allegro:
 	$(MAKE) -C src/allegro all
+
+libretro:
+	$(MAKE) -C src/libretro all
 
 clean:
 	$(MAKE) -C src/allegro clean
+	$(MAKE) -C src/libretro clean
 
-.PHONY: clean
+.PHONY: clean allegro libretro

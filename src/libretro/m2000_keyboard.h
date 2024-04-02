@@ -31,7 +31,7 @@
 #define P2000_KEYCODE_NUM_PERIOD 16 
 #define KEYMAP_LESS_GREATER    (RETROK_OEM_102 | (RETROK_DELETE << 16))
 
-int key_map[] =
+int pos_key_map[] =
 {
    RETROK_LEFT,        RETROK_6,      RETROK_UP,           RETROK_q,       RETROK_3,            RETROK_5,         RETROK_7,     RETROK_4,
    RETROK_TAB,         RETROK_h,      RETROK_z,            RETROK_s,       RETROK_d,            RETROK_g,         RETROK_j,     RETROK_f,
@@ -44,9 +44,9 @@ int key_map[] =
    RETROK_KP6,         RETROK_l,      RETROK_KP5,          RETROK_KP4,     RETROK_EQUALS,       RETROK_SEMICOLON, RETROK_i,     RETROK_QUOTE,
    RETROK_LSHIFT,      -1,            -1,                  -1,             -1,                  -1,               -1,           RETROK_RSHIFT
 };
-unsigned key_map_len = 80;
+unsigned pos_key_map_len = 80;
 
-enum keyboard_mapping 
+enum keyboard_mapping_mode 
 {
    SYMBOLIC   = 0, 
    POSITIONAL = 1
