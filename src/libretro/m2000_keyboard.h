@@ -135,8 +135,15 @@ sym_key_mapping_t sym_key_map[] =
 };
 unsigned sym_key_map_len = sizeof(sym_key_map) / sizeof(sym_key_map[0]);
 
+typedef struct osks_mapping
+{
+   unsigned ascii_code; /* note: values > 255 are used for extra keys */
+   unsigned p2000_code;
+   unsigned is_shifted;
+} osks_mapping_t;
+
 //maps ASCII characters to P2000T keycodes
-unsigned osks_ascii_map[][3] = 
+osks_mapping_t osks_ascii_map[] = 
 { 
    // { ASCII code, P2000T code, shift }
    { 257, 56, 1 }, // <START>
@@ -229,5 +236,4 @@ unsigned osks_ascii_map[][3] =
    { 258, 16, 1 }, // <STOP>
    {   0,  0, 0 }, // Terminator
 };
-
 unsigned osks_map_length = sizeof(osks_ascii_map) / sizeof(osks_ascii_map[0]) - 1; //exclude terminator
