@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "Z80.h"            /* Z80 emulation declarations    */
 
-#define EMULATOR_VERSION "0.9"
+#define EMULATOR_VERSION "0.9.1-develop"
 
 #if defined(_WIN32) // Windows
 #define PATH_SEPARATOR '\\'
