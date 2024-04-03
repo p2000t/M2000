@@ -575,7 +575,8 @@ void Z80_Patch (Z80_Regs *R)
      /* Truncate the tape image */
      if (TapeStream && !TapeProtect)
      {
-      ftruncate(fileno(TapeStream),ftell(TapeStream)); //ignore open handle errors
+      if (ftruncate(fileno(TapeStream),ftell(TapeStream)) != 0)
+        if (Verbose&4) puts ("EOT ftruncate error");
       Z80_WRMEM (caserror,0);
      }
      else
