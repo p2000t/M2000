@@ -483,10 +483,10 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    };
 
    info->geometry = (struct retro_game_geometry) {
-      .base_width   = 240,
-      .base_height  = 240,
-      .max_width    = 240,
-      .max_height   = 240,
+      .base_width   = VIDEO_BUFFER_WIDTH,
+      .base_height  = VIDEO_BUFFER_HEIGHT,
+      .max_width    = VIDEO_BUFFER_WIDTH,
+      .max_height   = VIDEO_BUFFER_HEIGHT,
       .aspect_ratio =  4.0f / 3.0f,
    };
 }
