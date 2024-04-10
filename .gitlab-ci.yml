@@ -37,11 +37,6 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-arm64.yml'
 
-  #################################### MISC ##################################
-  # Emscripten
-  - project: 'libretro-infrastructure/ci-templates'
-    file: '/emscripten-static.yml'
-
 # Stages for building
 stages:
   - build-prepare
@@ -87,11 +82,4 @@ libretro-build-osx-x64:
 libretro-build-osx-arm64:
   extends:
     - .libretro-osx-arm64-make-default
-    - .core-defs
-
-#################################### MISC ##################################
-# Emscripten
-libretro-build-emscripten:
-  extends:
-    - .libretro-emscripten-static-retroarch-master
     - .core-defs
