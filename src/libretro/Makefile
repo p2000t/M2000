@@ -2,7 +2,7 @@ STATIC_LINKING := 0
 AR             := ar
 
 ifeq ($(platform),)
-platform = unix
+   platform = unix
 ifeq ($(shell uname -a),)
    platform = win
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
@@ -22,9 +22,6 @@ ifeq ($(shell uname -a),)
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
 	system_platform = osx
 	arch = intel
-ifeq ($(shell uname -p),powerpc)
-	arch = ppc
-endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
 	system_platform = win
 endif
@@ -32,71 +29,24 @@ endif
 TARGET_NAME := m2000
 LIBM		= -lm
 
-ifeq ($(ARCHFLAGS),)
-ifeq ($(archs),ppc)
-   ARCHFLAGS = -arch ppc -arch ppc64
-else
-   ARCHFLAGS = -arch i386 -arch x86_64
-endif
-endif
-
-ifeq ($(platform), osx)
-ifndef ($(NOUNIVERSAL))
-   CFLAGS += $(ARCHFLAGS)
-   LFLAGS += $(ARCHFLAGS)
-endif
-endif
-
 ifeq ($(STATIC_LINKING), 1)
 EXT := a
 endif
 
 ifneq (,$(findstring unix,$(platform)))
-	EXT ?= so
+   EXT ?= so
    TARGET := $(TARGET_NAME)_libretro.$(EXT)
-   fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
-else ifeq ($(platform), linux-portable)
-   TARGET := $(TARGET_NAME)_libretro.$(EXT)
-   fpic := -fPIC -nostdlib
-   SHARED := -shared -Wl,--version-script=link.T
-	LIBM :=
 else ifneq (,$(findstring osx,$(platform)))
+   ifeq ($(CROSS_COMPILE),1)
+      TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+      CFLAGS   += $(TARGET_RULE)
+      CPPFLAGS += $(TARGET_RULE)
+      CXXFLAGS += $(TARGET_RULE)
+      LDFLAGS  += $(TARGET_RULE)
+   endif
    TARGET := $(TARGET_NAME)_libretro.dylib
-   fpic := -fPIC
    SHARED := -dynamiclib
-else ifneq (,$(findstring ios,$(platform)))
-   TARGET := $(TARGET_NAME)_libretro_ios.dylib
-	fpic := -fPIC
-	SHARED := -dynamiclib
-
-ifeq ($(IOSSDK),)
-   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
-endif
-
-	DEFINES := -DIOS
-	CC = cc -arch armv7 -isysroot $(IOSSDK)
-ifeq ($(platform),ios9)
-CC     += -miphoneos-version-min=8.0
-CFLAGS += -miphoneos-version-min=8.0
-else
-CC     += -miphoneos-version-min=5.0
-CFLAGS += -miphoneos-version-min=5.0
-endif
-else ifneq (,$(findstring qnx,$(platform)))
-	TARGET := $(TARGET_NAME)_libretro_qnx.so
-   fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
-else ifeq ($(platform), emscripten)
-   TARGET := $(TARGET_NAME)_libretro_emscripten.bc
-   fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
-else ifeq ($(platform), vita)
-   TARGET := $(TARGET_NAME)_vita.a
-   CC = arm-vita-eabi-gcc
-   AR = arm-vita-eabi-ar
-   CFLAGS += -Wl,-q -Wall -O3
-	STATIC_LINKING = 1
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
@@ -113,13 +63,7 @@ endif
 
 VPATH = ../
 OBJECTS := P2000.o Z80.o m2000_libretro.o
-CFLAGS += -I./libretro-common/include -Wall $(fpic)
-
-ifneq (,$(findstring qnx,$(platform)))
-CFLAGS += -Wc,-std=c99
-else
-CFLAGS += -std=gnu99
-endif
+CFLAGS += -I./libretro-common/include -Wall -std=gnu99 -fPIC
 
 all: clean $(TARGET)
 
@@ -127,11 +71,11 @@ $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
 else
-	$(CC) $(fpic) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
+	$(CC) -fPIC $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(fpic) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)
