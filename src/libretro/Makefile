@@ -47,6 +47,24 @@ else ifneq (,$(findstring osx,$(platform)))
    endif
    TARGET := $(TARGET_NAME)_libretro.dylib
    SHARED := -dynamiclib
+else ifeq ($(platform),ios-arm64)
+   ifeq ($(IOSSDK),)
+      IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
+   endif
+   CFLAGS   += -arch arm64 -isysroot $(IOSSDK)
+   CXXFLAGS += -arch arm64 -isysroot $(IOSSDK)
+   LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
+   TARGET := $(TARGET_NAME)_libretro_ios.dylib
+   SHARED := -dynamiclib
+else ifeq ($(platform),tvos-arm64)
+   ifeq ($(IOSSDK),)
+      IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
+   endif
+   CFLAGS   += -arch arm64 -isysroot $(IOSSDK)
+   CXXFLAGS += -arch arm64 -isysroot $(IOSSDK)
+   LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
+   TARGET := $(TARGET_NAME)_libretro_tvos.dylib
+   SHARED := -dynamiclib
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
