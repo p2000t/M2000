@@ -41,8 +41,6 @@ else ifneq (,$(findstring osx,$(platform)))
    ifeq ($(CROSS_COMPILE),1)
       TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
       CFLAGS   += $(TARGET_RULE)
-      CPPFLAGS += $(TARGET_RULE)
-      CXXFLAGS += $(TARGET_RULE)
       LDFLAGS  += $(TARGET_RULE)
    endif
    TARGET := $(TARGET_NAME)_libretro.dylib
@@ -52,7 +50,6 @@ else ifeq ($(platform),ios-arm64)
       IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
    endif
    CFLAGS   += -arch arm64 -isysroot $(IOSSDK)
-   CXXFLAGS += -arch arm64 -isysroot $(IOSSDK)
    LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    SHARED := -dynamiclib
@@ -61,16 +58,13 @@ else ifeq ($(platform),tvos-arm64)
       IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
    endif
    CFLAGS   += -arch arm64 -isysroot $(IOSSDK)
-   CXXFLAGS += -arch arm64 -isysroot $(IOSSDK)
    LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
    TARGET := $(TARGET_NAME)_libretro_tvos.dylib
    SHARED := -dynamiclib
 else ifneq (,$(findstring android,$(platform)))
    TARGET := $(TARGET_NAME)_libretro_android.so
-   fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined
    TARGET_TRIPLE := unknown
-
    ifeq ($(platform), android-arm)
       TARGET_TRIPLE = armv7a-linux-androideabi
    else ifeq ($(platform), android-arm64)
@@ -80,7 +74,6 @@ else ifneq (,$(findstring android,$(platform)))
    else ifeq ($(platform), android-x86_64)
       TARGET_TRIPLE = x86_64-linux-android
    endif
-
    CC = $(ANDROID_NDK_LLVM)/bin/$(TARGET_TRIPLE)21-clang
    AR = $(ANDROID_NDK_LLVM)/bin/llvm-ar
 else
