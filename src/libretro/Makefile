@@ -79,7 +79,6 @@ else ifneq (,$(findstring android,$(platform)))
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
-   LDFLAGS += -mwindows
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
    ifeq ($(_WIN64)$(__x86_64__),)
       LDFLAGS += -m32
