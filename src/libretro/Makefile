@@ -80,10 +80,6 @@ else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
-   ifeq ($(_WIN64)$(__x86_64__),)
-      LDFLAGS += -m32
-      CFLAGS += -m32
-   endif
 endif
 
 LDFLAGS += $(LIBM)
