@@ -65,6 +65,24 @@ else ifeq ($(platform),tvos-arm64)
    LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
    TARGET := $(TARGET_NAME)_libretro_tvos.dylib
    SHARED := -dynamiclib
+else ifneq (,$(findstring android,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro_android.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,--no-undefined
+   TARGET_TRIPLE := unknown
+
+   ifeq ($(platform), android-arm)
+      TARGET_TRIPLE = armv7a-linux-androideabi
+   else ifeq ($(platform), android-arm64)
+      TARGET_TRIPLE = aarch64-linux-android
+   else ifeq ($(platform), android-x86)
+      TARGET_TRIPLE = i686-linux-android
+   else ifeq ($(platform), android-x86_64)
+      TARGET_TRIPLE = x86_64-linux-android
+   endif
+
+   CC = $(ANDROID_NDK_LLVM)/bin/$(TARGET_TRIPLE)21-clang
+   AR = $(ANDROID_NDK_LLVM)/bin/llvm-ar
 else
    CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
