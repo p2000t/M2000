@@ -1,5 +1,6 @@
 STATIC_LINKING := 0
-AR             := ar
+AR             ?= ar
+CC             ?= gcc
 
 ifeq ($(platform),)
    platform = unix
@@ -27,7 +28,7 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 endif
 
 TARGET_NAME := m2000
-LIBM		= -lm
+LIBM         = -lm
 
 ifeq ($(STATIC_LINKING), 1)
 EXT := a
