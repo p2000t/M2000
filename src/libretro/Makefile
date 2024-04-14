@@ -77,7 +77,6 @@ else ifneq (,$(findstring android,$(platform)))
    CC = $(ANDROID_NDK_LLVM)/bin/$(TARGET_TRIPLE)21-clang
    AR = $(ANDROID_NDK_LLVM)/bin/llvm-ar
 else
-   CC = gcc
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
 endif
