@@ -21,7 +21,7 @@ jobs:
           LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib ../icons/icon64.res"
     - name: Build Libretro
       shell: bash
-      run: make libretro
+      run: make libretro CC=gcc
     - name: Create installer
       shell: cmd
       run: |
@@ -48,9 +48,6 @@ jobs:
           CC=C:/ProgramData/chocolatey/lib/winlibs/tools/mingw32/bin/gcc \
           CFLAGS="-Wall -O2 -m32 -I${{ github.workspace }}/allegro/include" \
           LDFLAGS="-s -mwindows -m32 -L${{ github.workspace }}/allegro/lib ../icons/icon32.res"
-    - name: Build Libretro
-      shell: bash
-      run: make libretro
     - name: Create installer
       shell: cmd
       run: |
@@ -71,7 +68,7 @@ jobs:
     - name: Build Allegro
       run: make allegro
     - name: Build Libretro
-      run: make libretro
+      run: make libretro CC=gcc
     - name: Copy files
       run: |
         mkdir -p package/M2000_amd64/usr/bin/
@@ -108,7 +105,7 @@ jobs:
     - name: Build Allegro
       run: make allegro
     - name: Build Libretro
-      run: make libretro
+      run: make libretro CC=gcc
     - name: Copy files
       run: |
         cp M2000 package/M2000.app/Contents/MacOS/
