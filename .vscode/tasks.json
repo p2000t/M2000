@@ -4,21 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Make",
+            "label": "Make Allegro",
             "type": "shell",
-            "command": "make",
+            "command": "make allegro",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "Build and Run",
+            "label": "Build and Run Allegro",
             "type": "shell",
             "command": "./M2000",
             "args": [
                 //"test/SAA5050.cas"
             ],
             "dependsOn": [
-                "Make"
+                "Make Allegro"
             ],
             "group": {
                 "kind": "build",

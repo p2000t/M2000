@@ -186,6 +186,14 @@ int CopyFile(ALLEGRO_PATH *sourceFolder, const char * filename, ALLEGRO_PATH *de
   return ret;
 }
 
+bool al_directory_exists(const char * dir)
+{
+  ALLEGRO_FS_ENTRY *fsDir = al_create_fs_entry(dir);
+  bool exists = al_open_directory(fsDir);
+  al_destroy_fs_entry(fsDir);
+  return exists;
+}
+
 void InitDocumentFolders() 
 {
   int i;
@@ -197,11 +205,11 @@ void InitDocumentFolders()
   CopyFile(resourcePath, "README.md", docPath);
   al_set_path_filename(docPath, NULL);
 
-  if (!al_filename_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
+  if (!al_directory_exists(al_path_cstr(userCassettesPath, PATH_SEPARATOR)))
     for (i=0; installCassettes[i]; i++)
       CopyFile(resourcePath, installCassettes[i], userCassettesPath);
 
-  if (!al_filename_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
+  if (!al_directory_exists(al_path_cstr(userCartridgesPath, PATH_SEPARATOR)))
     for (i=0; installCartridges[i]; i++)
       CopyFile(resourcePath, installCartridges[i], userCartridgesPath);
 
