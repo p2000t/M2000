@@ -37,10 +37,19 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/osx-arm64.yml'
 
-  #################################### MISC ##################################
-  # Emscripten
+  ################################## CELLULAR ################################
+  # Android
   - project: 'libretro-infrastructure/ci-templates'
-    file: '/emscripten-static.yml'
+    file: '/android-make.yml'
+
+  # iOS
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/ios-arm64.yml'
+
+  #################################### MISC ##################################
+  # tvOS
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/tvos-arm64.yml'
 
 # Stages for building
 stages:
@@ -51,7 +60,7 @@ stages:
 ##############################################################################
 #################################### STAGES ##################################
 ##############################################################################
-#
+
 ################################### DESKTOPS #################################
 # Windows 64-bit
 libretro-build-windows-x64:
@@ -89,9 +98,40 @@ libretro-build-osx-arm64:
     - .libretro-osx-arm64-make-default
     - .core-defs
 
-#################################### MISC ##################################
-# Emscripten
-libretro-build-emscripten:
+################################### CELLULAR #################################
+# Android ARMv7a
+android-armeabi-v7a:
   extends:
-    - .libretro-emscripten-static-retroarch-master
+    - .libretro-android-make-armeabi-v7a
+    - .core-defs
+
+# Android ARMv8a
+android-arm64-v8a:
+  extends:
+    - .libretro-android-make-arm64-v8a
+    - .core-defs
+
+# Android 64-bit x86
+android-x86_64:
+  extends:
+    - .libretro-android-make-x86_64
+    - .core-defs
+
+# Android 32-bit x86
+android-x86:
+  extends:
+    - .libretro-android-make-x86
+    - .core-defs
+
+# iOS
+libretro-build-ios-arm64:
+  extends:
+    - .libretro-ios-arm64-make-default
+    - .core-defs
+
+##################################### MISC ###################################
+# tvOS
+libretro-build-tvos-arm64:
+  extends:
+    - .libretro-tvos-arm64-make-default
     - .core-defs
