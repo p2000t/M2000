@@ -1,4 +1,4 @@
-# M2000 - Philips P2000T home computer emulator
+# M2000 - Philips P2000T Home Computer Emulator
 Version 0.9.1
 
 ![P2000T](/img/P2000T.png)
@@ -8,14 +8,13 @@ Version 0.9.1
 * Windows
 * Linux
 * macOS
-* RetroArch (Libretro) - in progress
+* [RetroArch (Libretro)](https://docs.libretro.com/library/m2000/)
 
-## Downloads
+:point_right: Note: to download P2000T cassette programs, please go to: [https://github.com/p2000t/software/cassettes/](https://github.com/p2000t/software/tree/master/cassettes/)
 
-For downloading the latest release, please see the [M2000 releases](https://github.com/p2000t/M2000/releases) page.\
-Get additional cassette- and cartridge dumps from here: https://github.com/p2000t/software/
+## Download and install M2000 (as Standalone Emulator)
 
-### Installation
+To download the latest standalone release of M2000, please go to the [M2000 releases](https://github.com/p2000t/M2000/releases) page.
 
 Installation of M2000 depends on your platform:
 * **Windows** (64 bit) \
@@ -29,16 +28,25 @@ Installation of M2000 depends on your platform:
   sudo apt -f install M2000_amd64.deb
   ```
 
+## Download M2000 (as RetroArch Core)
+
+For this you'll need to have [RetroArch](https://www.retroarch.com/) installed and running.
+
+* From RetroArch's **Main Menu** select **Online Updater** and then click **Update Core Info Files** to make sure you've got the latest core info files.
+* Then from RetroArch's **Main Menu** select **Load Core** > **Download a Core** and then select **Philips - P2000T (M2000)**. \
+  This Core let's you play `.cas` cassette games, but you can also run the M2000 Core without content to start in P2000T Basic right away. \
+  For more information, please go to https://docs.libretro.com/library/m2000/
+
 ## What's emulated
 
 -  Philips P2000T home computer
 -  Support for a single ROM cartridge
--  User-definable amount of RAM
+-  User-definable amount of RAM (only for Standalone Emulator)
 -  One tape drive
 -  Sound
 -  SAA5050 character rounding
 
-## Control Keys
+## Control Keys (only for Standalone Emulator)
 ```
 Ctrl-I           -  Insert cassette dialog
 Ctrl-O           -  Open/Boot cassette dialog
@@ -64,12 +72,13 @@ Ctrl-M           -  Mute/unmute sound
 Ctrl-Q           -  Quit emulator
 ```
 
-## Command line options
+## Configuration (only for Standalone Emulator)
+
+### Command line options
 ```
 M2000 [filename]       Optional cassette (.cas) or cartridge (.bin) to preload
                        When a cassette (.cas) is provided, BASIC will try to boot it
 ```
-
 ### Configuration file
 
 After starting M2000 for the first time, a configuration file named `M2000.cfg` will be created in the root of the M2000 folder inside the user's Documents folder. This is a plain text file which can be edited by the user.
@@ -150,7 +159,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 :point_right: For P2000T documentation, please go to: https://github.com/p2000t/documentation
 
-:point_right: To download P2000T games, please go to: [https://github.com/p2000t/software/cassette/games](https://github.com/p2000t/software/tree/master/cassettes/games)
+:point_right: To download P2000T games, please go to: [https://github.com/p2000t/software/cassettes/games](https://github.com/p2000t/software/tree/master/cassettes/games)
 
 ### P2000 documentation
 * A large collection of (scanned) P2000 documents, P2000gg and Nat.Lab. newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation
