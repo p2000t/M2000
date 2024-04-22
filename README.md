@@ -32,7 +32,7 @@ Installation of M2000 depends on your platform:
 
 For this you'll need to have [RetroArch](https://www.retroarch.com/) installed and running.
 
-* From RetroArch's **Main Menu** go to **Online Updater** and then select **Update Core Info Files** to make sure you've got the latest core info files.
+* From RetroArch's **Main Menu** go to **Online Updater** and then select **Update Core Info Files** to ensure you've got the latest core info files.
 * Then from RetroArch's **Main Menu** go to **Load Core** > **Download a Core** and then select **Philips - P2000T (M2000)**. \
   This Core let's you play `.cas` cassette games, but you can also run the M2000 Core without content to start in P2000T Basic right away.
 
