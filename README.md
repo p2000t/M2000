@@ -35,7 +35,8 @@ For this you'll need to have [RetroArch](https://www.retroarch.com/) installed a
 * From RetroArch's **Main Menu** select **Online Updater** and then click **Update Core Info Files** to make sure you've got the latest core info files.
 * Then from RetroArch's **Main Menu** select **Load Core** > **Download a Core** and then select **Philips - P2000T (M2000)**. \
   This Core let's you play `.cas` cassette games, but you can also run the M2000 Core without content to start in P2000T Basic right away. \
-  For more information, please go to https://docs.libretro.com/library/m2000/
+
+For more information, please go to https://docs.libretro.com/library/m2000/
 
 ## What's emulated
 
