@@ -51,6 +51,10 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/tvos-arm64.yml'
 
+  # Emscripten
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/emscripten-static.yml'
+
 # Stages for building
 stages:
   - build-prepare
@@ -134,4 +138,10 @@ libretro-build-ios-arm64:
 libretro-build-tvos-arm64:
   extends:
     - .libretro-tvos-arm64-make-default
+    - .core-defs
+
+# Emscripten
+libretro-build-emscripten:
+  extends:
+    - .libretro-emscripten-static-retroarch-master
     - .core-defs

@@ -1,6 +1,7 @@
 STATIC_LINKING := 0
 AR             ?= ar
 CC             ?= gcc
+FPIC           := -fPIC
 
 ifeq ($(platform),)
    platform = unix
@@ -15,24 +16,8 @@ else ifneq ($(findstring win,$(shell uname -a)),)
 endif
 endif
 
-# system platform
-system_platform = unix
-ifeq ($(shell uname -a),)
-	EXE_EXT = .exe
-	system_platform = win
-else ifneq ($(findstring Darwin,$(shell uname -a)),)
-	system_platform = osx
-	arch = intel
-else ifneq ($(findstring MINGW,$(shell uname -a)),)
-	system_platform = win
-endif
-
 TARGET_NAME := m2000
 LIBM         = -lm
-
-ifeq ($(STATIC_LINKING), 1)
-EXT := a
-endif
 
 ifneq (,$(findstring unix,$(platform)))
    EXT ?= so
@@ -77,6 +62,11 @@ else ifneq (,$(findstring android,$(platform)))
    endif
    CC = $(ANDROID_NDK_LLVM)/bin/$(TARGET_TRIPLE)21-clang
    AR = $(ANDROID_NDK_LLVM)/bin/llvm-ar
+else ifeq ($(platform), emscripten)
+   EXT ?= bc
+   TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
+   STATIC_LINKING = 1
+   FPIC =
 else
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
@@ -92,7 +82,7 @@ endif
 
 VPATH = ../
 OBJECTS := P2000.o Z80.o m2000_libretro.o
-CFLAGS += -I./libretro-common/include -Wall -std=gnu99 -fPIC
+CFLAGS += -I./libretro-common/include -Wall -std=gnu99 $(FPIC)
 
 all: clean $(TARGET)
 
@@ -100,7 +90,7 @@ $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
 else
-	$(CC) -fPIC $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
+	$(CC) $(FPIC) $(SHARED) $(INCLUDES) -o $@ $(OBJECTS) $(LDFLAGS)
 endif
 
 %.o: %.c
