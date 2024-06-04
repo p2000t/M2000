@@ -769,9 +769,9 @@ void RefreshScreen_T(void)
        reveal display */
     fg = 7;
     bg = 0;
-    si = 0;
+    si = 0; // superimpose
     gr = 0;
-    fl = 0;
+    fl = 0; // flashing
     cg = 1;
     hg = 0;
     conceal = 0;
@@ -831,14 +831,10 @@ void RefreshScreen_T(void)
           break;
         /* Normal height */
         case 0x0c:
-          if (si)
-            hg = 0;
           si = 0;
           break;
         /* Double height */
         case 0x0d:
-          if (!si)
-            hg = 0;
           si = 1;
           if (!found_si)
             found_si = 1;
