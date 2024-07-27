@@ -37,7 +37,6 @@
         <key>LSItemContentTypes</key>
         <array>
             <string>org.m2000.cassette</string>
-            <string>org.m2000.cassette2</string>
         </array>
     </dict>
   </array>
@@ -62,25 +61,6 @@
         <string>M2000 cassette file</string>
         <key>UTTypeIconFile</key>
         <string>cas_icon.icns</string>
-    </dict>
-    <dict>
-        <key>UTTypeIdentifier</key>
-        <string>org.m2000.cassette2</string>
-        <key>UTTypeTagSpecification</key>
-        <dict>
-            <key>public.filename-extension</key>
-            <array>
-                <string>p2000t</string>
-            </array>
-        </dict>
-        <key>UTTypeConformsTo</key>
-        <array>
-            <string>public.data</string>
-        </array>
-        <key>UTTypeDescription</key>
-        <string>M2000 cassette file</string>
-        <key>UTTypeIconFile</key>
-        <string>p2000t_icon.icns</string>
     </dict>
   </array>
   
