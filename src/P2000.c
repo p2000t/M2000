@@ -27,8 +27,10 @@
 #include <time.h>
 #include <unistd.h>
 
-#define HEADER_SIZE 256
-#define HEADER_OFFSET 48
+#define TAPE_256_BYTE_HEADER_SIZE 256
+#define TAPE_256_BYTE_HEADER_OFFSET 48
+#define TAPE_32_BYTE_HEADER_SIZE 32
+#define TAPE_32_BYTE_HEADER_OFFSET 0
 #define SPACE 32 // space character
 
 byte Verbose     = 0;
@@ -37,6 +39,8 @@ const char *CartName   = "BASIC.bin";
 const char *FontName   = "Default.fnt";
 const char *TapeName   = "Default.cas";
 const char *PrnName    = "Printer.out";
+int TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+int TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
 FILE *PrnStream  = NULL;
 FILE *TapeStream = NULL;
 int TapeProtect  = 0;
@@ -370,6 +374,17 @@ void InsertCassette(const char *filename, FILE *f, int readOnly)
   strcpy (_TapeName,filename);
   TapeName=_TapeName;
 
+  char *dot = strrchr(TapeName, '.');
+  if (dot && strcasecmp(dot, ".p2000t") == 0) {
+    // .p2000t format uses 32-byte headers
+    TapeHeaderSize = TAPE_32_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_32_BYTE_HEADER_OFFSET;
+  } else {
+    // .cas (default) format uses 256-byte headers (of which 224 are unused)
+    TapeHeaderSize = TAPE_256_BYTE_HEADER_SIZE;
+    TapeHeaderOffset = TAPE_256_BYTE_HEADER_OFFSET;
+  }
+
   if (TapeStream) fclose (TapeStream); //close previous stream
   TapeProtect = readOnly;
   TapeStream = f;
@@ -500,7 +515,7 @@ void Z80_Patch (Z80_Regs *R)
      if (TapeStream)
      {
       j=ftell (TapeStream);
-      if (fseek (TapeStream,j+i*(1024+HEADER_SIZE)-1,SEEK_SET))
+      if (fseek (TapeStream,j+i*(1024+TapeHeaderSize)-1,SEEK_SET))
       {
        rewind (TapeStream);
        Z80_WRMEM (caserror,0x45);
@@ -529,7 +544,7 @@ void Z80_Patch (Z80_Regs *R)
      if (TapeStream)
      {
       j=ftell (TapeStream);
-      if (fseek (TapeStream,j-i*(1024+HEADER_SIZE),SEEK_SET))
+      if (fseek (TapeStream,j-i*(1024+TapeHeaderSize),SEEK_SET))
       {
        rewind (TapeStream);
        Z80_WRMEM (caserror,0x45);
@@ -589,16 +604,16 @@ void Z80_Patch (Z80_Regs *R)
       {
        Z80_WRMEM (recnum,i);
        for (j=0x00;j<0x20;++j)
-        tapebuf[j+HEADER_OFFSET]=Z80_RDMEM (0x6030+j);
+        tapebuf[j+TapeHeaderOffset]=Z80_RDMEM (0x6030+j);
        l=m=Z80_RDWORD (lengte);
        if (l>1024) l=1024;
        Z80_WRWORD (lengte,m-l);
        for (j=0;j<l;++j)
-        tapebuf[j+HEADER_SIZE]=Z80_RDMEM ((k+j)&0xFFFF);
+        tapebuf[j+TapeHeaderSize]=Z80_RDMEM ((k+j)&0xFFFF);
        for (j=l;j<1024;++j)
-        tapebuf[j+HEADER_SIZE]=0;
+        tapebuf[j+TapeHeaderSize]=0;
        k=(k+1024)&0xFFFF;
-       if (!fwrite(tapebuf,1024+HEADER_SIZE,1,TapeStream))
+       if (!fwrite(tapebuf,1024+TapeHeaderSize,1,TapeStream))
        {
         rewind (TapeStream);
         Z80_WRMEM (caserror,0x45);
@@ -629,13 +644,13 @@ void Z80_Patch (Z80_Regs *R)
      {
       for (;i;--i)
       {
-       if (!fread(tapebuf,1024+HEADER_SIZE,1,TapeStream))
+       if (!fread(tapebuf,1024+TapeHeaderSize,1,TapeStream))
        {
         Z80_WRMEM (caserror,0x4D);
         break;
        }
        for (j=0;j<0x20;++j)
-        Z80_WRMEM (0x6030+j,tapebuf[j+HEADER_OFFSET]);
+        Z80_WRMEM (0x6030+j,tapebuf[j+TapeHeaderOffset]);
        l=m=Z80_RDWORD (lengte);
        if (l>1024) l=1024;
        Z80_WRWORD (lengte,m-l);
@@ -645,7 +660,7 @@ void Z80_Patch (Z80_Regs *R)
         for (j=0;j<l;j+=80)
         {
          for (m=j;m<l && m<(j+80);++m)
-          Z80_WRMEM((k+m)&0xFFFF,tapebuf[m+HEADER_SIZE]);
+          Z80_WRMEM((k+m)&0xFFFF,tapebuf[m+TapeHeaderSize]);
          RefreshScreen ();
          Keyboard ();
          if (!Z80_Running) return;
@@ -655,7 +670,7 @@ void Z80_Patch (Z80_Regs *R)
        else
        {
         for (j=0;j<l;++j)
-         Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+HEADER_SIZE]);
+         Z80_WRMEM((k+j)&0xFFFF,tapebuf[j+TapeHeaderSize]);
        }
        k=(k+1024)&0xFFFF;
       }
