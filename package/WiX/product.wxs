@@ -12,7 +12,7 @@
 
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f544"
             Name="M2000"
-            Version="0.9.2"
+            Version="0.9.3"
             Manufacturer="M2000"
             Language="1033">
 
@@ -24,15 +24,15 @@
       <Property Id="ARPPRODUCTICON" Value="P2000T.ico" />
 
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f544">
-         <UpgradeVersion Minimum="0.9.2" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
-         <UpgradeVersion Minimum="0.0.0" Maximum="0.9.2" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+         <UpgradeVersion Minimum="0.9.3" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="0.9.3" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
       </Upgrade>
       <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="$(var.Program_Files)">
             <Directory Id="INSTALLDIR" Name="M2000">
-               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855e1">
+               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855e2">
                   <File Id="M2000.exe"           Source="..\..\M2000.exe" />
                   <File Id="cassette_blue.ico"   Source="cassette_blue.ico" />
                   <File Id="cassette_red.ico"    Source="cassette_red.ico" />
@@ -53,19 +53,12 @@
                   <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities" Name="ApplicationDescription" Value="M2000 - Philips P2000 Emulator" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities" Name="ApplicationName" Value="M2000" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities\FileAssociations" Name=".cas" Value="M2000.Cassette" Type="string" />
-                  <RegistryValue Root="HKLM" Key="SOFTWARE\M2000\Capabilities\FileAssociations" Name=".p2000t" Value="M2000.Cassette2" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\RegisteredApplications" Name="M2000" Value="SOFTWARE\M2000\Capabilities" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\M2000.exe\SupportedTypes" Name=".cas" Value="" Type="string" />
-                  <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\M2000.exe\SupportedTypes" Name=".p2000t" Value="" Type="string" />
                   <RegistryValue Root="HKLM" Key="SOFTWARE\Classes\Applications\M2000.exe\shell\open" Name="FriendlyAppName" Value="M2000 - Philips P2000 Emulator" Type="string" />
                   <ProgId Id="M2000.Cassette" Description="M2000 Cassette" Icon="cassette_blue.ico">
                      <Extension Id="cas">
                         <Verb Id="open_cas" Command="Open" TargetFile="M2000.exe" Argument='"%1"' />
-                     </Extension>
-                  </ProgId>
-                  <ProgId Id="M2000.Cassette2" Description="M2000 Cassette" Icon="cassette_red.ico">
-                     <Extension Id="p2000t">
-                        <Verb Id="open_p2000t" Command="Open" TargetFile="M2000.exe" Argument='"%1"' />
                      </Extension>
                   </ProgId>
                </Component>
