@@ -27,7 +27,7 @@ typedef struct {
 
 #define FILE_EXIT_ID                      1
 #define FILE_INSERT_CASSETTE_ID           2
-#define FILE_INSERTRUN_CASSETTE_ID        3
+#define FILE_BOOT_CASSETTE_ID             3
 #define FILE_REMOVE_CASSETTE_ID           4
 #define FILE_INSERT_CARTRIDGE_ID          5
 #define FILE_REMOVE_CARTRIDGE_ID          6
@@ -108,7 +108,7 @@ typedef struct {
 static LanguageEntry ENstrings[] = {
   { FILE_MENU_ID, "File->" },
   { FILE_INSERT_CASSETTE_ID, "Insert Cassette... (Ctrl-I)" },
-  { FILE_INSERTRUN_CASSETTE_ID, "Open/Boot Cassette... (Ctrl-O)" },
+  { FILE_BOOT_CASSETTE_ID, "Open/Boot Cassette... (Ctrl-O)" },
   { FILE_REMOVE_CASSETTE_ID, "Eject Cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Insert Cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Remove Cartridge" },
@@ -169,7 +169,7 @@ static LanguageEntry ENstrings[] = {
 static LanguageEntry NLstrings[] = {
   { FILE_MENU_ID, "Bestand->" },
   { FILE_INSERT_CASSETTE_ID, "Invoeren cassette... (Ctrl-I)"},
-  { FILE_INSERTRUN_CASSETTE_ID, "Openen/starten cassette... (Ctrl-O)" },
+  { FILE_BOOT_CASSETTE_ID, "Opstarten cassette... (Ctrl-O)" },
   { FILE_REMOVE_CASSETTE_ID, "Verwijder cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Invoeren cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Verwijder cartridge" },
