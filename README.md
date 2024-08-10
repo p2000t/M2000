@@ -9,6 +9,7 @@ Version 0.9.3
 * Linux
 * macOS
 * [RetroArch (Libretro)](https://docs.libretro.com/library/m2000/)
+* [P2000T Web Player](https://p2000t.github.io/) - play P2000T games in directly in your browser
 
 :point_right: Note: to download P2000T cassette programs, please go to: [https://github.com/p2000t/software/cassettes/](https://github.com/p2000t/software/tree/master/cassettes/)
 
