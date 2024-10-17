@@ -8,6 +8,17 @@
     <?error Unsupported value of sys.BUILDARCH=$(sys.BUILDARCH)?>
 <?endif?>
 
+<!-- 
+  For each new version of M2000, make the following updates to this file:
+
+  * [always] Replace the 3 occurrences of the old version (e.g. 0.9.3) with the 
+    new version number (e.g. 0.9.4)
+  * [always] Update the Guid of the Component element with Id="ApplicationFiles" 
+    to a new Guid
+  * [sometimes] Update the Guid of the Component element with Id="ApplicationShortcuts" 
+    to a new Guid, only if one of it's child elements has changed
+-->
+
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f544"
