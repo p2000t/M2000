@@ -18,6 +18,7 @@
 /******************************************************************************/
 
 // This file contains various macros used by the emulation engine
+extern byte Verbose;
 
 #define M_POP(Rg)           \
         R.Rg.D=M_RDSTACK(R.SP.D)+(M_RDSTACK((R.SP.D+1)&65535)<<8); \
@@ -28,8 +29,10 @@
         M_WRSTACK((R.SP.D+1)&65535,R.Rg.D>>8)
 #define M_CALL              \
 {                           \
- int q;                     \
- q=M_RDMEM_OPCODE_WORD();   \
+ unsigned int q = M_RDMEM_OPCODE_WORD();   \
+ if (Verbose && q >= 0x1000 && q < 0x5000 && R.PC.D >= 0x6547) { \
+  printf("CALL to ROM Key address 0x%04X from PC=0x%04X\n", q, R.PC.D); \
+ } \
  M_PUSH(PC);                \
  R.PC.D=q;                  \
  Z80_ICount-=7;             \
