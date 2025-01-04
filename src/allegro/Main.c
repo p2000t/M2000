@@ -765,8 +765,8 @@ void Keyboard(void)
     if (event.type == ALLEGRO_EVENT_MENU_CLICK) {
       switch (event.user.data1) {
         case FILE_INSERT_CASSETTE_ID:
-        case FILE_INSERTRUN_CASSETTE_ID:
-          OpenCassetteDialog(event.user.data1 == FILE_INSERTRUN_CASSETTE_ID);
+        case FILE_BOOT_CASSETTE_ID:
+          OpenCassetteDialog(event.user.data1 == FILE_BOOT_CASSETTE_ID);
           break;
         case FILE_REMOVE_CASSETTE_ID:
           al_destroy_path(currentTapePath);
@@ -997,7 +997,7 @@ void Keyboard(void)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_I) && al_key_up(&kbdstate, ALLEGRO_KEY_LCTRL))
     OpenCassetteDialog(false);
 
-  // Ctrl-O           -  Open/Boot Cassette dialog
+  // Ctrl-O           -  Boot Cassette dialog
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_O) && al_key_up(&kbdstate, ALLEGRO_KEY_LCTRL))
     OpenCassetteDialog(true);
 

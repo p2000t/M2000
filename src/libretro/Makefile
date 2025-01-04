@@ -35,8 +35,8 @@ else ifeq ($(platform),ios-arm64)
    ifeq ($(IOSSDK),)
       IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
    endif
-   CFLAGS   += -arch arm64 -isysroot $(IOSSDK)
-   LDFLAGS  += -arch arm64 -isysroot $(IOSSDK)
+   CFLAGS   += -arch arm64 -isysroot $(IOSSDK) -miphoneos-version-min=12.0
+   LDFLAGS  += -arch arm64 -isysroot $(IOSSDK) -miphoneos-version-min=12.0
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    SHARED := -dynamiclib
 else ifeq ($(platform),tvos-arm64)

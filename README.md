@@ -1,14 +1,15 @@
 # M2000 - Philips P2000T Home Computer Emulator
-Version 0.9.2
+Version 0.9.3
 
 ![P2000T](/img/P2000T.png)
 
 ## Supported platforms
 
-* Windows
-* Linux
-* macOS
-* [RetroArch (Libretro)](https://docs.libretro.com/library/m2000/)
+* [Windows](https://github.com/p2000t/M2000/releases) - standalone app
+* [Linux](https://github.com/p2000t/M2000/releases) - standalone app
+* [macOS](https://github.com/p2000t/M2000/releases) - standalone app
+* [RetroArch (Libretro)](https://docs.libretro.com/library/m2000/) - running the M2000 core in RetroArch
+* [P2000T Web Player](https://p2000t.github.io/) - runs from your browser
 
 :point_right: Note: to download P2000T cassette programs, please go to: [https://github.com/p2000t/software/cassettes/](https://github.com/p2000t/software/tree/master/cassettes/)
 
