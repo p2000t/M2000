@@ -67,7 +67,7 @@ jobs:
         path: package/M2000_amd64.deb
 
   build-macos:
-    runs-on: macos-latest
+    runs-on: macOS-13
     env:
       MACOSX_DEPLOYMENT_TARGET: 10.11
     steps:
