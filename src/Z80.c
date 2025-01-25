@@ -2447,7 +2447,7 @@ static void Interrupt (int j)
   }
   if (j==Z80_NMI_INT)
   {
-   /* Save IFF1 state in temporary storage flip-flop IFF2, before clearin it */
+   /* Save IFF1 state in temporary storage flip-flop IFF2, before clearing it */
    R.IFF2=R.IFF1;
    R.IFF1=0;
    M_PUSH (PC);
