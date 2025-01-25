@@ -31,7 +31,8 @@ typedef struct {
 #define FILE_REMOVE_CASSETTE_ID           4
 #define FILE_INSERT_CARTRIDGE_ID          5
 #define FILE_REMOVE_CARTRIDGE_ID          6
-#define FILE_RESET_ID                     7
+#define FILE_COLD_RESET_ID                7
+#define FILE_WARM_RESET_ID                13
 #define FILE_SAVE_SCREENSHOT_ID           8
 #define FILE_LOAD_VIDEORAM_ID             9
 #define FILE_SAVE_VIDEORAM_ID             10
@@ -112,6 +113,8 @@ static LanguageEntry ENstrings[] = {
   { FILE_REMOVE_CASSETTE_ID, "Eject Cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Insert Cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Remove Cartridge" },
+  { FILE_COLD_RESET_ID, "Cold Reset (Ctrl-R)" },
+  { FILE_WARM_RESET_ID, "Warm Reset (Ctrl-W)" },
   { FILE_SAVE_STATE_ID, "Save State... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
@@ -173,6 +176,8 @@ static LanguageEntry NLstrings[] = {
   { FILE_REMOVE_CASSETTE_ID, "Verwijder cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Invoeren cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Verwijder cartridge" },
+  { FILE_COLD_RESET_ID, "Koude herstart (Ctrl-R)" },
+  { FILE_WARM_RESET_ID, "Warme herstart (Ctrl-W)" },
   { FILE_SAVE_STATE_ID, "Opslaan huidige toestand... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },

@@ -2439,8 +2439,6 @@ static void Interrupt (int j)
  if (j==Z80_IGNORE_INT) return;
  if (j==Z80_NMI_INT || R.IFF1)
  {
-  /* Clear interrupt flip-flop 1 */
-  R.IFF1=0;
   /* Check if processor was halted */
   if (R.HALT)
   {
@@ -2449,11 +2447,16 @@ static void Interrupt (int j)
   }
   if (j==Z80_NMI_INT)
   {
+   /* Save IFF1 state in temporary storage flip-flop IFF2, before clearin it */
+   R.IFF2=R.IFF1;
+   R.IFF1=0;
    M_PUSH (PC);
    R.PC.D=0x0066;
   }
   else
   {
+   /* Clear interrupt flip-flop 1 */
+   R.IFF1=0;
    /* Interrupt mode 2. Call [R.I:databyte] */
    if (R.IM==2)
    {

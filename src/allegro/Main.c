@@ -791,8 +791,11 @@ void Keyboard(void)
         case FILE_REMOVE_CARTRIDGE_ID:
           RemoveCartridge();
           break;
-        case FILE_RESET_ID:
+        case FILE_COLD_RESET_ID:
           Z80_Reset();
+          break;
+        case FILE_WARM_RESET_ID:
+          SoftReset = 1;
           break;
         case FILE_SAVE_SCREENSHOT_ID:
           screenshotChooser = al_create_native_file_dialog(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
@@ -1009,9 +1012,13 @@ void Keyboard(void)
     UpdateWindowTitle();
   }
 
-  // Ctrl-R           -  Reset P2000
+  // Ctrl-R           -  Cold Reset P2000
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
     Z80_Reset();
+
+  // Ctrl-W           -  Warm Reset P2000
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_W))
+    SoftReset = 1;
 
   // Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) || al_key_down(&kbdstate, ALLEGRO_KEY_ALT)) && al_key_up(&kbdstate, ALLEGRO_KEY_ENTER))
