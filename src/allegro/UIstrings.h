@@ -31,8 +31,8 @@ typedef struct {
 #define FILE_REMOVE_CASSETTE_ID           4
 #define FILE_INSERT_CARTRIDGE_ID          5
 #define FILE_REMOVE_CARTRIDGE_ID          6
-#define FILE_COLD_RESET_ID                7
-#define FILE_WARM_RESET_ID                13
+#define FILE_RESET_ID                     7
+#define FILE_INTERRUPT_ID                13
 #define FILE_SAVE_SCREENSHOT_ID           8
 #define FILE_LOAD_VIDEORAM_ID             9
 #define FILE_SAVE_VIDEORAM_ID             10
@@ -113,8 +113,6 @@ static LanguageEntry ENstrings[] = {
   { FILE_REMOVE_CASSETTE_ID, "Eject Cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Insert Cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Remove Cartridge" },
-  { FILE_COLD_RESET_ID, "Cold Reset (Ctrl-R)" },
-  { FILE_WARM_RESET_ID, "Warm Reset (Ctrl-W)" },
   { FILE_SAVE_STATE_ID, "Save State... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
@@ -130,10 +128,10 @@ static LanguageEntry ENstrings[] = {
   { SPEED_SYNC, "Sync On/Off" },
   { SPEED_PAUSE, "Pause Emulation (Ctrl-P)" },
   { KEYBOARD_MENU_ID, "Keyboard->" },
-  { KEYBOARD_ZOEK_ID, "[ZOEK] - Show Cassette Index (Ctrl-1)" },
-  { KEYBOARD_START_ID, "[START] - Start Loaded Program (Ctrl-3)" },
-  { KEYBOARD_STOP_ID, "[STOP] - Pause/Halt Program (Ctrl-.)" },
-  { KEYBOARD_CLEARCAS_ID, "[WIS] - Clear Cassette (Ctrl-7)" },
+  { KEYBOARD_START_ID, "[START] - Start Loaded Program (Ctrl-1)" },
+  { KEYBOARD_STOP_ID, "[STOP] - Pause/Halt Program (Ctrl-2)" },
+  { KEYBOARD_ZOEK_ID, "[ZOEK] - Show Cassette Index (Ctrl-3)" },
+  { KEYBOARD_CLEARCAS_ID, "[WIS] - Clear Cassette (Ctrl-0)" },
   { KEYBOARD_SYMBOLIC_ID, "Symbolic Key Mapping" },
   { KEYBOARD_POSITIONAL_ID, "Positional Key Mapping" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
@@ -176,8 +174,6 @@ static LanguageEntry NLstrings[] = {
   { FILE_REMOVE_CASSETTE_ID, "Verwijder cassette (Ctrl-E)" },
   { FILE_INSERT_CARTRIDGE_ID, "Invoeren cartridge..." },
   { FILE_REMOVE_CARTRIDGE_ID, "Verwijder cartridge" },
-  { FILE_COLD_RESET_ID, "Koude herstart (Ctrl-R)" },
-  { FILE_WARM_RESET_ID, "Warme herstart (Ctrl-W)" },
   { FILE_SAVE_STATE_ID, "Opslaan huidige toestand... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },
@@ -193,10 +189,10 @@ static LanguageEntry NLstrings[] = {
   { SPEED_SYNC, "Synchronisatie aan/uit" },
   { SPEED_PAUSE, "Pauzeer emulatie (Ctrl-P)" },
   { KEYBOARD_MENU_ID, "Toetsenbord->" },
-  { KEYBOARD_ZOEK_ID, "[ZOEK] - Toon cassette inhoud (Ctrl-1)" },
-  { KEYBOARD_START_ID, "[START] - Start ingeladen programma (Ctrl-3)" },
-  { KEYBOARD_STOP_ID, "[STOP] - Pauzeer/stop programma (Ctrl-.)" },
-  { KEYBOARD_CLEARCAS_ID, "[WIS] - Wis cassette (Ctrl-7)" },
+  { KEYBOARD_START_ID, "[START] - Start ingeladen programma (Ctrl-1)" },
+  { KEYBOARD_STOP_ID, "[STOP] - Pauzeer/stop programma (Ctrl-2)" },
+  { KEYBOARD_ZOEK_ID, "[ZOEK] - Toon cassette inhoud (Ctrl-3)" },
+  { KEYBOARD_CLEARCAS_ID, "[WIS] - Wis cassette (Ctrl-0)" },
   { KEYBOARD_SYMBOLIC_ID, "Toetsindeling o.b.v. karakter" },
   { KEYBOARD_POSITIONAL_ID, "Toetsindeling o.b.v. positie" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
