@@ -1012,12 +1012,12 @@ void Keyboard(void)
     UpdateWindowTitle();
   }
 
-  // Ctrl-R           -  Cold Reset P2000
+  // Ctrl-R           -  Reset P2000
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
     Z80_Reset();
 
-  // Ctrl-T           -  Interrupt P2000
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_T))
+  // Ctrl-N           -  Interrupt P2000 (NMI)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_N))
     NMI = 1;
 
   // Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)

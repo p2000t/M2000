@@ -54,6 +54,7 @@ Ctrl-I           -  Insert cassette dialog
 Ctrl-O           -  Open/Boot cassette dialog
 Ctrl-E           -  Eject current cassette
 Ctrl-R           -  Reset P2000
+Ctrl-N           -  Interrupt (NMI)
 
 Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
 Ctrl-L           -  Toggle scanlines on/off
@@ -63,10 +64,10 @@ Ctrl-V           -  Load previously saved state (without dialog)
 Ctrl-S           -  Save screenshot picture to file (without dialog)
 Ctrl-D           -  Dump visible video RAM to file (without dialog)
 
-Ctrl-1           -  ZOEK  key (show cassette index)
-Ctrl-3           -  START key (start loaded program)
-Ctrl-.           -  STOP  key (pause/halt program)
-Ctrl-7           -  WIS   key (clear cassette dialog)
+Ctrl-1           -  START key (start loaded program)
+Ctrl-2           -  STOP  key (pause/halt program)
+Ctrl-3           -  ZOEK  key (show cassette index)
+Ctrl-0           -  WIS   key (clear cassette dialog)
 
 Ctrl-P           -  Toggle pause on/off
 Ctrl-M           -  Mute/unmute sound
