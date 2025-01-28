@@ -11,8 +11,8 @@
 <!-- 
   For each new version of M2000, make the following updates to this file:
 
-  * [always] Replace the 3 occurrences of the old version (e.g. 0.9.3) with the 
-    new version number (e.g. 0.9.4)
+  * [always] Replace the 3 occurrences of the old version (e.g. 0.9.4) with the 
+    new version number (e.g. 0.9.5)
   * [always] Update the Guid of the Component element with Id="ApplicationFiles" 
     to a new Guid
   * [sometimes] Update the Guid of the Component element with Id="ApplicationShortcuts" 
@@ -23,7 +23,7 @@
 
    <Product Id="*" UpgradeCode="50c2a4d4-747d-4ee1-8aa5-cca780d1f544"
             Name="M2000"
-            Version="0.9.3"
+            Version="0.9.4"
             Manufacturer="M2000"
             Language="1033">
 
@@ -35,15 +35,15 @@
       <Property Id="ARPPRODUCTICON" Value="P2000T.ico" />
 
       <Upgrade Id="50c2a4d4-747d-4ee1-8aa5-cca780d1f544">
-         <UpgradeVersion Minimum="0.9.3" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
-         <UpgradeVersion Minimum="0.0.0" Maximum="0.9.3" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
+         <UpgradeVersion Minimum="0.9.4" OnlyDetect="yes" Property="NEWERVERSIONDETECTED"/>
+         <UpgradeVersion Minimum="0.0.0" Maximum="0.9.4" IncludeMinimum="yes" IncludeMaximum="no" Property="OLDERVERSIONBEINGUPGRADED"/>
       </Upgrade>
       <Condition Message="A newer version of this software is already installed.">NOT NEWERVERSIONDETECTED</Condition>
 
       <Directory Id="TARGETDIR" Name="SourceDir">
          <Directory Id="$(var.Program_Files)">
             <Directory Id="INSTALLDIR" Name="M2000">
-               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855e2">
+               <Component Id="ApplicationFiles" Guid="e5d50ebc-5354-45a1-8438-f0f51d5855e3">
                   <File Id="M2000.exe"           Source="..\..\M2000.exe" />
                   <File Id="cassette_blue.ico"   Source="cassette_blue.ico" />
                   <File Id="cassette_red.ico"    Source="cassette_red.ico" />

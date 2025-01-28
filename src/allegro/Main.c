@@ -794,6 +794,9 @@ void Keyboard(void)
         case FILE_RESET_ID:
           Z80_Reset();
           break;
+        case FILE_INTERRUPT_ID:
+          NMI = 1;
+          break;
         case FILE_SAVE_SCREENSHOT_ID:
           screenshotChooser = al_create_native_file_dialog(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
           if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0) {
@@ -972,23 +975,23 @@ void Keyboard(void)
     }
   }
 
-  // Ctrl-1           -  ZOEK key (show cassette index)
+  // Ctrl-1           -  START key (start loaded program)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_1) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_1))) {
-    PushKey(72); //LSHIFT
-    delayedShiftedKeyPress = 59;
-  }
-  // Ctrl-3           -  START key (start loaded program)
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_3) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_3))) {
     PushKey(72); //LSHIFT
     delayedShiftedKeyPress = 56;
   }
-  // Ctrl-.           -  STOP key (pause/halt program)
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_FULLSTOP) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_DELETE))) {
+  // Ctrl-2           -  STOP key (pause/halt program)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_2) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_2))) {
     PushKey(72); //LSHIFT
     delayedShiftedKeyPress = 16;
   }
-  // Ctrl-7           -  WIS key (clear cassette)
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_7) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_7))) {
+  // Ctrl-3           -  ZOEK key (show cassette index)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_3) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_3))) {
+    PushKey(72); //LSHIFT
+    delayedShiftedKeyPress = 59;
+  }
+  // Ctrl-0           -  WIS key (clear cassette)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && (al_key_up(&kbdstate, ALLEGRO_KEY_0) || al_key_up(&kbdstate, ALLEGRO_KEY_PAD_0))) {
     PushKey(72); //LSHIFT
     delayedShiftedKeyPress = 51;
   }
@@ -1012,6 +1015,10 @@ void Keyboard(void)
   // Ctrl-R           -  Reset P2000
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
     Z80_Reset();
+
+  // Ctrl-T           -  Interrupt P2000 (NMI)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_T))
+    NMI = 1;
 
   // Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
   if ((al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) || al_key_down(&kbdstate, ALLEGRO_KEY_ALT)) && al_key_up(&kbdstate, ALLEGRO_KEY_ENTER))

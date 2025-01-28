@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "Z80.h"            /* Z80 emulation declarations    */
 
-#define EMULATOR_VERSION "0.9.3"
+#define EMULATOR_VERSION "0.9.4"
 
 #if defined(_WIN32) // Windows
 #define PATH_SEPARATOR '\\'
@@ -47,6 +47,7 @@ extern byte OutputReg;          /* Reg #0x20                                */
 extern byte KeyMap[10];         /* Keyboard map                             */
 extern int TapeBootEnabled;     /* 1 if booting enabled                     */
 extern int ColdBoot;            /* 1 if cold boot                           */
+extern int NMI;                 /* 1 if non-maskable interrupt              */
 extern int TapeProtect;         /* 1 if tape is write-protected             */
 extern int UPeriod;             /* Number of interrupts/screen update       */
 extern int IFreq;               /* Number of interrupts/second              */

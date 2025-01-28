@@ -49,6 +49,7 @@ int PrnType      = 0;
 int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
 int ColdBoot     = 1;
+int NMI          = 0;
 
 byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0;
 int RAMBanks=0;
@@ -422,7 +423,11 @@ int Z80_Interrupt(void)
   RefreshScreen ();
  }
  SyncEmulation();
- return (OutputReg&0x40)? 0x00FF:Z80_IGNORE_INT;
+ if (NMI) {
+  NMI=0; //reset flag
+  return Z80_NMI_INT;
+ }
+ return (OutputReg&0x40) ? 0x00FF : Z80_IGNORE_INT;
 }
 
 void Z80_Reti (void) { }
