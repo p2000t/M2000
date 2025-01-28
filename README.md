@@ -29,9 +29,9 @@ Installation of M2000 depends on your platform:
   sudo apt -f install M2000_amd64.deb
   ```
 
-## Download M2000 (as RetroArch Core)
+## Download the M2000 Core (inside RetroArch)
 
-For this you'll need to have [RetroArch](https://www.retroarch.com/) installed and running.
+If you want to run M2000 as core in RetroArch, you first need to have [RetroArch](https://www.retroarch.com/) installed and running.
 
 * From RetroArch's **Main Menu** go to **Online Updater** and then select **Update Core Info Files** to ensure you've got the latest core info files.
 * Then from RetroArch's **Main Menu** go to **Load Core** > **Download a Core** and then select **Philips - P2000T (M2000)**. \
