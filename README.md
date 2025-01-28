@@ -54,7 +54,7 @@ Ctrl-I           -  Insert cassette dialog
 Ctrl-O           -  Open/Boot cassette dialog
 Ctrl-E           -  Eject current cassette
 Ctrl-R           -  Reset P2000
-Ctrl-N           -  Interrupt (NMI)
+Ctrl-T           -  Trigger interrupt (NMI)
 
 Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
 Ctrl-L           -  Toggle scanlines on/off

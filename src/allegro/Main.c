@@ -1016,8 +1016,8 @@ void Keyboard(void)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
     Z80_Reset();
 
-  // Ctrl-N           -  Interrupt P2000 (NMI)
-  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_N))
+  // Ctrl-T           -  Interrupt P2000 (NMI)
+  if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_T))
     NMI = 1;
 
   // Ctrl-Enter       -  Toggle fullscreen on/off (not supported on Linux)
