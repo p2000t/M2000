@@ -26,6 +26,9 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include "P2000.h"
+#ifdef SD_CARTRIDGE_SUPPORT
+#include "SDCart.h"
+#endif
 
 extern int keyboardmap;
 extern int soundmode;
@@ -43,6 +46,10 @@ static char _ROMName[FILENAME_MAX];
 static char _FontName[FILENAME_MAX];
 static char _TapeName[FILENAME_MAX];
 static char _PrnName[FILENAME_MAX];
+#ifdef SD_CARTRIDGE_SUPPORT
+static char _SD_RomName[FILENAME_MAX];
+static char _SD_ImgName[FILENAME_MAX];
+#endif
 
 /* Check the command line argument looking for the cartridge or tape file name */
 static void ProcessArgument (int argc,char *argv[]) 
@@ -88,6 +95,10 @@ int M2000_main(int argc,char *argv[])
   ROMName = MakeFullPath(_ROMName, ROMName, ProgramPath);
   FontName = MakeFullPath(_FontName, FontName, ProgramPath);
   PrnName = MakeFullPath(_PrnName, PrnName, DocumentPath);
+#ifdef SD_CARTRIDGE_SUPPORT
+  SD_RomName = MakeFullPath(_SD_RomName, SD_RomName, DocumentPath);
+  SD_ImgName = MakeFullPath(_SD_ImgName, SD_ImgName, DocumentPath);
+#endif
 
   /* Check for valid variables */
   IFreq = IFreq >= 55 ? 60 : 50; //only support 50Hz and 60Hz
@@ -106,6 +117,9 @@ int M2000_main(int argc,char *argv[])
   /* Start emulated P2000 */
   if (!InitMachine()) return EXIT_FAILURE;
   if (!InitP2000(NULL, NULL)) return EXIT_FAILURE;
+#ifdef SD_CARTRIDGE_SUPPORT
+  SDCart_Init(SD_RomName, SD_ImgName);
+#endif
   if (TapeName) {
     // first try open for update, then try create then try read-only
     if ((f = fopen(TapeName,"r+b")) == NULL) f = fopen(TapeName, "w+b");
@@ -114,6 +128,9 @@ int M2000_main(int argc,char *argv[])
   StartP2000(); // P2000 loop
   /* Trash emulated P2000 */
   TrashP2000();
+#ifdef SD_CARTRIDGE_SUPPORT
+  SDCart_Cleanup();
+#endif
   TrashMachine ();
   return EXIT_SUCCESS;
 }

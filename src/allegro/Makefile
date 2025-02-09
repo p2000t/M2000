@@ -18,11 +18,11 @@
 #******************************************************************************#
 
 CC	= gcc	# C compiler used
-CFLAGS  = -Wall -O2
+CFLAGS  = -Wall -O2 -DSD_CARTRIDGE_SUPPORT
 LDFLAGS  = -s
 VPATH = ../
 
-OBJECTS = M2000.o P2000.o Z80.o Main.o
+OBJECTS = SDCart.o M2000.o P2000.o Z80.o Main.o
 TARGET = ../../M2000
 
 all: clean m2000
