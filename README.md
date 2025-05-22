@@ -102,38 +102,43 @@ If you want to compile the M2000 sources yourself, then the instructions below w
 
 ### Linux
 * Using your Linux distro's package manager, install the essential build tools and Allegro 5 libs. For Debian/Ubuntu/Linux Mint you can use the `apt` package manager:
-  ```
+  ```bash
   sudo apt update && sudo apt install git build-essential liballegro5-dev
   ```
 * Clone the M2000 repo:
-  ```
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
 ### macOS
 Make sure you have both the `Xcode command line tools` and `brew` installed.
 * Now install the Allegro 5 libs using brew:
-  ```
+  ```bash
   brew install allegro
   ```
-* Clone the M2000 repo:
+  If you're running Apple Silicon (M series), make sure to add this to your .zshrc or .bashrc:
+  ```bash
+  export C_INCLUDE_PATH="/opt/homebrew/include:$C_INCLUDE_PATH"
+  export LIBRARY_PATH="/opt/homebrew/lib:$LIBRARY_PATH"
   ```
+* Clone the M2000 repo:
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
@@ -142,19 +147,19 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 
 * After you've installed MSYS2, open its MINGW64 shell environment and install the required tools and libraries:
-  ```
+  ```bash
   pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
   ```
 * Clone the M2000 repo:
-  ```
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make:
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
