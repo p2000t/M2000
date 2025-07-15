@@ -75,6 +75,7 @@ jobs:
       run: |
         brew tap-new local/oldallegro
         curl -o $(brew --repo local/oldallegro)/Formula/allegro@5.2.9.1.rb https://raw.githubusercontent.com/Homebrew/homebrew-core/38aaf1244b37f7cbaab69fd1bc6d6f79d75a58ab/Formula/a/allegro.rb
+        sed -i.bak 's/^class Allegro /class AllegroAT5291 /' "$(brew --repo local/oldallegro)/Formula/allegro@5.2.9.1.rb"
         brew install local/oldallegro/allegro@5.2.9.1
         brew install dylibbundler
     - uses: actions/checkout@v4
