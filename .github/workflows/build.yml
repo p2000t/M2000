@@ -86,6 +86,7 @@ jobs:
       run: make libretro CC=gcc
     - name: Copy files
       run: |
+        mkdir -p package/M2000.app/Contents/MacOS
         cp M2000 package/M2000.app/Contents/MacOS/
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
