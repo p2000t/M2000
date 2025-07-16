@@ -73,12 +73,11 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew tap-new local/oldallegro
-        FORMULA_PATH="$(brew --repo local/oldallegro)/Formula/allegro@5.2.9.1.rb"
-        curl -o "$FORMULA_PATH" https://raw.githubusercontent.com/Homebrew/homebrew-core/38aaf1244b37f7cbaab69fd1bc6d6f79d75a58ab/Formula/a/allegro.rb
-        sed -i '' 's/^class Allegro /class AllegroAT5291 /' "$FORMULA_PATH"
-        printf '/-DWANT_DOCS=OFF/a\\\n-DCMAKE_POLICY_VERSION_MINIMUM=3.5\n' | sed -i '' -f - "$FORMULA_PATH"
-        brew install --build-from-source local/oldallegro/allegro@5.2.9.1
+        brew tap-new local/pinned_allegro
+        FORMULA_PATH="$(brew --repo local/pinned_allegro)/Formula/allegro@5.2.10.1.rb"
+        curl -o "$FORMULA_PATH" https://raw.githubusercontent.com/Homebrew/homebrew-core/3cb8c4ea5a057001d0a20912bb7fd10234135c04/Formula/a/allegro.rb
+        sed -i '' 's/^class Allegro /class AllegroAT52101 /' "$FORMULA_PATH"
+        brew install --build-from-source local/pinned_allegro/allegro@5.2.10.1
         brew install dylibbundler
     - uses: actions/checkout@v4
     - name: Build Allegro
@@ -99,7 +98,7 @@ jobs:
     - name: Run dylibbundler
       run: |
         export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
-        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path
+        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -p @executable_path -d package/M2000.app/Contents/MacOS/M2000
     - name: Zip package
       run: |
         cd package

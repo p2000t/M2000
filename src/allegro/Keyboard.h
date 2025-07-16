@@ -37,8 +37,8 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 #ifdef __APPLE__
-#define P2000_KEY_LESS_THAN  ALLEGRO_KEY_BACKQUOTE
-#define P2000_KEY_CODE       0 // has no official key constant
+#define P2000_KEY_LESS_THAN  0 // has no official key constant
+#define P2000_KEY_CODE       ALLEGRO_KEY_BACKQUOTE
 //ISO/EIC 9995 standard keyboard
 #define P2000_KEY_PAD_MIN    ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
 #define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_SLASH
