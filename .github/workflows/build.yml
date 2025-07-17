@@ -73,6 +73,7 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
+        brew update
         curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/3cb8c4ea5a057001d0a20912bb7fd10234135c04/Formula/a/allegro.rb
         brew install allegro.rb
         brew install dylibbundler
