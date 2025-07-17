@@ -69,15 +69,11 @@ jobs:
   build-macos:
     runs-on: macOS-13
     env:
-      MACOSX_DEPLOYMENT_TARGET: 10.11
+      MACOSX_DEPLOYMENT_TARGET: 10.12
     steps:
     - name: Install dependencies
       run: |
-        brew tap-new local/pinned_allegro
-        FORMULA_PATH="$(brew --repo local/pinned_allegro)/Formula/allegro@5.2.10.1.rb"
-        curl -o "$FORMULA_PATH" https://raw.githubusercontent.com/Homebrew/homebrew-core/3cb8c4ea5a057001d0a20912bb7fd10234135c04/Formula/a/allegro.rb
-        sed -i '' 's/^class Allegro /class AllegroAT52101 /' "$FORMULA_PATH"
-        brew install --build-from-source local/pinned_allegro/allegro@5.2.10.1
+        brew install --build-from-source https://raw.githubusercontent.com/Homebrew/homebrew-core/3cb8c4ea5a057001d0a20912bb7fd10234135c04/Formula/a/allegro.rb
         brew install dylibbundler
     - uses: actions/checkout@v4
     - name: Build Allegro
