@@ -86,7 +86,6 @@ jobs:
       run: make libretro CC=gcc
     - name: Copy files
       run: |
-        mkdir -p package/M2000.app/Contents/MacOS
         cp M2000 package/M2000.app/Contents/MacOS/
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
@@ -99,7 +98,7 @@ jobs:
     - name: Run dylibbundler
       run: |
         export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
-        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -p @executable_path -d package/M2000.app/Contents/MacOS
+        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path
     - name: Zip package
       run: |
         cd package
