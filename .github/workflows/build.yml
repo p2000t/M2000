@@ -73,12 +73,9 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        brew tap-new local/oldallegro
-        FORMULA_PATH="$(brew --repo local/oldallegro)/Formula/allegro@5.2.9.1.rb"
-        curl -o "$FORMULA_PATH" https://raw.githubusercontent.com/Homebrew/homebrew-core/38aaf1244b37f7cbaab69fd1bc6d6f79d75a58ab/Formula/a/allegro.rb
-        sed -i '' 's/^class Allegro /class AllegroAT5291 /' "$FORMULA_PATH"
-        printf '/-DWANT_DOCS=OFF/a\\\n-DCMAKE_POLICY_VERSION_MINIMUM=3.5\n' | sed -i '' -f - "$FORMULA_PATH"
-        brew install --build-from-source local/oldallegro/allegro@5.2.9.1
+        brew tap-new $USER/local-allegro
+        brew extract --version=5.2.9.0 allegro $USER/local-allegro
+        brew install allegro@5.2.9.0
         brew install dylibbundler
     - uses: actions/checkout@v4
     - name: Build Allegro
