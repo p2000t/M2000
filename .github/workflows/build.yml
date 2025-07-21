@@ -72,15 +72,12 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 10.11
       ALLEGRO_VERSION: 5.2.10.1
     steps:
-    - uses: melusina-org/setup-macports@v1
     - name: Install dependencies
       run: |
-        port install allegro5 @5.2.10.1 configure.env="MACOSX_DEPLOYMENT_TARGET=10.11" configure.cflags="-mmacosx-version-min=10.11" configure.ldflags="-mmacosx-version-min=10.11"
-        port install dylibbundler
-        # brew tap-new $USER/pinned-allegro
-        # brew extract --version=$ALLEGRO_VERSION allegro $USER/pinned-allegro
-        # brew install allegro@$ALLEGRO_VERSION
-        # brew install dylibbundler
+        brew tap-new $USER/pinned-allegro
+        brew extract --version=$ALLEGRO_VERSION allegro $USER/pinned-allegro
+        brew install allegro@$ALLEGRO_VERSION
+        brew install dylibbundler
     - uses: actions/checkout@v4
     - name: Build Allegro
       run: make allegro
@@ -99,7 +96,7 @@ jobs:
         cp "package/Cartridges/Familiegeheugen 2.0 NL.bin" package/M2000.app/Contents/Resources/
     - name: Run dylibbundler
       run: |
-        export DYLD_LIBRARY_PATH=/opt/local/lib
+        export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
         dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path
     - name: Zip package
       run: |
