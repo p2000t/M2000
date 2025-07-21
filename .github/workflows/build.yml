@@ -75,7 +75,7 @@ jobs:
     - uses: melusina-org/setup-macports@v1
     - name: Install dependencies
       run: |
-        port install allegro5 @5.2.10.1
+        port install allegro5 @5.2.10.1 configure.env="MACOSX_DEPLOYMENT_TARGET=10.11" configure.cflags="-mmacosx-version-min=10.11" configure.ldflags="-mmacosx-version-min=10.11"
         port install dylibbundler
         # brew tap-new $USER/pinned-allegro
         # brew extract --version=$ALLEGRO_VERSION allegro $USER/pinned-allegro
