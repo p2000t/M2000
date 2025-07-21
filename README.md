@@ -124,11 +124,6 @@ Make sure you have both the `Xcode command line tools` and `brew` installed.
   ```bash
   brew install allegro
   ```
-  If you're running Apple Silicon (M series), make sure to add this to your .zshrc or .bashrc:
-  ```bash
-  export C_INCLUDE_PATH="/opt/homebrew/include:$C_INCLUDE_PATH"
-  export LIBRARY_PATH="/opt/homebrew/lib:$LIBRARY_PATH"
-  ```
 * Clone the M2000 repo:
   ```bash
   git clone https://github.com/p2000t/M2000.git
