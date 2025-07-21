@@ -1,13 +1,13 @@
 # M2000 - Philips P2000T Home Computer Emulator
-Version 0.9.4
+Version 0.9.5
 
 ![P2000T](/img/P2000T.png)
 
 ## Supported platforms
 
-* [Windows](https://github.com/p2000t/M2000/releases) - standalone app
-* [Linux](https://github.com/p2000t/M2000/releases) - standalone app
-* [macOS](https://github.com/p2000t/M2000/releases) - standalone app
+* [Windows](https://github.com/p2000t/M2000/releases) - standalone app (64 bits)
+* [Linux](https://github.com/p2000t/M2000/releases) - standalone app (AMD64)
+* [macOS](https://github.com/p2000t/M2000/releases) - standalone app (minimal macOS Sierra 10.12)
 * [RetroArch (Libretro)](https://docs.libretro.com/library/m2000/) - running the M2000 core in RetroArch
 * [P2000T Web Player](https://p2000t.github.io/) - runs from your browser
 
@@ -20,9 +20,9 @@ To download the latest standalone release of M2000, please go to the [M2000 rele
 Installation of M2000 depends on your platform:
 * **Windows** (64 bit) \
   Unzip the downloaded release package and double click the `M2000-installer.exe`, which guides you through installation. After installation, "M2000 - Philips P2000 Emulator" will be added to your Windows apps.
-* **macOS** (version 10.11 or higher) \
+* **macOS** (version Sierra 10.12 or higher) \
   Unzip the downloaded release package (usually this is done by just double-clicking it) and drag the resulting "M2000" app into the Applications folder. Now you can start M2000 from your applications - probably after allowing M2000 to run in the security settings.
-* **Linux** (Debian/Ubuntu/Linux Mint) \
+* **Linux** (Debian/Ubuntu/Linux Mint AMD64) \
   Unzip the downloaded release package and double-click `M2000_amd64.deb` to start the package installer(\*). After installation is done, type `M2000` in a terminal to start the emulator. \
   (\*) If double-clicking doesn't open a package installer, then open a terminal to the unzipped .deb file and do:
   ```
@@ -119,7 +119,7 @@ If you want to compile the M2000 sources yourself, then the instructions below w
   ```
 
 ### macOS
-Make sure you have both the `Xcode command line tools` and `brew` installed.
+Make sure you have [brew](https://brew.sh/) installed.
 * Now install the Allegro 5 libs using brew:
   ```bash
   brew install allegro
