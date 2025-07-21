@@ -25,6 +25,12 @@ VPATH = ../
 OBJECTS = M2000.o P2000.o Z80.o Main.o
 TARGET = ../../M2000
 
+# Detect MacPorts
+ifneq ("$(wildcard /opt/local/lib/liballegro*.dylib)","")
+    CFLAGS  += -I/opt/local/include
+    LDFLAGS += -L/opt/local/lib -Wl,-rpath,/opt/local/lib
+endif
+
 all: clean m2000
 
 m2000:	$(OBJECTS)
