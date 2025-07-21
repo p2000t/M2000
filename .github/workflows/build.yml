@@ -75,8 +75,8 @@ jobs:
     - uses: melusina-org/setup-macports@v1
     - name: Install dependencies
       run: |
-        port install -y allegro5 @5.2.10.1
-        port install -y dylibbundler
+        port install allegro5 @5.2.10.1
+        port install dylibbundler
         # brew tap-new $USER/pinned-allegro
         # brew extract --version=$ALLEGRO_VERSION allegro $USER/pinned-allegro
         # brew install allegro@$ALLEGRO_VERSION
