@@ -25,10 +25,16 @@ VPATH = ../
 OBJECTS = M2000.o P2000.o Z80.o Main.o
 TARGET = ../../M2000
 
-# Detect MacPorts
+# MacPorts setup
 ifneq ("$(wildcard /opt/local/lib/liballegro*.dylib)","")
     CFLAGS  += -I/opt/local/include
     LDFLAGS += -L/opt/local/lib -Wl,-rpath,/opt/local/lib
+endif
+
+# Homebrew setup (Apple Silicon)
+ifneq ("$(wildcard /opt/homebrew/lib/liballegro*.dylib)","")
+    CFLAGS  += -I/opt/homebrew/include
+    LDFLAGS += -L/opt/homebrew/lib -Wl,-rpath,/opt/homebrew/lib
 endif
 
 all: clean m2000
