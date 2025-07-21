@@ -119,10 +119,14 @@ If you want to compile the M2000 sources yourself, then the instructions below w
   ```
 
 ### macOS
-Make sure you have both the `Xcode command line tools` and `brew` installed.
+Make sure you have both the `Xcode command line tools` and [Homebrew](https://brew.sh/) installed.
 * Now install the Allegro 5 libs using brew:
   ```bash
   brew install allegro
+  ```
+  **Note**: If you're running an older version of macOS, you probably want to use [MacPorts](https://www.macports.org/) instead of Homebrew and install the Allegro 5 libs with:
+  ```bash
+  sudo port install allegro5
   ```
 * Clone the M2000 repo:
   ```bash
