@@ -37,21 +37,25 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 #ifdef __APPLE__
-#define P2000_KEY_LESS_THAN  0 // has no official key constant
-#define P2000_KEY_CODE       ALLEGRO_KEY_BACKQUOTE
-//ISO/EIC 9995 standard keyboard
-#define P2000_KEY_PAD_MIN    ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
-#define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_SLASH
-#define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_ASTERISK
+#define NUMBER_OF_KEYMAPPINGS   69 // to map the CODE key on both built-in and external keyboards
+#define P2000_KEY_LESS_THAN     ALLEGRO_KEY_UNKNOWN // not supported
+#define P2000_KEY_CODE_INT      ALLEGRO_KEY_BACKQUOTE
+#define P2000_KEY_CODE          ((P2000_KEY_CODE_EXT<<8) | P2000_KEY_CODE_INT)
+// external ISO/EIC 9995 standard keyboard
+#define P2000_KEY_CODE_EXT      ALLEGRO_KEY_BACKSLASH2
+#define P2000_KEY_PAD_MIN       ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
+#define P2000_KEY_PAD_PLUS      ALLEGRO_KEY_PAD_SLASH
+#define P2000_KEY_PAD_CLRLN     ALLEGRO_KEY_PAD_ASTERISK
 // Apple Magic keyboard
-// #define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_EQUALS
-// #define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_SLASH
+// #define P2000_KEY_PAD_PLUS      ALLEGRO_KEY_PAD_EQUALS
+// #define P2000_KEY_PAD_CLRLN     ALLEGRO_KEY_PAD_SLASH
 #else
-#define P2000_KEY_LESS_THAN  ((ALLEGRO_KEY_BACKSLASH2<<8) | ALLEGRO_KEY_DELETE)
-#define P2000_KEY_CODE       ALLEGRO_KEY_TILDE
-#define P2000_KEY_PAD_MIN    ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
-#define P2000_KEY_PAD_PLUS   ALLEGRO_KEY_PAD_SLASH
-#define P2000_KEY_PAD_CLRLN  ALLEGRO_KEY_PAD_ASTERISK
+#define NUMBER_OF_KEYMAPPINGS   68
+#define P2000_KEY_LESS_THAN     ((ALLEGRO_KEY_BACKSLASH2<<8) | ALLEGRO_KEY_DELETE)
+#define P2000_KEY_CODE          ALLEGRO_KEY_TILDE
+#define P2000_KEY_PAD_MIN       ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
+#define P2000_KEY_PAD_PLUS      ALLEGRO_KEY_PAD_SLASH
+#define P2000_KEY_PAD_CLRLN     ALLEGRO_KEY_PAD_ASTERISK
 #endif
 static int keymask[] =
 {
@@ -67,7 +71,6 @@ static int keymask[] =
   ALLEGRO_KEY_LSHIFT,    ALLEGRO_KEY_UNKNOWN,  ALLEGRO_KEY_UNKNOWN,    ALLEGRO_KEY_UNKNOWN, ALLEGRO_KEY_UNKNOWN,    ALLEGRO_KEY_UNKNOWN,   ALLEGRO_KEY_UNKNOWN, ALLEGRO_KEY_RSHIFT
 };
 
-#define NUMBER_OF_KEYMAPPINGS 68
 static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
 {
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
@@ -128,7 +131,12 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
   { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
   { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
   { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
+#ifdef __APPLE__
+  { P2000_KEY_CODE_INT,     32,      0,       32,      1 }, // CODE    [free]
+  { P2000_KEY_CODE_EXT,     32,      0,       32,      1 }, // CODE    [free]
+#else
   { P2000_KEY_CODE,         32,      0,       32,      1 }, // CODE    [free]
+#endif
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
   { ALLEGRO_KEY_PAD_8,      50,      0,       50,      1 }, // 8       ?
