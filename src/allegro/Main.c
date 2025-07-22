@@ -655,9 +655,10 @@ void Keyboard(void)
   //read keyboard state
   al_get_keyboard_state(&kbdstate);
 
-  for (int i=0; i<ALLEGRO_KEY_MAX;i++) {
-    if (al_key_down(&kbdstate,i)) printf("Key down: %i\n", i);
-  }
+  //Key code debugging
+  // for (int i=0; i<ALLEGRO_KEY_MAX;i++) {
+  //   if (al_key_down(&kbdstate,i)) printf("Key code: %i\n", i);
+  // }
 
   al_shift_down = al_key_down(&kbdstate,ALLEGRO_KEY_LSHIFT) || al_key_down(&kbdstate,ALLEGRO_KEY_RSHIFT);
   

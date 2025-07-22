@@ -37,12 +37,10 @@
     Keys marked with an asterix (*) are on the numeric keypad
 */
 #ifdef __APPLE__
-#define NUMBER_OF_KEYMAPPINGS   69 // to map the CODE key on both built-in and external keyboards
-#define P2000_KEY_LESS_THAN     ALLEGRO_KEY_UNKNOWN // not supported
-#define P2000_KEY_CODE_INT      ALLEGRO_KEY_BACKQUOTE
-#define P2000_KEY_CODE          ((P2000_KEY_CODE_EXT<<8) | P2000_KEY_CODE_INT)
+#define NUMBER_OF_KEYMAPPINGS   69 // +1 keys to map the CODE key on both old and new Apple keyboard layouts
 // external ISO/EIC 9995 standard keyboard
-#define P2000_KEY_CODE_EXT      ALLEGRO_KEY_BACKSLASH2
+#define P2000_KEY_LESS_THAN     ALLEGRO_KEY_BACKQUOTE
+#define P2000_KEY_CODE          ALLEGRO_KEY_BACKSLASH2
 #define P2000_KEY_PAD_MIN       ((ALLEGRO_KEY_NUMLOCK<<8) | ALLEGRO_KEY_ESCAPE)
 #define P2000_KEY_PAD_PLUS      ALLEGRO_KEY_PAD_SLASH
 #define P2000_KEY_PAD_CLRLN     ALLEGRO_KEY_PAD_ASTERISK
@@ -132,10 +130,10 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
   { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
   { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
 #ifdef __APPLE__
-  { P2000_KEY_CODE_INT,     32,      0,       32,      1 }, // CODE    [free]
-  { P2000_KEY_CODE_EXT,     32,      0,       32,      1 }, // CODE    [free]
+  { ALLEGRO_KEY_BACKQUOTE,  32,      0,       32,      1 }, // CODE    [free] -> modern Apple keyboard layout
+  { ALLEGRO_KEY_BACKSLASH2, 32,      0,       32,      1 }, // CODE    [free] -> old Apple keyboard layout or external ISO/EIC 9995 standard keyboard
 #else
-  { P2000_KEY_CODE,         32,      0,       32,      1 }, // CODE    [free]
+  { ALLEGRO_KEY_TILDE,      32,      0,       32,      1 }, // CODE    [free]
 #endif
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?
