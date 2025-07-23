@@ -76,8 +76,8 @@ jobs:
       run: |
         brew tap-new $USER/pinned-allegro
         brew extract --version=$ALLEGRO_VERSION allegro $USER/pinned-allegro
-        brew install allegro@$ALLEGRO_VERSION
-        brew install dylibbundler
+        brew install --build-from-source allegro@$ALLEGRO_VERSION
+        brew install --build-from-source dylibbundler
     - uses: actions/checkout@v4
     - name: Build Allegro
       run: make allegro
@@ -85,6 +85,7 @@ jobs:
       run: make libretro CC=gcc
     - name: Copy files
       run: |
+        rm -f package/M2000.app/Contents/MacOS/*
         cp M2000 package/M2000.app/Contents/MacOS/
         cp Default.fnt package/M2000.app/Contents/Resources/
         cp P2000ROM.bin package/M2000.app/Contents/Resources/
@@ -97,7 +98,7 @@ jobs:
     - name: Run dylibbundler
       run: |
         export DYLD_LIBRARY_PATH=/usr/local/opt/allegro/lib
-        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path
+        dylibbundler -x package/M2000.app/Contents/MacOS/M2000 -b -cd -p @executable_path -d package/M2000.app/Contents/MacOS/M2000
     - name: Zip package
       run: |
         cd package
