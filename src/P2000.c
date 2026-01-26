@@ -20,6 +20,9 @@
 // This file contains the P2000 hardware emulation code
 
 #include "P2000.h"
+#ifdef SD_CARTRIDGE_SUPPORT
+#include "SDCart.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -97,13 +100,16 @@ void Z80_Out (byte Port, byte Value)
    ScrollReg=Value;
    return;
   case 4:       /* Reserved for I/O cartridge */
-   break;
+#ifdef SD_CARTRIDGE_SUPPORT
+   SDCart_Out(Port, Value);
+#endif
+   return;
   case 5:       /* Beeper */
    SoundReg=Value;
    Sound (Value&1);
    return;
   case 6:       /* Reserved for I/O cartridge */
-   break;
+   return;
   case 7:       /* DISAS (M-version only) */
    return;
  }
@@ -165,7 +171,11 @@ byte Z80_In (byte Port)
   case 3:       /* Scroll Register (T-version only) */
    return ScrollReg;
   case 4:       /* Reserved for I/O cartridge */
+#ifdef SD_CARTRIDGE_SUPPORT
+   return SDCart_In(Port);
+#else
    break;
+#endif
   case 5:       /* Beeper */
    return SoundReg;
   case 6:       /* Reserved for I/O cartridge */
