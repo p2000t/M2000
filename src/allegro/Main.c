@@ -56,7 +56,7 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   if (soundbuf) free (soundbuf);
-  if (OldCharacter) free (OldCharacter);
+  if (charBuffer) free (charBuffer);
 }
 
 void ShowErrorMessage(const char *format, ...)
@@ -73,7 +73,7 @@ void ClearScreen()
 {
   al_set_target_bitmap(al_get_backbuffer(display));
   al_clear_to_color(al_map_rgb(0, 0, 0));
-  memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
+  memset(charBuffer, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
 void ResetAudioStream() 
@@ -140,7 +140,7 @@ void ToggleFullscreen()
     DisplayWidth = DisplayHeight * 4 / 3;
     DisplayVBorder = (monitorInfo.y2 - monitorInfo.y1 - DisplayHeight) / 2;
     DisplayHBorder = (monitorInfo.x2 - monitorInfo.x1 - DisplayWidth) / 2;
-    DisplayTileWidth = DisplayWidth / 40;
+    DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
     DisplayTileHeight = DisplayHeight / 24;
     if (Verbose) printf("Fullscreen resizing to %ix%i\n",DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
@@ -302,8 +302,8 @@ int InitMachine(void)
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
   if (Verbose) printf("  Allocating cache buffers... ");
-  OldCharacter = malloc(80 * 24 * sizeof(int));
-  if (!OldCharacter) {
+  charBuffer = malloc(80 * 24 * sizeof(int));
+  if (!charBuffer) {
     ShowErrorMessage("Could not allocate character buffer.");
     return 0;
   }
@@ -913,6 +913,9 @@ void Keyboard(void)
           ColdBoot = 1;
           Z80_Reset();
           break;
+        case HARDWARE_80COLUMNSCARD:
+          EightyColumnsCard = !EightyColumnsCard;
+          break;
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;
           break;
@@ -1132,10 +1135,20 @@ void PutImage (void)
 /****************************************************************************/
 void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
+  static byte PrevColumnMode = 0;
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
-  if (K == OldCharacter[y * 40 + x])
+  int cols = ColumnModeReg ? 80 : 40;
+
+  // Clear display cache when switching between 40 and 80 column modes
+  if (ColumnModeReg != PrevColumnMode) {
+    ClearScreen();
+    DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
+    PrevColumnMode = ColumnModeReg;
+  }
+
+  if (K == charBuffer[y * cols + x])
     return;
-  OldCharacter[y * 40 + x] = K;
+  charBuffer[y * cols + x] = K;
 
   if (c > 0 && Debug) {
     printf("PutChar (%i,%i,%i,%i,%i,%i);\n", x, y, c, fg, bg, si);

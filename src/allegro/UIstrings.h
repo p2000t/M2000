@@ -32,7 +32,7 @@ typedef struct {
 #define FILE_INSERT_CARTRIDGE_ID          5
 #define FILE_REMOVE_CARTRIDGE_ID          6
 #define FILE_RESET_ID                     7
-#define FILE_INTERRUPT_ID                13
+#define FILE_INTERRUPT_ID                 13
 #define FILE_SAVE_SCREENSHOT_ID           8
 #define FILE_LOAD_VIDEORAM_ID             9
 #define FILE_SAVE_VIDEORAM_ID             10
@@ -87,6 +87,7 @@ typedef struct {
 #define HARDWARE_T38_ID                   72
 #define HARDWARE_T54_ID                   73
 #define HARDWARE_T102_ID                  74
+#define HARDWARE_80COLUMNSCARD            75
 #define OPTIONS_LANGUAGE_MENU_ID          103
 #define KEYBOARD_MENU_ID                  104
 #define SPEED_MENU_ID                     105
@@ -137,6 +138,7 @@ static LanguageEntry ENstrings[] = {
   { KEYBOARD_SYMBOLIC_ID, "Symbolic Key Mapping" },
   { KEYBOARD_POSITIONAL_ID, "Positional Key Mapping" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
+  { HARDWARE_80COLUMNSCARD, "80-Columns Card Present/Absent" },
   { OPTIONS_MENU_ID, "Options->"},
   { OPTIONS_SOUND_ID, "Mute/Unmute Sound (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Sound Card Not Detected" },
@@ -200,6 +202,7 @@ static LanguageEntry NLstrings[] = {
   { KEYBOARD_SYMBOLIC_ID, "Toetsindeling o.b.v. karakter" },
   { KEYBOARD_POSITIONAL_ID, "Toetsindeling o.b.v. positie" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
+  { HARDWARE_80COLUMNSCARD, "80-kolomskaart aan/afwezig" },
   { OPTIONS_MENU_ID, "Opties->" },
   { OPTIONS_SOUND_ID, "Geluid aan/uit (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Geluidskaart niet gedetecteerd" },
