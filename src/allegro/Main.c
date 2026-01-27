@@ -69,7 +69,7 @@ void ShowErrorMessage(const char *format, ...)
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
 }
 
-void ClearScreen() 
+void RedrawScreen() 
 {
   al_set_target_bitmap(al_get_backbuffer(display));
   al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -118,7 +118,7 @@ void ToggleFullscreen()
 #ifdef __linux__
   return;
 #endif
-  ClearScreen();
+  RedrawScreen();
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
     //back to window mode
     UpdateDisplaySettings();
@@ -307,7 +307,7 @@ int InitMachine(void)
     ShowErrorMessage("Could not allocate character buffer.");
     return 0;
   }
-  ClearScreen();
+  RedrawScreen();
   if (Verbose) puts("OK");
 
   /* sound init */
@@ -587,7 +587,7 @@ void IndicateActionDone() {
   al_clear_to_color(al_map_rgb(255, 255, 255));
   al_flip_display();
   Pause(20);
-  ClearScreen();
+  RedrawScreen();
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -755,7 +755,7 @@ void Keyboard(void)
       event.type = 0; //clear event type from last event
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
-      ClearScreen();
+      RedrawScreen();
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
@@ -915,6 +915,9 @@ void Keyboard(void)
           break;
         case HARDWARE_80COLUMNSCARD:
           EightyColumnsCard = !EightyColumnsCard;
+          ColumnModeReg = 0;
+          ColdBoot = 1;
+          Z80_Reset();
           break;
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;
@@ -946,7 +949,7 @@ void Keyboard(void)
           al_set_menu_item_flags(menu, OPTIONS_ENGLISH_ID, uilanguage==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           al_set_menu_item_flags(menu, OPTIONS_NEDERLANDS_ID, uilanguage==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           CreateEmulatorMenu();
-          ClearScreen();
+          RedrawScreen();
           break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
@@ -956,11 +959,11 @@ void Keyboard(void)
           break;
         case DISPLAY_SCANLINES:
           scanlines = !scanlines;
-          ClearScreen();
+          RedrawScreen();
           break;
         case DISPLAY_SMOOTHING:
           smoothing = !smoothing;
-          ClearScreen();
+          RedrawScreen();
           break;
         case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
@@ -971,7 +974,7 @@ void Keyboard(void)
           UpdateDisplaySettings();
           UpdateViewMenu();
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-          ClearScreen();
+          RedrawScreen();
           break;
       }
       if (Z80_Running && !delayedShiftedKeyPress) SaveConfig(); //auto save config
@@ -1030,7 +1033,7 @@ void Keyboard(void)
   // Ctrl-L           -  Toggle scanlines on/off
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_L)) {
     scanlines = !scanlines;
-    ClearScreen();
+    RedrawScreen();
   }
 
   // Ctrl-Q           -  Quit emulator
@@ -1141,7 +1144,7 @@ void PutChar(int x, int y, int c, int fg, int bg, int si)
 
   // Clear display cache when switching between 40 and 80 column modes
   if (ColumnModeReg != PrevColumnMode) {
-    ClearScreen();
+    RedrawScreen();
     DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
     PrevColumnMode = ColumnModeReg;
   }
