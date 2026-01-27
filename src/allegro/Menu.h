@@ -170,10 +170,8 @@ void CreateEmulatorMenu()
     ALLEGRO_END_OF_MENU
   };
 
-  if (menu) { 
-    al_remove_display_menu(display);
-    al_destroy_menu(menu);
-  }
+  ALLEGRO_MENU *oldmenu = menu;
+  if (oldmenu) al_remove_display_menu(display);
   menu = al_build_menu(menu_info);
   if (!joyDetected) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
@@ -182,6 +180,10 @@ void CreateEmulatorMenu()
   UpdateMemoryMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
+  if (oldmenu) {
+    al_destroy_menu(oldmenu);
+    oldmenu = NULL;
+  }
 #if defined(__linux__)
   // resize display after menu was attached, see https://github.com/liballeg/allegro5/issues/1500
   al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
