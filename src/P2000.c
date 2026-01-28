@@ -397,8 +397,7 @@ void InsertCassette(const char *filename, FILE *f, int readOnly)
 void RemoveCartridge()
 {
   memset (ROM + 0x1000, 0xFF, 0x4000);
-  ColdBoot = 1;
-  Z80_Reset ();
+  ColdReset();
 }
 
 /****************************************************************************/
@@ -416,8 +415,7 @@ void InsertCartridge(const char *filename, FILE *f)
   {
     if (fread(ROM+0x1000,1,0x4000,f)) success=1;
     fclose(f);
-    ColdBoot = 1;
-    Z80_Reset ();
+    ColdReset();
   }
   if(Verbose) puts (success? "OK":"FAILED");
 }
@@ -968,4 +966,17 @@ void RefreshScreen(void)
   RefreshScreen_T();
   // Put the image on the screen
   PutImage();
+}
+
+void WarmReset() 
+{
+  ColumnModeReg = 0;
+  Z80_Reset ();
+}
+
+void ColdReset()
+{
+  ColumnModeReg = 0;
+  ColdBoot = 1;
+  Z80_Reset ();
 }

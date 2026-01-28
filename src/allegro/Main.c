@@ -575,7 +575,7 @@ void OpenCassetteDialog(bool boot)
     UpdateWindowTitle();
     refreshPath(&userCassettesPath, TapeName);
     if (boot)
-      Z80_Reset();
+      WarmReset();
   }
   al_destroy_native_file_dialog(cassetteChooser);
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
@@ -792,7 +792,7 @@ void Keyboard(void)
           RemoveCartridge();
           break;
         case FILE_RESET_ID:
-          Z80_Reset();
+          WarmReset();
           break;
         case FILE_INTERRUPT_ID:
           NMI = 1;
@@ -910,14 +910,12 @@ void Keyboard(void)
           updateMem:
           InitRAM();
           UpdateMemoryMenu();
-          ColdBoot = 1;
-          Z80_Reset();
+          ColdReset();
           break;
         case HARDWARE_80COLUMNSCARD:
           EightyColumnsCard = !EightyColumnsCard;
           ColumnModeReg = 0;
-          ColdBoot = 1;
-          Z80_Reset();
+          ColdReset();
           break;
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;
@@ -1020,7 +1018,7 @@ void Keyboard(void)
 
   // Ctrl-R           -  Reset P2000
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
-    Z80_Reset();
+    WarmReset();
 
   // Ctrl-T           -  Interrupt P2000 (NMI)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_T))

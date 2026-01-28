@@ -167,3 +167,6 @@ char *GetDocumentsPath (void);
 /*** Used to shows breaking error messages                                ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void ShowErrorMessage(const char *format, ...);
+
+void WarmReset(void);
+void ColdReset(void);
