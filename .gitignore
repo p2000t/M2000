@@ -25,3 +25,4 @@ allegro/*
 .DS_Store
 product.wixobj
 *.msi
+/*.dll
