@@ -20,6 +20,9 @@
 // This file contains the P2000 hardware emulation code
 
 #include "P2000.h"
+#ifdef SERIAL_SUPPORT
+#include "Serial.h"
+#endif
 #ifdef SD_CARTRIDGE_SUPPORT
 #include "SDCart.h"
 #endif
@@ -93,6 +96,9 @@ void Z80_Out (byte Port, byte Value)
    return;
   case 1:       /* Output to cassette/printer */
    OutputReg=Value;
+#ifdef SERIAL_SUPPORT
+   Serial_TxPortWrite(Value);
+#endif
    return;
   case 2:       /* Input from cassette/printer */
    return;
@@ -166,6 +172,10 @@ byte Z80_In (byte Port)
    if (!TapeProtect) inputstatus&=0xF7;
    if (PrnName) inputstatus&=0xFD;
    if (PrnType) inputstatus&=0xFB;
+#ifdef SERIAL_SUPPORT
+   /* Inject RX serial bit into bit 0 (overrides the default high level) */
+   inputstatus = (inputstatus & 0xFE) | (Serial_RxPortRead() & 0x01);
+#endif
    return inputstatus;
   }
   case 3:       /* Scroll Register (T-version only) */

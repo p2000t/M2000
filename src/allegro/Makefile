@@ -18,11 +18,16 @@
 #******************************************************************************#
 
 CC	= gcc	# C compiler used
-CFLAGS  = -Wall -O2 -DSD_CARTRIDGE_SUPPORT
+CFLAGS  = -Wall -O2 -DSD_CARTRIDGE_SUPPORT -DSERIAL_SUPPORT
 LDFLAGS  = -s
 VPATH = ../
 
-OBJECTS = SDCart.o M2000.o P2000.o Z80.o Main.o
+# Link with pthreads on non-Windows platforms (used by Serial.c RX thread)
+ifneq ($(OS),Windows_NT)
+    LDFLAGS += -lpthread
+endif
+
+OBJECTS = SDCart.o M2000.o P2000.o Z80.o Serial.o Main.o
 TARGET = ../../M2000
 
 # MacPorts setup
