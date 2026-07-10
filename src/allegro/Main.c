@@ -864,9 +864,10 @@ void Keyboard(void)
         case SPEED_100_ID: CpuSpeed=100; goto setSpeed;
         case SPEED_120_ID: CpuSpeed=120; goto setSpeed;
         case SPEED_200_ID: CpuSpeed=200; goto setSpeed;
-        case SPEED_500_ID: CpuSpeed=500;
+        case SPEED_500_ID: CpuSpeed=500; goto setSpeed;
+        case SPEED_1000_ID: CpuSpeed=1000;
           setSpeed:
-          Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          Z80_IPeriod=(int)((2500000LL * CpuSpeed)/(100*IFreq));
           UpdateCpuSpeedMenu();
           break;
         case FPS_50_ID: case FPS_60_ID:
@@ -875,7 +876,7 @@ void Keyboard(void)
             CpuSpeed = 2*IFreq;
             UpdateCpuSpeedMenu();
           } else {
-            Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+            Z80_IPeriod=(int)((2500000LL * CpuSpeed)/(100*IFreq));
           }
           al_set_timer_speed(timer, 1.0 / IFreq);
           ResetAudioStream();

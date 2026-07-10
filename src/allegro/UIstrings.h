@@ -77,6 +77,7 @@ typedef struct {
 #define SPEED_120_ID                      58
 #define SPEED_200_ID                      59
 #define SPEED_500_ID                      60
+#define SPEED_1000_ID                     107
 #define HELP_ABOUT_ID                     61
 #define FILE_MENU_ID                      62
 #define HELP_MENU_ID                      63

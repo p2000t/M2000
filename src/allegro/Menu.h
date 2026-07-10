@@ -51,6 +51,7 @@ void UpdateMemoryMenu() {
 }
 
 void UpdateCpuSpeedMenu () {
+  al_set_menu_item_flags(menu, SPEED_1000_ID, CpuSpeed == 1000 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_500_ID, CpuSpeed == 500 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_200_ID,  CpuSpeed == 200 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_120_ID,  CpuSpeed == 120 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
@@ -102,6 +103,7 @@ void CreateEmulatorMenu()
 
     { _(SPEED_MENU_ID), SPEED_MENU_ID, 0, NULL },
       { _(SPEED_CPU_MENU_ID), SPEED_CPU_MENU_ID, 0, NULL },
+        { "1000%", SPEED_1000_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "500%", SPEED_500_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "200%", SPEED_200_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "120%", SPEED_120_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
