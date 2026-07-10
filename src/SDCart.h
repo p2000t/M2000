@@ -22,7 +22,7 @@
 extern const char *SD_RomName;
 extern const char *SD_ImgName;
 
-void SDCart_Init(const char *romPath, const char *sdImagePath);
+int SDCart_Init(const char *romPath, const char *sdImagePath);
 void SDCart_Cleanup();
 void SDCart_Out(byte port, byte value);
 byte SDCart_In(byte port);
