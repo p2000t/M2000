@@ -1238,5 +1238,7 @@ int main(int argc,char *argv[])
     uint32_t version = al_get_allegro_version();
     printf("Using Allegro libs version %i.%i.%i\n",version >> 24, (version >> 16) & 255, (version >> 8) & 255);
   }
-  return M2000_main(argc, argv);
+  int result = M2000_main(argc, argv);
+  al_uninstall_system();
+  return result;
 }
