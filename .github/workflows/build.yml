@@ -79,6 +79,7 @@ jobs:
         brew tap-new $USER/local-allegro
         brew extract --version=$ALLEGRO_VERSION allegro $USER/local-allegro
         printf '/-DWANT_DOCS=OFF/a\\\n-DCMAKE_POLICY_VERSION_MINIMUM=3.5\n' | sed -i '' -f - "$(brew --repo $USER/local-allegro)/Formula/allegro@$ALLEGRO_VERSION.rb"
+        brew trust --formula $USER/local-allegro/allegro@$ALLEGRO_VERSION
         brew install allegro@$ALLEGRO_VERSION
         brew install dylibbundler
     - uses: actions/checkout@v4
