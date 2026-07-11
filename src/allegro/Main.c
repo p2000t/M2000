@@ -56,7 +56,7 @@ void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
   if (soundbuf) free (soundbuf);
-  if (OldCharacter) free (OldCharacter);
+  if (charBuffer) free (charBuffer);
 }
 
 void ShowErrorMessage(const char *format, ...)
@@ -69,11 +69,11 @@ void ShowErrorMessage(const char *format, ...)
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
 }
 
-void ClearScreen() 
+void RedrawScreen() 
 {
   al_set_target_bitmap(al_get_backbuffer(display));
   al_clear_to_color(al_map_rgb(0, 0, 0));
-  memset(OldCharacter, -1, 80 * 24 * sizeof(int)); //clear old screen characters
+  memset(charBuffer, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
 
 void ResetAudioStream() 
@@ -118,7 +118,7 @@ void ToggleFullscreen()
 #ifdef __linux__
   return;
 #endif
-  ClearScreen();
+  RedrawScreen();
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW) {
     //back to window mode
     UpdateDisplaySettings();
@@ -140,7 +140,7 @@ void ToggleFullscreen()
     DisplayWidth = DisplayHeight * 4 / 3;
     DisplayVBorder = (monitorInfo.y2 - monitorInfo.y1 - DisplayHeight) / 2;
     DisplayHBorder = (monitorInfo.x2 - monitorInfo.x1 - DisplayWidth) / 2;
-    DisplayTileWidth = DisplayWidth / 40;
+    DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
     DisplayTileHeight = DisplayHeight / 24;
     if (Verbose) printf("Fullscreen resizing to %ix%i\n",DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
     al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
@@ -302,12 +302,12 @@ int InitMachine(void)
   al_register_event_source(timerQueue, al_get_timer_event_source(timer));
 
   if (Verbose) printf("  Allocating cache buffers... ");
-  OldCharacter = malloc(80 * 24 * sizeof(int));
-  if (!OldCharacter) {
+  charBuffer = malloc(80 * 24 * sizeof(int));
+  if (!charBuffer) {
     ShowErrorMessage("Could not allocate character buffer.");
     return 0;
   }
-  ClearScreen();
+  RedrawScreen();
   if (Verbose) puts("OK");
 
   /* sound init */
@@ -575,7 +575,7 @@ void OpenCassetteDialog(bool boot)
     UpdateWindowTitle();
     refreshPath(&userCassettesPath, TapeName);
     if (boot)
-      Z80_Reset();
+      WarmReset();
   }
   al_destroy_native_file_dialog(cassetteChooser);
   if (al_get_display_flags(display) & ALLEGRO_FULLSCREEN_WINDOW)
@@ -587,7 +587,7 @@ void IndicateActionDone() {
   al_clear_to_color(al_map_rgb(255, 255, 255));
   al_flip_display();
   Pause(20);
-  ClearScreen();
+  RedrawScreen();
 }
 
 bool al_key_up(ALLEGRO_KEYBOARD_STATE * kb_state, int kb_event) 
@@ -755,7 +755,7 @@ void Keyboard(void)
       event.type = 0; //clear event type from last event
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
-      ClearScreen();
+      RedrawScreen();
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
       Z80_Running = 0;
@@ -792,7 +792,7 @@ void Keyboard(void)
           RemoveCartridge();
           break;
         case FILE_RESET_ID:
-          Z80_Reset();
+          WarmReset();
           break;
         case FILE_INTERRUPT_ID:
           NMI = 1;
@@ -864,9 +864,10 @@ void Keyboard(void)
         case SPEED_100_ID: CpuSpeed=100; goto setSpeed;
         case SPEED_120_ID: CpuSpeed=120; goto setSpeed;
         case SPEED_200_ID: CpuSpeed=200; goto setSpeed;
-        case SPEED_500_ID: CpuSpeed=500;
+        case SPEED_500_ID: CpuSpeed=500; goto setSpeed;
+        case SPEED_1000_ID: CpuSpeed=1000;
           setSpeed:
-          Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+          Z80_IPeriod=(int)((2500000LL * CpuSpeed)/(100*IFreq));
           UpdateCpuSpeedMenu();
           break;
         case FPS_50_ID: case FPS_60_ID:
@@ -875,7 +876,7 @@ void Keyboard(void)
             CpuSpeed = 2*IFreq;
             UpdateCpuSpeedMenu();
           } else {
-            Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+            Z80_IPeriod=(int)((2500000LL * CpuSpeed)/(100*IFreq));
           }
           al_set_timer_speed(timer, 1.0 / IFreq);
           ResetAudioStream();
@@ -910,8 +911,12 @@ void Keyboard(void)
           updateMem:
           InitRAM();
           UpdateMemoryMenu();
-          ColdBoot = 1;
-          Z80_Reset();
+          ColdReset();
+          break;
+        case HARDWARE_80COLUMNSCARD:
+          EightyColumnsCard = !EightyColumnsCard;
+          ColumnModeReg = 0;
+          ColdReset();
           break;
         case OPTIONS_SOUND_ID:
           soundmode = !soundmode;
@@ -943,7 +948,7 @@ void Keyboard(void)
           al_set_menu_item_flags(menu, OPTIONS_ENGLISH_ID, uilanguage==0 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           al_set_menu_item_flags(menu, OPTIONS_NEDERLANDS_ID, uilanguage==1 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
           CreateEmulatorMenu();
-          ClearScreen();
+          RedrawScreen();
           break;
         case HELP_ABOUT_ID:
           al_show_native_message_box(display,
@@ -953,11 +958,11 @@ void Keyboard(void)
           break;
         case DISPLAY_SCANLINES:
           scanlines = !scanlines;
-          ClearScreen();
+          RedrawScreen();
           break;
         case DISPLAY_SMOOTHING:
           smoothing = !smoothing;
-          ClearScreen();
+          RedrawScreen();
           break;
         case DISPLAY_FULLSCREEN:
           ToggleFullscreen();
@@ -968,7 +973,7 @@ void Keyboard(void)
           UpdateDisplaySettings();
           UpdateViewMenu();
           al_resize_display(display, DisplayWidth + 2* DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
-          ClearScreen();
+          RedrawScreen();
           break;
       }
       if (Z80_Running && !delayedShiftedKeyPress) SaveConfig(); //auto save config
@@ -1014,7 +1019,7 @@ void Keyboard(void)
 
   // Ctrl-R           -  Reset P2000
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_R))
-    Z80_Reset();
+    WarmReset();
 
   // Ctrl-T           -  Interrupt P2000 (NMI)
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_T))
@@ -1027,7 +1032,7 @@ void Keyboard(void)
   // Ctrl-L           -  Toggle scanlines on/off
   if (al_key_down(&kbdstate, ALLEGRO_KEY_LCTRL) && al_key_up(&kbdstate, ALLEGRO_KEY_L)) {
     scanlines = !scanlines;
-    ClearScreen();
+    RedrawScreen();
   }
 
   // Ctrl-Q           -  Quit emulator
@@ -1132,10 +1137,20 @@ void PutImage (void)
 /****************************************************************************/
 void PutChar(int x, int y, int c, int fg, int bg, int si)
 {
+  static byte PrevColumnMode = 0;
   int K = c + (fg << 8) + (bg << 16) + (si << 24);
-  if (K == OldCharacter[y * 40 + x])
+  int cols = ColumnModeReg ? 80 : 40;
+
+  // Clear display cache when switching between 40 and 80 column modes
+  if (ColumnModeReg != PrevColumnMode) {
+    RedrawScreen();
+    DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
+    PrevColumnMode = ColumnModeReg;
+  }
+
+  if (K == charBuffer[y * cols + x])
     return;
-  OldCharacter[y * 40 + x] = K;
+  charBuffer[y * cols + x] = K;
 
   if (c > 0 && Debug) {
     printf("PutChar (%i,%i,%i,%i,%i,%i);\n", x, y, c, fg, bg, si);

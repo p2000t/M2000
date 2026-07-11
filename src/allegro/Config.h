@@ -38,6 +38,7 @@ void ParseConfig()
   PrnType         = atoi(al_get_config_value(config, "Hardware",  "printertype"));
   ROMName         =      al_get_config_value(config, "Hardware",  "romfile");
   FontName        =      al_get_config_value(config, "Hardware",  "font");
+  EightyColumnsCard = strcmp(al_get_config_value(config, "Hardware", "80columnscard"), "on") == 0;
 
   TapeName        =      al_get_config_value(config, "File",      "tape");
   CartName        =      al_get_config_value(config, "File",      "cart");
@@ -80,12 +81,14 @@ void InitConfig()
   /* Hardware */
   al_add_config_comment(config, "Hardware",   "ram=<value>           Set amount of RAM installed in kilobytes [32]");
   al_add_config_comment(config, "Hardware",   "boot=on|off           Allow/Don't allow BASIC to boot from tape [on]");
+  al_add_config_comment(config, "Hardware",   "80columnscard=on|off  Enable/Disable 80 columns card [on]");
   al_add_config_comment(config, "Hardware",   "printertype=<type>    Set printer type [0]");
   al_add_config_comment(config, "Hardware",   "                      0 - Daisy wheel");
   al_add_config_comment(config, "Hardware",   "                      1 - Matrix");
   al_add_config_comment(config, "Hardware",   "romfile=<file>        Set P2000 ROM file [P2000ROM.bin]");
   al_add_config_comment(config, "Hardware",   "font=<filename>       Set SAA5050 font to use [Default.fnt]");
   al_set_config_value  (config, "Hardware",   "ram", "32");
+  al_set_config_value  (config, "Hardware",   "80columnscard", "on");
   al_set_config_value  (config, "Hardware",   "boot", "on");
   al_set_config_value  (config, "Hardware",   "printertype", "0");
   al_set_config_value  (config, "Hardware",   "romfile", "P2000ROM.bin");
@@ -221,6 +224,7 @@ void SaveConfig()
   if (sprintf(intstr, "%i", keyboardmap))   al_set_config_value(config, "Keyboard", "keymap", intstr);
 
   if (sprintf(intstr, "%i", RAMSizeKb))     al_set_config_value(config, "Hardware", "ram", intstr);
+  al_set_config_value(config, "Hardware", "80columnscard", EightyColumnsCard ? "on" : "off");
 
   al_set_config_value(config, "Options", "sound", soundmode ? "on" : "off");
   if (sprintf(intstr, "%i", mastervolume))  al_set_config_value(config, "Options", "volume", intstr);

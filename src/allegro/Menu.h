@@ -51,6 +51,7 @@ void UpdateMemoryMenu() {
 }
 
 void UpdateCpuSpeedMenu () {
+  al_set_menu_item_flags(menu, SPEED_1000_ID, CpuSpeed == 1000 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_500_ID, CpuSpeed == 500 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_200_ID,  CpuSpeed == 200 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_120_ID,  CpuSpeed == 120 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
@@ -102,10 +103,11 @@ void CreateEmulatorMenu()
 
     { _(SPEED_MENU_ID), SPEED_MENU_ID, 0, NULL },
       { _(SPEED_CPU_MENU_ID), SPEED_CPU_MENU_ID, 0, NULL },
+        { "1000%", SPEED_1000_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "500%", SPEED_500_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "200%", SPEED_200_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "120%", SPEED_120_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
-        { "100%", SPEED_100_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
+        { "100% (Realtime)", SPEED_100_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "50%",  SPEED_50_ID , ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "20%",  SPEED_20_ID , ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "10%",  SPEED_10_ID , ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
@@ -135,6 +137,8 @@ void CreateEmulatorMenu()
         { "P2000T/54 (32K RAM)", HARDWARE_T54_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         { "P2000T/102 (80K RAM)", HARDWARE_T102_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         ALLEGRO_END_OF_MENU,
+      ALLEGRO_MENU_SEPARATOR,
+      { _(HARDWARE_80COLUMNSCARD), HARDWARE_80COLUMNSCARD, EightyColumnsCard ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_END_OF_MENU,
 
     { _(OPTIONS_MENU_ID), OPTIONS_MENU_ID, 0, NULL },
@@ -168,10 +172,8 @@ void CreateEmulatorMenu()
     ALLEGRO_END_OF_MENU
   };
 
-  if (menu) { 
-    al_remove_display_menu(display);
-    al_destroy_menu(menu);
-  }
+  ALLEGRO_MENU *oldmenu = menu;
+  if (oldmenu) al_remove_display_menu(display);
   menu = al_build_menu(menu_info);
   if (!joyDetected) al_remove_menu_item(menu, OPTIONS_JOYSTICK_MAP);
   UpdateVolumeMenu();
@@ -180,6 +182,10 @@ void CreateEmulatorMenu()
   UpdateMemoryMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
+  if (oldmenu) {
+    al_destroy_menu(oldmenu);
+    oldmenu = NULL;
+  }
 #if defined(__linux__)
   // resize display after menu was attached, see https://github.com/liballeg/allegro5/issues/1500
   al_resize_display(display, DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
