@@ -55,8 +55,14 @@
 void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
-  if (soundbuf) free (soundbuf);
-  if (charBuffer) free (charBuffer);
+  if (soundbuf) {
+    free (soundbuf);
+    soundbuf = NULL;
+  }
+  if (charBuffer) {
+    free (charBuffer);
+    charBuffer = NULL;
+  }
 }
 
 void ShowErrorMessage(const char *format, ...)
