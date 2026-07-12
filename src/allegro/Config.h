@@ -46,6 +46,7 @@ void ParseConfig()
   userCassettesPath = al_create_path_for_directory(al_get_config_value(config, "File", "cassettes"));
   userCartridgesPath = al_create_path_for_directory(al_get_config_value(config, "File", "cartridges"));
   userScreenshotsPath = al_create_path_for_directory(al_get_config_value(config, "File", "screenshots"));
+  cropScreenshot  = strcmp(al_get_config_value(config, "File",      "cropscreenshot"), "on") == 0;
   userVideoRamDumpsPath = al_create_path_for_directory(al_get_config_value(config, "File", "videoramdumps"));
   userSavestatesPath = al_create_path_for_directory(al_get_config_value(config, "File", "savestates"));
 
@@ -102,6 +103,7 @@ void InitConfig()
   al_add_config_comment(config, "File",       "cassettes=<path>      Set folder containing cassette files (.cas)");
   al_add_config_comment(config, "File",       "cartridges=<path>     Set folder containing cartridge files (.bin)");
   al_add_config_comment(config, "File",       "screenshots=<path>    Set folder to store the screenshot files (.bmp|.png)");
+  al_add_config_comment(config, "File",       "cropscreenshot=on|off Crop screenshots to the draw area, excluding the border [off]");
   al_add_config_comment(config, "File",       "videoramdumps=<path>  Set folder to store the video-RAM dump files (.vram)");
   al_add_config_comment(config, "File",       "savestates=<path>     Set folder to store the savestate files (.sav)");
   al_set_config_value  (config, "File",       "tape", "Default.cas");
@@ -115,6 +117,7 @@ void InitConfig()
   al_set_config_value  (config, "File",       "cartridges", al_path_cstr(_docPath, PATH_SEPARATOR));
   al_replace_path_component(_docPath, -1, SUBDIR_SCREENSHOTS);
   al_set_config_value  (config, "File",       "screenshots", al_path_cstr(_docPath, PATH_SEPARATOR));
+  al_set_config_value  (config, "File",       "cropscreenshot", "off");
   al_replace_path_component(_docPath, -1, SUBDIR_VIDEORAMDUMPS);
   al_set_config_value  (config, "File",       "videoramdumps", al_path_cstr(_docPath, PATH_SEPARATOR));
   al_replace_path_component(_docPath, -1, SUBDIR_SAVESTATES);
@@ -209,6 +212,7 @@ void SaveConfig()
   al_set_config_value(config, "File", "cassettes", al_path_cstr(userCassettesPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "cartridges", al_path_cstr(userCartridgesPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "screenshots", al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
+  al_set_config_value(config, "File", "cropscreenshot", cropScreenshot ? "on" : "off");
   al_set_config_value(config, "File", "videoramdumps", al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "savestates", al_path_cstr(userSavestatesPath, PATH_SEPARATOR));
 

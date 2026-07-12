@@ -27,6 +27,7 @@ static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayT
 int videomode, optimalVideomode;
 int scanlines;
 int smoothing;
+int cropScreenshot;
 int audiofilter = 1;
 int Debug      = 0;
 
