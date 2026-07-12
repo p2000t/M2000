@@ -34,6 +34,7 @@ typedef struct {
 #define FILE_RESET_ID                     7
 #define FILE_INTERRUPT_ID                 13
 #define FILE_SAVE_SCREENSHOT_ID           8
+#define FILE_CROP_SCREENSHOT_ID           120
 #define FILE_LOAD_VIDEORAM_ID             9
 #define FILE_SAVE_VIDEORAM_ID             10
 #define FILE_SAVE_STATE_ID                11
@@ -120,6 +121,7 @@ static LanguageEntry ENstrings[] = {
   { FILE_SAVE_STATE_ID, "Save State... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
+  { FILE_CROP_SCREENSHOT_ID, "Crop Screenshot to Draw Area" },
   { FILE_LOAD_VIDEORAM_ID, "Load Video RAM..." },
   { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Exit (Ctrl-Q)" },
@@ -184,6 +186,7 @@ static LanguageEntry NLstrings[] = {
   { FILE_SAVE_STATE_ID, "Opslaan huidige toestand... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },
+  { FILE_CROP_SCREENSHOT_ID, "Schermafdruk bijsnijden naar tekengebied" },
   { FILE_LOAD_VIDEORAM_ID, "Inlezen Video RAM..." },
   { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Afsluiten (Ctrl-Q)" },

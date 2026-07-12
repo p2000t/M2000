@@ -69,11 +69,26 @@ void ShowErrorMessage(const char *format, ...)
   al_show_native_message_box(NULL, Title, "", string, "", ALLEGRO_MESSAGEBOX_ERROR);
 }
 
-void RedrawScreen() 
+void RedrawScreen()
 {
   al_set_target_bitmap(al_get_backbuffer(display));
   al_clear_to_color(al_map_rgb(0, 0, 0));
   memset(charBuffer, -1, 80 * 24 * sizeof(int)); //clear old screen characters
+}
+
+// Saves the currently rendered frame to disk. When cropScreenshot is on, only the
+// draw area (i.e. without the black border around it) is saved.
+void SaveScreenshotToFile(const char *path)
+{
+  ALLEGRO_BITMAP *target = al_get_target_bitmap();
+  if (cropScreenshot) {
+    ALLEGRO_BITMAP *drawArea = al_create_sub_bitmap(target, DisplayHBorder, DisplayVBorder, DisplayWidth, DisplayHeight);
+    al_save_bitmap(path, drawArea);
+    al_destroy_bitmap(drawArea);
+  }
+  else {
+    al_save_bitmap(path, target);
+  }
 }
 
 void ResetAudioStream() 
@@ -800,10 +815,13 @@ void Keyboard(void)
         case FILE_SAVE_SCREENSHOT_ID:
           screenshotChooser = al_create_native_file_dialog(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), _(DIALOG_SAVE_SCREENSHOT),  "*.png;*.bmp", ALLEGRO_FILECHOOSER_SAVE);
           if (al_show_native_file_dialog(display, screenshotChooser) && al_get_native_file_dialog_count(screenshotChooser) > 0) {
-            al_save_bitmap(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"), al_get_target_bitmap());
+            SaveScreenshotToFile(AppendExtensionIfMissing(al_get_native_file_dialog_path(screenshotChooser, 0), ".png"));
             refreshPath(&userScreenshotsPath, al_get_native_file_dialog_path(screenshotChooser, 0));
           }
           al_destroy_native_file_dialog(screenshotChooser);
+          break;
+        case FILE_CROP_SCREENSHOT_ID:
+          cropScreenshot = !cropScreenshot;
           break;
         case FILE_LOAD_VIDEORAM_ID:
           vRamLoadChooser = al_create_native_file_dialog(al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR), _(DIALOG_LOAD_VRAM),  "*.vram", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
@@ -1056,7 +1074,7 @@ void Keyboard(void)
     strftime(extension, 25, " %Y-%m-%d %H-%M-%S.png", localtime(&now));
     al_set_path_filename(userScreenshotsPath, currentTapePath ? al_get_path_filename(currentTapePath) : "Screenshot");
     al_set_path_extension(userScreenshotsPath, extension);
-    al_save_bitmap(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR), al_get_target_bitmap());
+    SaveScreenshotToFile(al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
     al_set_path_filename(userScreenshotsPath, NULL);
     IndicateActionDone();
   }
