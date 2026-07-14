@@ -2,23 +2,29 @@
 //
 // TX STATE MACHINE  (Serial_TxPortWrite)
 // ----------------------------------------
-// The Z80 code writes port 0x10 once per bit period (~260 T-states at
-// 9600 baud / 2.5 MHz).  Bit 7 of the written byte carries the serial data
-// with inverted logic:  bit7 SET = logical 0 (space);  bit7 CLEAR = logical 1
-// (mark).  This module detects the start-bit edge, accumulates 8 data bits
-// (LSB first), validates the stop bit, and writes the complete byte to the
-// host COM port.  No background thread is needed for TX; the host COM port
-// write is buffered and returns immediately.
+// The Z80 code writes port 0x10 once per bit period (timing depends on the
+// configured baud rate, e.g. ~1040 T-states at 1200 baud / 2.5 MHz). Bit 7
+// of the written byte carries the serial data with inverted logic: bit7 SET
+// = logical 0 (space); bit7 CLEAR = logical 1 (mark). This module detects
+// the start-bit edge, accumulates 8 data bits (LSB first), validates the
+// stop bit, and writes the complete byte to the host COM port.
+//
+// On Windows, TX bytes are queued to a ring buffer and drained by a
+// background writer thread using overlapped (asynchronous) I/O, so a
+// completed byte never blocks the Z80 emulation thread. On POSIX, a plain
+// write() is used directly since read()/write() on the same fd do not
+// block one another the way synchronous ReadFile()/WriteFile() calls on
+// the same Windows HANDLE can.
 //
 // RX STATE MACHINE  (Serial_RxPortRead)
 // ----------------------------------------
 // A background thread reads bytes from the host COM port and queues them.
-// Serial_RxPortRead() is called by the Z80 code at the same ~260 T-state
-// cadence (one call per bit period).  It dequeues bytes from the ring buffer
-// and shifts them out bit by bit.  Non-inverted logic is used for port 0x20
-// bit 0:  1 = mark (idle/stop),  0 = space (start).
-// The state machine advances exactly one bit per call, so the Z80 code drives
-// the timing naturally — no independent timer is required.
+// Serial_RxPortRead() is called by the Z80 code at the same per-bit
+// cadence (one call per bit period). It dequeues bytes from the ring
+// buffer and shifts them out bit by bit. Non-inverted logic is used for
+// port 0x20 bit 0: 1 = mark (idle/stop), 0 = space (start).
+// The state machine advances exactly one bit per call, so the Z80 code
+// drives the timing naturally — no independent timer is required.
 
 #include "Serial.h"
 #include <stdio.h>
@@ -52,7 +58,6 @@ static volatile unsigned rx_head = 0;   /* written by RX background thread */
 static volatile unsigned rx_tail = 0;   /* read by main (Z80) thread       */
 
 static inline int rx_buf_empty(void) { return rx_head == rx_tail; }
-static inline int rx_buf_full(void)  { return ((rx_head + 1) % RX_BUF_SIZE) == rx_tail; }
 
 static void rx_buf_push(uint8_t b)
 {
@@ -70,6 +75,36 @@ static uint8_t rx_buf_pop(void)
     return b;
 }
 
+#ifdef _WIN32
+/* -----------------------------------------------------------------------
+ * TX ring buffer (Windows only — POSIX writes synchronously, see below)
+ * single-producer (Z80 thread) / single-consumer (TX writer thread)
+ * --------------------------------------------------------------------- */
+#define TX_BUF_SIZE 256
+static volatile uint8_t  tx_buf[TX_BUF_SIZE];
+static volatile unsigned tx_head = 0;   /* written by main (Z80) thread   */
+static volatile unsigned tx_tail = 0;   /* read by TX background thread   */
+
+static inline int tx_buf_empty(void) { return tx_head == tx_tail; }
+
+static void tx_buf_push(uint8_t b)
+{
+    unsigned next = (tx_head + 1) % TX_BUF_SIZE;
+    if (next != tx_tail) {          /* drop silently when full */
+        tx_buf[tx_head] = b;
+        tx_head = next;
+    }
+}
+
+static int tx_buf_pop(uint8_t *out)
+{
+    if (tx_buf_empty()) return 0;
+    *out = tx_buf[tx_tail];
+    tx_tail = (tx_tail + 1) % TX_BUF_SIZE;
+    return 1;
+}
+#endif
+
 /* -----------------------------------------------------------------------
  * Shared state
  * --------------------------------------------------------------------- */
@@ -78,6 +113,11 @@ static volatile int serial_running = 0;
 
 #ifdef _WIN32
 static HANDLE rx_thread_handle;
+static HANDLE tx_thread_handle;
+static HANDLE ov_read_event;     /* signalled when an overlapped read completes  */
+static HANDLE ov_write_event;    /* signalled when an overlapped write completes */
+static HANDLE tx_data_event;     /* signalled when new TX data is queued         */
+static HANDLE shutdown_event;    /* signalled to wake blocked threads for exit    */
 #else
 static pthread_t rx_thread_handle;
 #endif
@@ -105,13 +145,16 @@ typedef struct {
 static RxState rx_state;
 
 /* -----------------------------------------------------------------------
- * Low-level write to host COM port (called from main thread only)
+ * Low-level write to host COM port
+ *  - Windows: enqueue for the background TX writer thread (overlapped I/O)
+ *  - POSIX:   write directly; read()/write() on the same fd don't block
+ *             each other, so no queue/thread is needed here.
  * --------------------------------------------------------------------- */
 static void host_write_byte(uint8_t b)
 {
 #ifdef _WIN32
-    DWORD written;
-    WriteFile(fd, &b, 1, &written, NULL);
+    tx_buf_push(b);
+    SetEvent(tx_data_event);
 #else
     ssize_t n;
     do {
@@ -128,12 +171,88 @@ static DWORD WINAPI rx_thread_func(LPVOID arg)
 {
     (void)arg;
     uint8_t b;
-    DWORD   bytes_read;
+
     while (serial_running) {
-        /* ReadFile blocks until a byte arrives or the 100 ms read timeout
-         * expires, so serial_running is checked at least every 100 ms.    */
-        if (ReadFile(fd, &b, 1, &bytes_read, NULL) && bytes_read == 1)
-            rx_buf_push(b);
+        DWORD      bytes_read = 0;
+        OVERLAPPED ov;
+        memset(&ov, 0, sizeof(ov));
+        ov.hEvent = ov_read_event;
+        ResetEvent(ov_read_event);
+
+        if (ReadFile(fd, &b, 1, &bytes_read, &ov)) {
+            if (bytes_read == 1) rx_buf_push(b);
+            continue;
+        }
+
+        if (GetLastError() != ERROR_IO_PENDING) {
+            Sleep(10);   /* real error: back off briefly, avoid a busy loop */
+            continue;
+        }
+
+        HANDLE waitHandles[2] = { ov_read_event, shutdown_event };
+        DWORD  w = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
+        if (w == WAIT_OBJECT_0) {
+            if (GetOverlappedResult(fd, &ov, &bytes_read, FALSE) && bytes_read == 1)
+                rx_buf_push(b);
+        } else {
+            /* Shutdown requested while a read was pending: cancel it and exit. */
+            CancelIoEx(fd, &ov);
+            break;
+        }
+    }
+    return 0;
+}
+
+/* -----------------------------------------------------------------------
+ * TX background thread (Windows) — drains the TX ring buffer in batches
+ * and writes them asynchronously, so a byte write can never block the
+ * RX read (or vice versa) on the same HANDLE.
+ * --------------------------------------------------------------------- */
+static DWORD WINAPI tx_thread_func(LPVOID arg)
+{
+    (void)arg;
+    static uint8_t batch[TX_BUF_SIZE];
+
+    while (serial_running) {
+        HANDLE waitHandles[2] = { tx_data_event, shutdown_event };
+        DWORD  w = WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
+        if (w != WAIT_OBJECT_0)
+            break;   /* shutdown requested */
+
+        unsigned n = 0;
+        uint8_t  b;
+        while (n < TX_BUF_SIZE && tx_buf_pop(&b))
+            batch[n++] = b;
+        if (n == 0)
+            continue;
+
+        unsigned offset = 0;
+        while (offset < n && serial_running) {
+            DWORD      written = 0;
+            OVERLAPPED ov;
+            memset(&ov, 0, sizeof(ov));
+            ov.hEvent = ov_write_event;
+            ResetEvent(ov_write_event);
+
+            BOOL ok = WriteFile(fd, batch + offset, n - offset, &written, &ov);
+            if (!ok) {
+                if (GetLastError() == ERROR_IO_PENDING) {
+                    HANDLE waitHandles2[2] = { ov_write_event, shutdown_event };
+                    DWORD  w2 = WaitForMultipleObjects(2, waitHandles2, FALSE, INFINITE);
+                    if (w2 == WAIT_OBJECT_0) {
+                        if (!GetOverlappedResult(fd, &ov, &written, FALSE))
+                            written = 0;
+                    } else {
+                        CancelIoEx(fd, &ov);
+                        break;
+                    }
+                } else {
+                    break;   /* real write error: drop the rest of this batch */
+                }
+            }
+            if (written == 0) break;   /* avoid spinning on a stalled write */
+            offset += written;
+        }
     }
     return 0;
 }
@@ -157,22 +276,40 @@ static void *rx_thread_func(void *arg)
     }
     return NULL;
 }
+
+/* Map an integer baud rate to a POSIX termios speed_t constant. */
+static speed_t baud_to_speed(int baud)
+{
+    switch (baud) {
+        case 1200:   return B1200;
+        case 2400:   return B2400;
+        case 4800:   return B4800;
+        case 9600:   return B9600;
+        case 19200:  return B19200;
+        case 38400:  return B38400;
+        case 57600:  return B57600;
+        case 115200: return B115200;
+        default:
+            fprintf(stderr, "Serial: unsupported baud rate %d, defaulting to 1200\n", baud);
+            return B1200;
+    }
+}
 #endif
 
 /* -----------------------------------------------------------------------
  * Public API
  * --------------------------------------------------------------------- */
 
-int Serial_Init(const char *device)
+int Serial_Init(const char *device, int baud)
 {
 #ifdef _WIN32
-    /* ---- Open COM port ---- */
+    /* ---- Open COM port for overlapped (asynchronous) I/O ---- */
     fd = CreateFileA(device,
                      GENERIC_READ | GENERIC_WRITE,
                      0,          /* exclusive access */
                      NULL,
                      OPEN_EXISTING,
-                     FILE_ATTRIBUTE_NORMAL,
+                     FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
                      NULL);
     if (fd == SERIAL_INVALID) {
         fprintf(stderr, "Serial: cannot open %s (Windows error %lu)\n",
@@ -180,7 +317,7 @@ int Serial_Init(const char *device)
         return 0;
     }
 
-    /* ---- Configure 9600 8N1, no flow control ---- */
+    /* ---- Configure baud/8N1, no flow control ---- */
     DCB dcb;
     memset(&dcb, 0, sizeof(dcb));
     dcb.DCBlength = sizeof(DCB);
@@ -189,7 +326,7 @@ int Serial_Init(const char *device)
         fprintf(stderr, "Serial: GetCommState failed\n");
         return 0;
     }
-    dcb.BaudRate        = CBR_9600;
+    dcb.BaudRate        = (DWORD)baud;
     dcb.ByteSize        = 8;
     dcb.Parity          = NOPARITY;
     dcb.StopBits        = ONESTOPBIT;
@@ -207,25 +344,43 @@ int Serial_Init(const char *device)
         return 0;
     }
 
-    /* ---- Set read timeout so the RX thread can poll serial_running ---- */
+    /* ---- No artificial timeouts: overlapped I/O + events handle waiting
+     *      and shutdown signalling, so let ReadFile/WriteFile block until
+     *      completion or cancellation. ---- */
     COMMTIMEOUTS timeouts;
     memset(&timeouts, 0, sizeof(timeouts));
-    timeouts.ReadIntervalTimeout         = 0;
-    timeouts.ReadTotalTimeoutMultiplier  = 0;
-    timeouts.ReadTotalTimeoutConstant    = 100;  /* 100 ms */
-    timeouts.WriteTotalTimeoutMultiplier = 0;
-    timeouts.WriteTotalTimeoutConstant   = 500;
     SetCommTimeouts(fd, &timeouts);
 
-    /* ---- Start RX thread ---- */
-    serial_running    = 1;
-    rx_thread_handle  = CreateThread(NULL, 0, rx_thread_func, NULL, 0, NULL);
-    if (!rx_thread_handle) {
+    /* ---- Create synchronisation objects ---- */
+    ov_read_event  = CreateEvent(NULL, TRUE,  FALSE, NULL);  /* manual-reset */
+    ov_write_event = CreateEvent(NULL, TRUE,  FALSE, NULL);  /* manual-reset */
+    tx_data_event  = CreateEvent(NULL, FALSE, FALSE, NULL);  /* auto-reset   */
+    shutdown_event = CreateEvent(NULL, TRUE,  FALSE, NULL);  /* manual-reset */
+    if (!ov_read_event || !ov_write_event || !tx_data_event || !shutdown_event) {
+        fprintf(stderr, "Serial: CreateEvent failed\n");
+        CloseHandle(fd); fd = SERIAL_INVALID;
+        return 0;
+    }
+
+    /* ---- Start RX and TX threads ---- */
+    serial_running   = 1;
+    rx_thread_handle = CreateThread(NULL, 0, rx_thread_func, NULL, 0, NULL);
+    tx_thread_handle = CreateThread(NULL, 0, tx_thread_func, NULL, 0, NULL);
+    if (!rx_thread_handle || !tx_thread_handle) {
         serial_running = 0;
+        SetEvent(shutdown_event);
+        if (rx_thread_handle) { WaitForSingleObject(rx_thread_handle, 2000); CloseHandle(rx_thread_handle); }
+        if (tx_thread_handle) { WaitForSingleObject(tx_thread_handle, 2000); CloseHandle(tx_thread_handle); }
+        CloseHandle(ov_read_event);
+        CloseHandle(ov_write_event);
+        CloseHandle(tx_data_event);
+        CloseHandle(shutdown_event);
         CloseHandle(fd); fd = SERIAL_INVALID;
         fprintf(stderr, "Serial: CreateThread failed\n");
         return 0;
     }
+
+    tx_head = tx_tail = 0;
 
 #else /* POSIX */
     /* ---- Open serial device ---- */
@@ -235,7 +390,7 @@ int Serial_Init(const char *device)
         return 0;
     }
 
-    /* ---- Configure 9600 8N1, no flow control ---- */
+    /* ---- Configure baud/8N1, no flow control ---- */
     struct termios tty;
     if (tcgetattr(fd, &tty) != 0) {
         close(fd); fd = SERIAL_INVALID;
@@ -243,8 +398,9 @@ int Serial_Init(const char *device)
         return 0;
     }
     cfmakeraw(&tty);
-    cfsetispeed(&tty, B9600);
-    cfsetospeed(&tty, B9600);
+    speed_t speed = baud_to_speed(baud);
+    cfsetispeed(&tty, speed);
+    cfsetospeed(&tty, speed);
     tty.c_cflag &= (tcflag_t)~CSTOPB;    /* 1 stop bit   */
     tty.c_cflag &= (tcflag_t)~CRTSCTS;   /* no hw flow   */
     tty.c_cflag |= CLOCAL | CREAD;
@@ -274,7 +430,7 @@ int Serial_Init(const char *device)
 
     rx_head = rx_tail = 0;
 
-    fprintf(stdout, "Serial: opened %s at 9600 8N1\n", device);
+    fprintf(stdout, "Serial: opened %s at %d 8N1\n", device, baud);
     return 1;
 }
 
@@ -282,13 +438,21 @@ void Serial_Shutdown(void)
 {
     if (fd == SERIAL_INVALID) return;
 
-    /* Signal the RX thread to exit and wait for it */
+    /* Signal all background threads to exit and wait for them */
     serial_running = 0;
 
 #ifdef _WIN32
-    /* The read timeout (100 ms) ensures the thread wakes and checks the flag */
+    SetEvent(shutdown_event);
+    CancelIoEx(fd, NULL);   /* cancel any pending overlapped I/O on this handle */
+
     WaitForSingleObject(rx_thread_handle, 2000);
+    WaitForSingleObject(tx_thread_handle, 2000);
     CloseHandle(rx_thread_handle);
+    CloseHandle(tx_thread_handle);
+    CloseHandle(ov_read_event);
+    CloseHandle(ov_write_event);
+    CloseHandle(tx_data_event);
+    CloseHandle(shutdown_event);
     CloseHandle(fd);
 #else
     /* select() timeout (100 ms) ensures the thread wakes and checks the flag */
@@ -298,6 +462,11 @@ void Serial_Shutdown(void)
 
     fd = SERIAL_INVALID;
     fprintf(stdout, "Serial: closed\n");
+}
+
+int Serial_IsActive(void)
+{
+    return fd != SERIAL_INVALID;
 }
 
 void Serial_TxPortWrite(byte value)

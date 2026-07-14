@@ -309,6 +309,13 @@ int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
+#ifdef SERIAL_SUPPORT
+   // When serial emulation is active, don't patch the output being routed to the Printer.out file.
+   if (ROMPatches[j]==0xE5D && Serial_IsActive()) {
+    if (Verbose) printf ("...(0x%04X skipped: serial active)",ROMPatches[j]);
+    continue;
+   }
+#endif
    if (Verbose) printf ("...%04X",ROMPatches[j]);
    ROM[ROMPatches[j]+0]=0xED;
    ROM[ROMPatches[j]+1]=0xFE;

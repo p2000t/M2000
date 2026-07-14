@@ -56,6 +56,7 @@ static char _SD_ImgName[FILENAME_MAX];
 #ifdef SERIAL_SUPPORT
 static char        _SerialDevice[FILENAME_MAX];
 static const char *SerialDevice = NULL;
+static int         SerialBaud   = SERIAL_DEFAULT_BAUD;
 #endif
 
 /* Check the command line arguments for the cartridge/tape file name and
@@ -69,6 +70,11 @@ static void ProcessArgument (int argc,char *argv[])
       strncpy(_SerialDevice, argv[++i], FILENAME_MAX - 1);
       _SerialDevice[FILENAME_MAX - 1] = '\0';
       SerialDevice = _SerialDevice;
+      continue;
+    }
+    if (strcmp(argv[i], "--serial-baud") == 0 && i + 1 < argc) {
+      SerialBaud = atoi(argv[++i]);
+      if (SerialBaud <= 0) SerialBaud = SERIAL_DEFAULT_BAUD;
       continue;
     }
 #endif
@@ -137,13 +143,16 @@ int M2000_main(int argc,char *argv[])
 
   /* Start emulated P2000 */
   if (!InitMachine()) return EXIT_FAILURE;
-  if (!InitP2000(NULL, NULL)) return EXIT_FAILURE;
 #ifdef SERIAL_SUPPORT
+  /* Serial must be initialised before InitP2000() so that its ROM patching
+   * step can tell whether serial mode is active (see Serial_IsActive() in
+   * P2000.c) and skip the 0x0E5D printer-output patch accordingly. */
   if (SerialDevice) {
-    if (!Serial_Init(SerialDevice))
+    if (!Serial_Init(SerialDevice, SerialBaud))
       fprintf(stderr, "Warning: could not open serial device '%s'\n", SerialDevice);
   }
 #endif
+  if (!InitP2000(NULL, NULL)) return EXIT_FAILURE;
 #ifdef SD_CARTRIDGE_SUPPORT
   SDCart_Init(SD_RomName, SD_ImgName);
 #endif

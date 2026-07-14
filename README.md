@@ -79,8 +79,18 @@ Ctrl-Q           -  Quit emulator
 
 ### Command line options
 ```
-M2000 [filename]       Optional cassette (.cas) or cartridge (.bin) to preload
-                       When a cassette (.cas) is provided, BASIC will try to boot it
+M2000 [filename]            Optional cassette (.cas) or cartridge (.bin) to preload
+                            When a cassette (.cas) is provided, BASIC will try to boot it
+
+M2000 --serial <port>       Bridge the P2000T's bit-banged serial port (printer I/O,
+                            ports 0x10/0x20) to a host COM port or serial device,
+                            e.g. COM4 on Windows or /dev/ttyS0 on Linux. Defaults to 1200
+                            baud, matching the P2000T's default serial configuration.
+
+M2000 --serial-baud <rate>  Overrides the host serial port baud rate used with --serial
+                            Match this to whatever baud rate the P2000T side is configured
+                            for - 1200 by default, 2400 when $6016 is poked to 0, or a
+                            custom rate for programs that bit-bang serial I/O directly.
 ```
 ### Configuration file
 
