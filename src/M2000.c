@@ -84,6 +84,11 @@ static void ProcessArgument (int argc,char *argv[])
       SDCartEnabled = 1;
       continue;
     }
+    if (!strcmp(argv[i], "--sdrom") && i + 1 < argc) {
+      SDCartEnabled = 1;
+      SD_RomName = argv[++i];
+      continue;
+    }
 #endif
     /* Positional argument: a tape (.cas) or cartridge (.bin) file */
     if (argv[i][0] != '-') {
