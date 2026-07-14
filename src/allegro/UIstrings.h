@@ -32,8 +32,9 @@ typedef struct {
 #define FILE_INSERT_CARTRIDGE_ID          5
 #define FILE_REMOVE_CARTRIDGE_ID          6
 #define FILE_RESET_ID                     7
-#define FILE_INTERRUPT_ID                13
+#define FILE_INTERRUPT_ID                 13
 #define FILE_SAVE_SCREENSHOT_ID           8
+#define FILE_CROP_SCREENSHOT_ID           120
 #define FILE_LOAD_VIDEORAM_ID             9
 #define FILE_SAVE_VIDEORAM_ID             10
 #define FILE_SAVE_STATE_ID                11
@@ -77,6 +78,7 @@ typedef struct {
 #define SPEED_120_ID                      58
 #define SPEED_200_ID                      59
 #define SPEED_500_ID                      60
+#define SPEED_1000_ID                     107
 #define HELP_ABOUT_ID                     61
 #define FILE_MENU_ID                      62
 #define HELP_MENU_ID                      63
@@ -87,6 +89,7 @@ typedef struct {
 #define HARDWARE_T38_ID                   72
 #define HARDWARE_T54_ID                   73
 #define HARDWARE_T102_ID                  74
+#define HARDWARE_80COLUMNSCARD            75
 #define OPTIONS_LANGUAGE_MENU_ID          103
 #define KEYBOARD_MENU_ID                  104
 #define SPEED_MENU_ID                     105
@@ -118,16 +121,17 @@ static LanguageEntry ENstrings[] = {
   { FILE_SAVE_STATE_ID, "Save State... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Load State... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Save Screenshot... (Ctrl-S)" },
+  { FILE_CROP_SCREENSHOT_ID, "Crop Screenshot to Draw Area" },
   { FILE_LOAD_VIDEORAM_ID, "Load Video RAM..." },
   { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Exit (Ctrl-Q)" },
   { DISPLAY_WINDOW_MENU, "Display->" },
-  { DISPLAY_SCANLINES, "Scanlines On/Off (Ctrl-L)" },
-  { DISPLAY_SMOOTHING, "Smoothing On/Off" },
+  { DISPLAY_SCANLINES, "Show Scanlines (Ctrl-L)" },
+  { DISPLAY_SMOOTHING, "Character Smoothing" },
   { DISPLAY_FULLSCREEN, "Full Screen (Ctrl-Enter)" },
   { SPEED_MENU_ID, "Speed->" },
   { SPEED_CPU_MENU_ID, "CPU Speed->" },
-  { SPEED_SYNC, "Sync On/Off" },
+  { SPEED_SYNC, "Screen Sync" },
   { SPEED_PAUSE, "Pause Emulation (Ctrl-P)" },
   { KEYBOARD_MENU_ID, "Keyboard->" },
   { KEYBOARD_START_ID, "[START] - Start Loaded Program (Ctrl-1)" },
@@ -137,8 +141,9 @@ static LanguageEntry ENstrings[] = {
   { KEYBOARD_SYMBOLIC_ID, "Symbolic Key Mapping" },
   { KEYBOARD_POSITIONAL_ID, "Positional Key Mapping" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
+  { HARDWARE_80COLUMNSCARD, "80-Columns Card" },
   { OPTIONS_MENU_ID, "Options->"},
-  { OPTIONS_SOUND_ID, "Mute/Unmute Sound (Ctrl-M)" },
+  { OPTIONS_SOUND_ID, "Enable Sound (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Sound Card Not Detected" },
   { OPTIONS_VOLUME_MENU_ID, "Sound Volume->" },
   { OPTIONS_VOLUME_HIGH_ID, "High" },
@@ -148,7 +153,7 @@ static LanguageEntry ENstrings[] = {
   { OPTIONS_AUDIOFILTER_0_ID, "No Filter" },
   { OPTIONS_AUDIOFILTER_1_ID, "Normal Filter" },
   { OPTIONS_AUDIOFILTER_2_ID, "Heavy Filter" },
-  { OPTIONS_JOYSTICK_ID, "Joystick On/Off" },
+  { OPTIONS_JOYSTICK_ID, "Joystick Support" },
   { OPTIONS_JOYSTICK_NOT_DETECTED_ID, "Joystick Not Detected" },
   { OPTIONS_JOYSTICK_MAP, "Joystick Mapping->" },
   { OPTIONS_JOYSTICK_MAP_0_ID, "Emulate Cursorkeys + Spacebar" },
@@ -181,16 +186,17 @@ static LanguageEntry NLstrings[] = {
   { FILE_SAVE_STATE_ID, "Opslaan huidige toestand... (Ctrl-C)" },
   { FILE_LOAD_STATE_ID, "Inlezen vorige toestand... (Ctrl-V)" },
   { FILE_SAVE_SCREENSHOT_ID, "Opslaan schermafdruk... (Ctrl-S)" },
+  { FILE_CROP_SCREENSHOT_ID, "Schermafdruk bijsnijden naar tekengebied" },
   { FILE_LOAD_VIDEORAM_ID, "Inlezen Video RAM..." },
   { FILE_SAVE_VIDEORAM_ID, "Dump Video RAM... (Ctrl-D)" },
   { FILE_EXIT_ID, "Afsluiten (Ctrl-Q)" },
   { DISPLAY_WINDOW_MENU, "Beeld->" },
-  { DISPLAY_SCANLINES, "Scanlijnen aan/uit (Ctrl-L)" },
-  { DISPLAY_SMOOTHING, "Vloeiende letters aan/uit" },
+  { DISPLAY_SCANLINES, "Toon scanlijnen (Ctrl-L)" },
+  { DISPLAY_SMOOTHING, "Subtiele vervaging" },
   { DISPLAY_FULLSCREEN, "Volledig scherm (Ctrl-Enter)" },
   { SPEED_MENU_ID, "Snelheid->" },
   { SPEED_CPU_MENU_ID, "CPU snelheid->" },
-  { SPEED_SYNC, "Synchronisatie aan/uit" },
+  { SPEED_SYNC, "Synchroniseer scherm" },
   { SPEED_PAUSE, "Pauzeer emulatie (Ctrl-P)" },
   { KEYBOARD_MENU_ID, "Toetsenbord->" },
   { KEYBOARD_START_ID, "[START] - Start ingeladen programma (Ctrl-1)" },
@@ -200,6 +206,7 @@ static LanguageEntry NLstrings[] = {
   { KEYBOARD_SYMBOLIC_ID, "Toetsindeling o.b.v. karakter" },
   { KEYBOARD_POSITIONAL_ID, "Toetsindeling o.b.v. positie" },
   { HARDWARE_TMODEL_ID, "P2000T model->" },
+  { HARDWARE_80COLUMNSCARD, "80-kolomskaart" },
   { OPTIONS_MENU_ID, "Opties->" },
   { OPTIONS_SOUND_ID, "Geluid aan/uit (Ctrl-M)" },
   { OPTIONS_SOUND_NOT_DETECTED_ID, "Geluidskaart niet gedetecteerd" },
@@ -211,7 +218,7 @@ static LanguageEntry NLstrings[] = {
   { OPTIONS_AUDIOFILTER_0_ID, "Geen filter" },
   { OPTIONS_AUDIOFILTER_1_ID, "Normaal filter" },
   { OPTIONS_AUDIOFILTER_2_ID, "Zwaar filter" },
-  { OPTIONS_JOYSTICK_ID, "Joystick aan/uit" },
+  { OPTIONS_JOYSTICK_ID, "Joystick ondersteuning" },
   { OPTIONS_JOYSTICK_NOT_DETECTED_ID, "Joystick niet gedetecteerd" },
   { OPTIONS_JOYSTICK_MAP, "Joystick configuratie->" },
   { OPTIONS_JOYSTICK_MAP_0_ID, "Emuleer cursortoetsen + spatiebalk" },

@@ -127,7 +127,7 @@ static byte keyMappings[NUMBER_OF_KEYMAPPINGS][5] =
   { ALLEGRO_KEY_DELETE,     44,      0,       40,      1 }, // BACKSP  CLRSCR
   { ALLEGRO_KEY_SLASH,      61,      0,       61,      1 }, // /       ?
   { ALLEGRO_KEY_ENTER,      52,      0,       52,      1 }, // ENTER   [free]
-  { ALLEGRO_KEY_BACKSLASH,  20,      1,       20,      1 }, // █       [free]
+  { ALLEGRO_KEY_BACKSLASH,  43,      1,       20,      1 }, // ÷       █
   { P2000_KEY_CODE,         32,      0,       32,      1 }, // CODE    [free]
   //   AllegroKey     P2000Key  +shift? ShiftKey  +shift?   Char Shifted
   { ALLEGRO_KEY_PAD_9,      48,      0,       48,      1 }, // 9       ?

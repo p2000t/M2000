@@ -56,8 +56,9 @@ int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
 int ColdBoot     = 1;
 int NMI          = 0;
+int EightyColumnsCard = 1;
 
-byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0;
+byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0,ColumnModeReg=0;
 int RAMBanks=0;
 byte *ROM;
 byte *VRAM;
@@ -92,7 +93,8 @@ void Z80_Out (byte Port, byte Value)
  int i;
  switch (Port>>4)
  {
-  case 0:       /* Read the key-matrix */
+  case 0:       /* 80-columns card support */
+   if (EightyColumnsCard) ColumnModeReg = Value & 1;  /* 0=40 columns, 1=80 columns */
    return;
   case 1:       /* Output to cassette/printer */
    OutputReg=Value;
@@ -190,7 +192,8 @@ byte Z80_In (byte Port)
    return SoundReg;
   case 6:       /* Reserved for I/O cartridge */
    break;
-  case 7:       /* DISAS (M-version only) */
+  case 7:       /* 80-columns card status */
+   if (EightyColumnsCard) return ColumnModeReg;
    break;
  }
  switch (Port)
@@ -411,8 +414,7 @@ void InsertCassette(const char *filename, FILE *f, int readOnly)
 void RemoveCartridge()
 {
   memset (ROM + 0x1000, 0xFF, 0x4000);
-  ColdBoot = 1;
-  Z80_Reset ();
+  ColdReset();
 }
 
 /****************************************************************************/
@@ -430,8 +432,7 @@ void InsertCartridge(const char *filename, FILE *f)
   {
     if (fread(ROM+0x1000,1,0x4000,f)) success=1;
     fclose(f);
-    ColdBoot = 1;
-    Z80_Reset ();
+    ColdReset();
   }
   if(Verbose) puts (success? "OK":"FAILED");
 }
@@ -770,7 +771,7 @@ void RefreshScreen_T(void)
   int eor;
   int found_si;
 
-  S = VRAM + ScrollReg;
+  S = VRAM + (ColumnModeReg ? 0 : ScrollReg); // no scrolling in 80 column mode
   found_si = 0; // init to no double height codes found
 
   for (y = 0; y < 24; ++y)
@@ -798,7 +799,7 @@ void RefreshScreen_T(void)
     hg_fg = fg;
     hg_conceal = conceal;
     lastcolor = fg;
-    for (x = 0; x < 40; ++x)
+    for (x = 0; x < (ColumnModeReg ? 80 : 40); ++x)
     {
       /* Get character */
       c = S[x] & 0x7f;
@@ -982,4 +983,17 @@ void RefreshScreen(void)
   RefreshScreen_T();
   // Put the image on the screen
   PutImage();
+}
+
+void WarmReset() 
+{
+  ColumnModeReg = 0;
+  Z80_Reset ();
+}
+
+void ColdReset()
+{
+  ColumnModeReg = 0;
+  ColdBoot = 1;
+  Z80_Reset ();
 }

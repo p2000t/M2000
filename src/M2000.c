@@ -131,15 +131,16 @@ int M2000_main(int argc,char *argv[])
   IFreq = IFreq >= 55 ? 60 : 50; //only support 50Hz and 60Hz
   if (UPeriod<1) UPeriod=1;
   if (UPeriod>10) UPeriod=10;
-  //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
-  if (CpuSpeed > 350) CpuSpeed = 500;
+  //only support CPU speeds 10, 20, 50, 100, 120, 200, 500 and 1000
+  if (CpuSpeed > 700) CpuSpeed = 1000;
+  else if (CpuSpeed > 350) CpuSpeed = 500;
   else if (CpuSpeed > 160) CpuSpeed = 200;
   else if (CpuSpeed > 110) CpuSpeed = 120;
   else if (CpuSpeed > 75) CpuSpeed = 100;
   else if (CpuSpeed > 35) CpuSpeed = 50;
   else if (CpuSpeed > 15) CpuSpeed = 20;
   else CpuSpeed = 10;
-  Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+  Z80_IPeriod = (int)((2500000LL * CpuSpeed) / (100 * IFreq));
 
   /* Start emulated P2000 */
   if (!InitMachine()) return EXIT_FAILURE;

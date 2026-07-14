@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "Z80.h"            /* Z80 emulation declarations    */
 
-#define EMULATOR_VERSION "0.9.4"
+#define EMULATOR_VERSION "0.9.5"
 
 #if defined(_WIN32) // Windows
 #define PATH_SEPARATOR '\\'
@@ -34,6 +34,7 @@
 extern byte Verbose;            /* Verbose messages ON/OFF                  */
 extern byte *VRAM,*RAM,*ROM;    /* Main and Video RAMs                      */
 extern int RAMSizeKb;           /* Amount of RAM installed in kilobytes     */
+extern int EightyColumnsCard;   /* 1 if 80 columns card is present          */
 extern const char *FontName;    /* Font file                                */
 extern const char *CartName;    /* Cartridge ROM file                       */
 extern const char *ROMName;     /* Main ROM file                            */
@@ -44,6 +45,7 @@ extern byte DISAReg;            /* Reg #0x70                                */
 extern byte SoundReg;           /* Reg #0x50                                */
 extern byte ScrollReg;          /* Reg #0x30                                */
 extern byte OutputReg;          /* Reg #0x20                                */
+extern byte ColumnModeReg;      /* Column mode: 0=40 cols, 1=80 cols        */
 extern byte KeyMap[10];         /* Keyboard map                             */
 extern int TapeBootEnabled;     /* 1 if booting enabled                     */
 extern int ColdBoot;            /* 1 if cold boot                           */
@@ -165,3 +167,6 @@ char *GetDocumentsPath (void);
 /*** Used to shows breaking error messages                                ***/
 /************************************************** TO BE WRITTEN BY USER ***/
 void ShowErrorMessage(const char *format, ...);
+
+void WarmReset(void);
+void ColdReset(void);
