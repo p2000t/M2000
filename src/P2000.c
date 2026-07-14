@@ -365,11 +365,26 @@ int StartP2000 (void)
 /****************************************************************************/
 void TrashP2000 (void)
 {
- if (TapeStream) fclose (TapeStream);
- if (PrnStream) fclose (PrnStream);
- if (ROM) free (ROM);
- if (VRAM) free (VRAM);
- if (RAM) free (RAM);
+ if (TapeStream) {
+   fclose (TapeStream);
+   TapeStream = NULL;
+ }
+ if (PrnStream) {
+   fclose (PrnStream);
+   PrnStream = NULL;
+ }
+ if (ROM) {
+   free (ROM);
+   ROM = NULL;
+ }
+ if (VRAM) {
+   free (VRAM);
+   VRAM = NULL;
+ }
+ if (RAM) {
+   free (RAM);
+   RAM = NULL;
+ }
 }
 
 /****************************************************************************/

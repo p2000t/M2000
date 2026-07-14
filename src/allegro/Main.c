@@ -55,8 +55,14 @@
 void TrashMachine(void)
 {
   if (Verbose) printf("\n\nShutting down...\n");
-  if (soundbuf) free (soundbuf);
-  if (charBuffer) free (charBuffer);
+  if (soundbuf) {
+    free (soundbuf);
+    soundbuf = NULL;
+  }
+  if (charBuffer) {
+    free (charBuffer);
+    charBuffer = NULL;
+  }
 }
 
 void ShowErrorMessage(const char *format, ...)
@@ -1238,5 +1244,7 @@ int main(int argc,char *argv[])
     uint32_t version = al_get_allegro_version();
     printf("Using Allegro libs version %i.%i.%i\n",version >> 24, (version >> 16) & 255, (version >> 8) & 255);
   }
-  return M2000_main(argc, argv);
+  int result = M2000_main(argc, argv);
+  al_uninstall_system();
+  return result;
 }

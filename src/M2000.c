@@ -52,6 +52,7 @@ static char _PrnName[FILENAME_MAX];
 #ifdef SD_CARTRIDGE_SUPPORT
 static char _SD_RomName[FILENAME_MAX];
 static char _SD_ImgName[FILENAME_MAX];
+static int SDCartEnabled = 0;
 #endif
 #ifdef SERIAL_SUPPORT
 static char        _SerialDevice[FILENAME_MAX];
@@ -75,6 +76,17 @@ static void ProcessArgument (int argc,char *argv[])
     if (strcmp(argv[i], "--serial-baud") == 0 && i + 1 < argc) {
       SerialBaud = atoi(argv[++i]);
       if (SerialBaud <= 0) SerialBaud = SERIAL_DEFAULT_BAUD;
+      continue;
+    }
+#endif
+#ifdef SD_CARTRIDGE_SUPPORT
+    if (!strcmp(argv[i], "--sdcard")) {
+      SDCartEnabled = 1;
+      continue;
+    }
+    if (!strcmp(argv[i], "--sdrom") && i + 1 < argc) {
+      SDCartEnabled = 1;
+      SD_RomName = argv[++i];
       continue;
     }
 #endif
@@ -106,6 +118,8 @@ static char * MakeFullPath (char *dest, const char *src, char *root)
 int M2000_main(int argc,char *argv[])
 {
   FILE *f;
+  int result = EXIT_FAILURE;
+
   /* Optionally a cartridge or tape filename can be passed as first argument */
   ProcessArgument (argc,argv);
   // don't boot from the default tape
@@ -123,8 +137,10 @@ int M2000_main(int argc,char *argv[])
   FontName = MakeFullPath(_FontName, FontName, ProgramPath);
   PrnName = MakeFullPath(_PrnName, PrnName, DocumentPath);
 #ifdef SD_CARTRIDGE_SUPPORT
-  SD_RomName = MakeFullPath(_SD_RomName, SD_RomName, DocumentPath);
-  SD_ImgName = MakeFullPath(_SD_ImgName, SD_ImgName, DocumentPath);
+  if (SDCartEnabled) {
+    SD_RomName = MakeFullPath(_SD_RomName, SD_RomName, DocumentPath);
+    SD_ImgName = MakeFullPath(_SD_ImgName, SD_ImgName, DocumentPath);
+  }
 #endif
 
   /* Check for valid variables */
@@ -143,7 +159,7 @@ int M2000_main(int argc,char *argv[])
   Z80_IPeriod = (int)((2500000LL * CpuSpeed) / (100 * IFreq));
 
   /* Start emulated P2000 */
-  if (!InitMachine()) return EXIT_FAILURE;
+  if (!InitMachine()) goto cleanup;
 #ifdef SERIAL_SUPPORT
   /* Serial must be initialised before InitP2000() so that its ROM patching
    * step can tell whether serial mode is active (see Serial_IsActive() in
@@ -153,9 +169,9 @@ int M2000_main(int argc,char *argv[])
       fprintf(stderr, "Warning: could not open serial device '%s'\n", SerialDevice);
   }
 #endif
-  if (!InitP2000(NULL, NULL)) return EXIT_FAILURE;
+  if (!InitP2000(NULL, NULL)) goto cleanup;
 #ifdef SD_CARTRIDGE_SUPPORT
-  SDCart_Init(SD_RomName, SD_ImgName);
+  if (SDCartEnabled && !SDCart_Init(SD_RomName, SD_ImgName)) goto cleanup;
 #endif
   if (TapeName) {
     // first try open for update, then try create then try read-only
@@ -163,14 +179,17 @@ int M2000_main(int argc,char *argv[])
     InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
   }
   StartP2000(); // P2000 loop
+  result = EXIT_SUCCESS;
+
+cleanup:
   /* Trash emulated P2000 */
 #ifdef SERIAL_SUPPORT
   Serial_Shutdown();
 #endif
   TrashP2000();
 #ifdef SD_CARTRIDGE_SUPPORT
-  SDCart_Cleanup();
+  if (SDCartEnabled) SDCart_Cleanup();
 #endif
   TrashMachine ();
-  return EXIT_SUCCESS;
+  return result;
 }

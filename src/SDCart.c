@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "Z80.h"
 #include "SDCart.h"
 
@@ -15,42 +16,67 @@ FILE *sdImageFile = NULL;
 const char *SD_RomName = "LAUNCHER.BIN";
 const char *SD_ImgName = "p2000t-sd-card.img";
 
-void SDCart_Init(const char *SDRomPath, const char *SDImgPath) {
+int SDCart_Init(const char *SDRomPath, const char *SDImgPath) {
     // create SLOT2 RAM buffer (128K)
     ramBuffer = (byte *)malloc(2 * 64 * 1024);
     if (!ramBuffer) {
-        return perror("Failed to allocate memory for RAM buffer");
+        perror("Failed to allocate memory for RAM buffer");
+        return 0;
     }
     memset(ramBuffer, 0, 2 * 64 * 1024);
 
     // read ROM file into SLOT2 ROM (here 16K, while actually 128K)
     FILE *romFile = fopen(SDRomPath, "rb");
     if (romFile == NULL) {
-        return perror("Failed to open ROM file");
+        fprintf(stderr, "Failed to open SD cartridge ROM '%s': %s\n",
+                SDRomPath, strerror(errno));
+        SDCart_Cleanup();
+        return 0;
     }
     romBuffer = (byte *)malloc(16 * 1024);
     if (!romBuffer) {
-        return perror("Failed to allocate memory for ROM buffer");
+        fclose(romFile);
+        perror("Failed to allocate memory for ROM buffer");
+        SDCart_Cleanup();
+        return 0;
     }
     fread(romBuffer, 1, 16 * 1024, romFile);
     fclose(romFile);
 
     sdImageFile = fopen(SDImgPath, "rb+");
     if (sdImageFile == NULL) {
-        return perror("Failed to open SD image file");
+        fprintf(stderr, "Failed to open SD card image '%s': %s\n",
+                SDImgPath, strerror(errno));
+        SDCart_Cleanup();
+        return 0;
     }
     sdSectorBuffer = (byte *)malloc(512);
     if (!sdSectorBuffer) {
-        return perror("Failed to allocate memory for SD sector buffer");
+        perror("Failed to allocate memory for SD sector buffer");
+        SDCart_Cleanup();
+        return 0;
     }
     memset(sdSectorBuffer, 0, 512);
+    return 1;
 }
 
 void SDCart_Cleanup() {
-    if (ramBuffer) free(ramBuffer);
-    if (romBuffer) free(romBuffer);
-    if (sdSectorBuffer) free(sdSectorBuffer);
-    if (sdImageFile) fclose(sdImageFile);
+    if (ramBuffer) {
+        free(ramBuffer);
+        ramBuffer = NULL;
+    }
+    if (romBuffer) {
+        free(romBuffer);
+        romBuffer = NULL;
+    }
+    if (sdSectorBuffer) {
+        free(sdSectorBuffer);
+        sdSectorBuffer = NULL;
+    }
+    if (sdImageFile) {
+        fclose(sdImageFile);
+        sdImageFile = NULL;
+    }
 }
 
 byte SD_selected = 0;
