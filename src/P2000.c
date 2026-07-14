@@ -20,6 +20,9 @@
 // This file contains the P2000 hardware emulation code
 
 #include "P2000.h"
+#ifdef SERIAL_SUPPORT
+#include "Serial.h"
+#endif
 #ifdef SD_CARTRIDGE_SUPPORT
 #include "SDCart.h"
 #endif
@@ -95,6 +98,9 @@ void Z80_Out (byte Port, byte Value)
    return;
   case 1:       /* Output to cassette/printer */
    OutputReg=Value;
+#ifdef SERIAL_SUPPORT
+   Serial_TxPortWrite(Value);
+#endif
    return;
   case 2:       /* Input from cassette/printer */
    return;
@@ -168,6 +174,10 @@ byte Z80_In (byte Port)
    if (!TapeProtect) inputstatus&=0xF7;
    if (PrnName) inputstatus&=0xFD;
    if (PrnType) inputstatus&=0xFB;
+#ifdef SERIAL_SUPPORT
+   /* Inject RX serial bit into bit 0 (overrides the default high level) */
+   inputstatus = (inputstatus & 0xFE) | (Serial_RxPortRead() & 0x01);
+#endif
    return inputstatus;
   }
   case 3:       /* Scroll Register (T-version only) */
@@ -302,6 +312,13 @@ int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
+#ifdef SERIAL_SUPPORT
+   // When serial emulation is active, don't patch the output being routed to the Printer.out file.
+   if (ROMPatches[j]==0xE5D && Serial_IsActive()) {
+    if (Verbose) printf ("...(0x%04X skipped: serial active)",ROMPatches[j]);
+    continue;
+   }
+#endif
    if (Verbose) printf ("...%04X",ROMPatches[j]);
    ROM[ROMPatches[j]+0]=0xED;
    ROM[ROMPatches[j]+1]=0xFE;
