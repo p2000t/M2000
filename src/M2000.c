@@ -80,7 +80,7 @@ static void ProcessArgument (int argc,char *argv[])
     }
 #endif
 #ifdef SD_CARTRIDGE_SUPPORT
-    if (!strcmp(argv[i], "--sdcart")) {
+    if (!strcmp(argv[i], "--sdcard")) {
       SDCartEnabled = 1;
       continue;
     }
