@@ -1,5 +1,5 @@
 # M2000 - Philips P2000T Home Computer Emulator
-Version 0.9.4
+Version 0.9.5
 
 ![P2000T](/img/P2000T.png)
 
@@ -79,8 +79,18 @@ Ctrl-Q           -  Quit emulator
 
 ### Command line options
 ```
-M2000 [filename]       Optional cassette (.cas) or cartridge (.bin) to preload
-                       When a cassette (.cas) is provided, BASIC will try to boot it
+M2000 [filename]            Optional cassette (.cas) or cartridge (.bin) to preload
+                            When a cassette (.cas) is provided, BASIC will try to boot it
+
+M2000 --serial <port>       Bridge the P2000T's bit-banged serial port (printer I/O,
+                            ports 0x10/0x20) to a host COM port or serial device,
+                            e.g. COM4 on Windows or /dev/ttyS0 on Linux. Defaults to 1200
+                            baud, matching the P2000T's default serial configuration.
+
+M2000 --serial-baud <rate>  Overrides the host serial port baud rate used with --serial
+                            Match this to whatever baud rate the P2000T side is configured
+                            for - 1200 by default, 2400 when $6016 is poked to 0, or a
+                            custom rate for programs that bit-bang serial I/O directly.
 ```
 ### Configuration file
 
@@ -102,38 +112,42 @@ If you want to compile the M2000 sources yourself, then the instructions below w
 
 ### Linux
 * Using your Linux distro's package manager, install the essential build tools and Allegro 5 libs. For Debian/Ubuntu/Linux Mint you can use the `apt` package manager:
-  ```
+  ```bash
   sudo apt update && sudo apt install git build-essential liballegro5-dev
   ```
 * Clone the M2000 repo:
-  ```
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
 ### macOS
-Make sure you have both the `Xcode command line tools` and `brew` installed.
+Make sure you have both the `Xcode command line tools` and [Homebrew](https://brew.sh/) installed.
 * Now install the Allegro 5 libs using brew:
-  ```
+  ```bash
   brew install allegro
   ```
-* Clone the M2000 repo:
+  **Note**: If you're running an older version of macOS, you probably want to use [MacPorts](https://www.macports.org/) instead of Homebrew and install the Allegro 5 libs with:
+  ```bash
+  sudo port install allegro5
   ```
+* Clone the M2000 repo:
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
@@ -142,19 +156,19 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 
 * After you've installed MSYS2, open its MINGW64 shell environment and install the required tools and libraries:
-  ```
+  ```bash
   pacman -S base-devel git mingw-w64-x86_64-gcc mingw-w64-x86_64-allegro
   ```
 * Clone the M2000 repo:
-  ```
+  ```bash
   git clone https://github.com/p2000t/M2000.git
   ```
 * Go into the M2000 directory and run make:
-  ```
+  ```bash
   cd M2000 && make allegro
   ```
 * After successfull building, you can run M2000:
-  ```
+  ```bash
   ./M2000
   ```
 
@@ -162,7 +176,7 @@ The easiest way to build M2000 on a Windows machine is by using the [MSYS2](http
 
 :point_right: For P2000T documentation, please go to: https://github.com/p2000t/documentation
 
-:point_right: To download P2000T games, please go to: [https://github.com/p2000t/software/cassettes/games](https://github.com/p2000t/software/tree/master/cassettes/games)
+:point_right: To download P2000T games, please go to: [https://github.com/p2000t/software/cassettes/Spelletjes](https://github.com/p2000t/software/tree/master/cassettes/Spelletjes)
 
 ### P2000 documentation
 * A large collection of (scanned) P2000 documents, P2000gg and Nat.Lab. newsletters and editions of TRON magazine can be found on: https://github.com/p2000t/documentation

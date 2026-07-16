@@ -20,6 +20,12 @@
 // This file contains the P2000 hardware emulation code
 
 #include "P2000.h"
+#ifdef SERIAL_SUPPORT
+#include "Serial.h"
+#endif
+#ifdef SD_CARTRIDGE_SUPPORT
+#include "SDCart.h"
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -50,8 +56,9 @@ int RAMSizeKb    = 32;
 int Z80_IRQ      = Z80_IGNORE_INT;
 int ColdBoot     = 1;
 int NMI          = 0;
+int EightyColumnsCard = 1;
 
-byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0;
+byte SoundReg=0,ScrollReg=0,OutputReg=0,DISAReg=0,RAMMapper=0,ColumnModeReg=0;
 int RAMBanks=0;
 byte *ROM;
 byte *VRAM;
@@ -86,10 +93,14 @@ void Z80_Out (byte Port, byte Value)
  int i;
  switch (Port>>4)
  {
-  case 0:       /* Read the key-matrix */
+  case 0:       /* 80-columns card support */
+   if (EightyColumnsCard) ColumnModeReg = Value & 1;  /* 0=40 columns, 1=80 columns */
    return;
   case 1:       /* Output to cassette/printer */
    OutputReg=Value;
+#ifdef SERIAL_SUPPORT
+   Serial_TxPortWrite(Value);
+#endif
    return;
   case 2:       /* Input from cassette/printer */
    return;
@@ -97,13 +108,16 @@ void Z80_Out (byte Port, byte Value)
    ScrollReg=Value;
    return;
   case 4:       /* Reserved for I/O cartridge */
-   break;
+#ifdef SD_CARTRIDGE_SUPPORT
+   SDCart_Out(Port, Value);
+#endif
+   return;
   case 5:       /* Beeper */
    SoundReg=Value;
    Sound (Value&1);
    return;
   case 6:       /* Reserved for I/O cartridge */
-   break;
+   return;
   case 7:       /* DISAS (M-version only) */
    return;
  }
@@ -160,17 +174,26 @@ byte Z80_In (byte Port)
    if (!TapeProtect) inputstatus&=0xF7;
    if (PrnName) inputstatus&=0xFD;
    if (PrnType) inputstatus&=0xFB;
+#ifdef SERIAL_SUPPORT
+   /* Inject RX serial bit into bit 0 (overrides the default high level) */
+   inputstatus = (inputstatus & 0xFE) | (Serial_RxPortRead() & 0x01);
+#endif
    return inputstatus;
   }
   case 3:       /* Scroll Register (T-version only) */
    return ScrollReg;
   case 4:       /* Reserved for I/O cartridge */
+#ifdef SD_CARTRIDGE_SUPPORT
+   return SDCart_In(Port);
+#else
    break;
+#endif
   case 5:       /* Beeper */
    return SoundReg;
   case 6:       /* Reserved for I/O cartridge */
    break;
-  case 7:       /* DISAS (M-version only) */
+  case 7:       /* 80-columns card status */
+   if (EightyColumnsCard) return ColumnModeReg;
    break;
  }
  switch (Port)
@@ -289,6 +312,13 @@ int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
   if (Verbose) printf ("  Patching");
   for (j=0;ROMPatches[j];++j)
   {
+#ifdef SERIAL_SUPPORT
+   // When serial emulation is active, don't patch the output being routed to the Printer.out file.
+   if (ROMPatches[j]==0xE5D && Serial_IsActive()) {
+    if (Verbose) printf ("...(0x%04X skipped: serial active)",ROMPatches[j]);
+    continue;
+   }
+#endif
    if (Verbose) printf ("...%04X",ROMPatches[j]);
    ROM[ROMPatches[j]+0]=0xED;
    ROM[ROMPatches[j]+1]=0xFE;
@@ -335,11 +365,26 @@ int StartP2000 (void)
 /****************************************************************************/
 void TrashP2000 (void)
 {
- if (TapeStream) fclose (TapeStream);
- if (PrnStream) fclose (PrnStream);
- if (ROM) free (ROM);
- if (VRAM) free (VRAM);
- if (RAM) free (RAM);
+ if (TapeStream) {
+   fclose (TapeStream);
+   TapeStream = NULL;
+ }
+ if (PrnStream) {
+   fclose (PrnStream);
+   PrnStream = NULL;
+ }
+ if (ROM) {
+   free (ROM);
+   ROM = NULL;
+ }
+ if (VRAM) {
+   free (VRAM);
+   VRAM = NULL;
+ }
+ if (RAM) {
+   free (RAM);
+   RAM = NULL;
+ }
 }
 
 /****************************************************************************/
@@ -384,8 +429,7 @@ void InsertCassette(const char *filename, FILE *f, int readOnly)
 void RemoveCartridge()
 {
   memset (ROM + 0x1000, 0xFF, 0x4000);
-  ColdBoot = 1;
-  Z80_Reset ();
+  ColdReset();
 }
 
 /****************************************************************************/
@@ -403,8 +447,7 @@ void InsertCartridge(const char *filename, FILE *f)
   {
     if (fread(ROM+0x1000,1,0x4000,f)) success=1;
     fclose(f);
-    ColdBoot = 1;
-    Z80_Reset ();
+    ColdReset();
   }
   if(Verbose) puts (success? "OK":"FAILED");
 }
@@ -743,7 +786,7 @@ void RefreshScreen_T(void)
   int eor;
   int found_si;
 
-  S = VRAM + ScrollReg;
+  S = VRAM + (ColumnModeReg ? 0 : ScrollReg); // no scrolling in 80 column mode
   found_si = 0; // init to no double height codes found
 
   for (y = 0; y < 24; ++y)
@@ -771,7 +814,7 @@ void RefreshScreen_T(void)
     hg_fg = fg;
     hg_conceal = conceal;
     lastcolor = fg;
-    for (x = 0; x < 40; ++x)
+    for (x = 0; x < (ColumnModeReg ? 80 : 40); ++x)
     {
       /* Get character */
       c = S[x] & 0x7f;
@@ -955,4 +998,17 @@ void RefreshScreen(void)
   RefreshScreen_T();
   // Put the image on the screen
   PutImage();
+}
+
+void WarmReset() 
+{
+  ColumnModeReg = 0;
+  Z80_Reset ();
+}
+
+void ColdReset()
+{
+  ColumnModeReg = 0;
+  ColdBoot = 1;
+  Z80_Reset ();
 }

@@ -27,6 +27,7 @@ static int DisplayWidth, DisplayHeight, DisplayHBorder, DisplayVBorder, DisplayT
 int videomode, optimalVideomode;
 int scanlines;
 int smoothing;
+int cropScreenshot;
 int audiofilter = 1;
 int Debug      = 0;
 
@@ -82,7 +83,7 @@ ALLEGRO_TIMER *timer;
 
 int soundmode;                     /* Sound mode, 1=on                      */
 int soundDetected;
-static int *OldCharacter;          /* Holds characters on the screen        */
+static int *charBuffer;            /* Holds characters on the screen        */
 
 static int Displays[][2] = { 
   // width height 
@@ -139,14 +140,14 @@ void InitVideoMode()
   }
 }
 
-void UpdateDisplaySettings() 
+void UpdateDisplaySettings()
 {
   DisplayWidth = Displays[videomode][0];
   DisplayHeight = Displays[videomode][1];
-  DisplayTileWidth = DisplayWidth / 40;
+  DisplayTileWidth = DisplayWidth / (ColumnModeReg ? 80 : 40);
   DisplayTileHeight = DisplayHeight / 24;
-  DisplayHBorder = DisplayTileWidth;
-  DisplayVBorder = DisplayTileHeight / 2;
+  DisplayHBorder = DisplayWidth / 40;
+  DisplayVBorder = DisplayHeight / 48;
   if (Verbose) printf("DisplayTileWidth: %i, DisplayTileHeight: %i\n", DisplayTileWidth, DisplayTileHeight);
 }
 

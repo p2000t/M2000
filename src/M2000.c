@@ -26,6 +26,12 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include "P2000.h"
+#ifdef SERIAL_SUPPORT
+#include "Serial.h"
+#endif
+#ifdef SD_CARTRIDGE_SUPPORT
+#include "SDCart.h"
+#endif
 
 extern int keyboardmap;
 extern int soundmode;
@@ -43,16 +49,56 @@ static char _ROMName[FILENAME_MAX];
 static char _FontName[FILENAME_MAX];
 static char _TapeName[FILENAME_MAX];
 static char _PrnName[FILENAME_MAX];
+#ifdef SD_CARTRIDGE_SUPPORT
+static char _SD_RomName[FILENAME_MAX];
+static char _SD_ImgName[FILENAME_MAX];
+static int SDCartEnabled = 0;
+#endif
+#ifdef SERIAL_SUPPORT
+static char        _SerialDevice[FILENAME_MAX];
+static const char *SerialDevice = NULL;
+static int         SerialBaud   = SERIAL_DEFAULT_BAUD;
+#endif
 
-/* Check the command line argument looking for the cartridge or tape file name */
+/* Check the command line arguments for the cartridge/tape file name and
+ * any optional flags such as --serial <device>. */
 static void ProcessArgument (int argc,char *argv[]) 
 {
-  if (argc != 2) return;
-  char *dot = strrchr(argv[1], '.');
-  if (dot && !strcasecmp(dot, ".bin"))
-    CartName=argv[1];
-  else 
-    TapeName=argv[1]; // else asume tape filename
+  int i;
+  for (i = 1; i < argc; i++) {
+#ifdef SERIAL_SUPPORT
+    if (strcmp(argv[i], "--serial") == 0 && i + 1 < argc) {
+      strncpy(_SerialDevice, argv[++i], FILENAME_MAX - 1);
+      _SerialDevice[FILENAME_MAX - 1] = '\0';
+      SerialDevice = _SerialDevice;
+      continue;
+    }
+    if (strcmp(argv[i], "--serial-baud") == 0 && i + 1 < argc) {
+      SerialBaud = atoi(argv[++i]);
+      if (SerialBaud <= 0) SerialBaud = SERIAL_DEFAULT_BAUD;
+      continue;
+    }
+#endif
+#ifdef SD_CARTRIDGE_SUPPORT
+    if (!strcmp(argv[i], "--sdcard")) {
+      SDCartEnabled = 1;
+      continue;
+    }
+    if (!strcmp(argv[i], "--sdrom") && i + 1 < argc) {
+      SDCartEnabled = 1;
+      SD_RomName = argv[++i];
+      continue;
+    }
+#endif
+    /* Positional argument: a tape (.cas) or cartridge (.bin) file */
+    if (argv[i][0] != '-') {
+      char *dot = strrchr(argv[i], '.');
+      if (dot && !strcasecmp(dot, ".bin"))
+        CartName = argv[i];
+      else
+        TapeName = argv[i];
+    }
+  }
 }
 
 /* Expand to absolute path */
@@ -72,6 +118,8 @@ static char * MakeFullPath (char *dest, const char *src, char *root)
 int M2000_main(int argc,char *argv[])
 {
   FILE *f;
+  int result = EXIT_FAILURE;
+
   /* Optionally a cartridge or tape filename can be passed as first argument */
   ProcessArgument (argc,argv);
   // don't boot from the default tape
@@ -88,32 +136,60 @@ int M2000_main(int argc,char *argv[])
   ROMName = MakeFullPath(_ROMName, ROMName, ProgramPath);
   FontName = MakeFullPath(_FontName, FontName, ProgramPath);
   PrnName = MakeFullPath(_PrnName, PrnName, DocumentPath);
+#ifdef SD_CARTRIDGE_SUPPORT
+  if (SDCartEnabled) {
+    SD_RomName = MakeFullPath(_SD_RomName, SD_RomName, DocumentPath);
+    SD_ImgName = MakeFullPath(_SD_ImgName, SD_ImgName, DocumentPath);
+  }
+#endif
 
   /* Check for valid variables */
   IFreq = IFreq >= 55 ? 60 : 50; //only support 50Hz and 60Hz
   if (UPeriod<1) UPeriod=1;
   if (UPeriod>10) UPeriod=10;
-  //only support CPU speeds 10, 20, 50, 100, 120, 200 and 500
-  if (CpuSpeed > 350) CpuSpeed = 500;
+  //only support CPU speeds 10, 20, 50, 100, 120, 200, 500 and 1000
+  if (CpuSpeed > 700) CpuSpeed = 1000;
+  else if (CpuSpeed > 350) CpuSpeed = 500;
   else if (CpuSpeed > 160) CpuSpeed = 200;
   else if (CpuSpeed > 110) CpuSpeed = 120;
   else if (CpuSpeed > 75) CpuSpeed = 100;
   else if (CpuSpeed > 35) CpuSpeed = 50;
   else if (CpuSpeed > 15) CpuSpeed = 20;
   else CpuSpeed = 10;
-  Z80_IPeriod=(2500000*CpuSpeed)/(100*IFreq);
+  Z80_IPeriod = (int)((2500000LL * CpuSpeed) / (100 * IFreq));
 
   /* Start emulated P2000 */
-  if (!InitMachine()) return EXIT_FAILURE;
-  if (!InitP2000(NULL, NULL)) return EXIT_FAILURE;
+  if (!InitMachine()) goto cleanup;
+#ifdef SERIAL_SUPPORT
+  /* Serial must be initialised before InitP2000() so that its ROM patching
+   * step can tell whether serial mode is active (see Serial_IsActive() in
+   * P2000.c) and skip the 0x0E5D printer-output patch accordingly. */
+  if (SerialDevice) {
+    if (!Serial_Init(SerialDevice, SerialBaud))
+      fprintf(stderr, "Warning: could not open serial device '%s'\n", SerialDevice);
+  }
+#endif
+  if (!InitP2000(NULL, NULL)) goto cleanup;
+#ifdef SD_CARTRIDGE_SUPPORT
+  if (SDCartEnabled && !SDCart_Init(SD_RomName, SD_ImgName)) goto cleanup;
+#endif
   if (TapeName) {
     // first try open for update, then try create then try read-only
     if ((f = fopen(TapeName,"r+b")) == NULL) f = fopen(TapeName, "w+b");
     InsertCassette(TapeName, f ? f : fopen(TapeName, "rb"), (f == NULL));
   }
   StartP2000(); // P2000 loop
+  result = EXIT_SUCCESS;
+
+cleanup:
   /* Trash emulated P2000 */
+#ifdef SERIAL_SUPPORT
+  Serial_Shutdown();
+#endif
   TrashP2000();
+#ifdef SD_CARTRIDGE_SUPPORT
+  if (SDCartEnabled) SDCart_Cleanup();
+#endif
   TrashMachine ();
-  return EXIT_SUCCESS;
+  return result;
 }
