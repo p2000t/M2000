@@ -18,8 +18,12 @@
 #******************************************************************************#
 
 CC	= gcc	# C compiler used
-CFLAGS  = -Wall -O2 -DSD_CARTRIDGE_SUPPORT -DSERIAL_SUPPORT
+CFLAGS  = -Wall -O2
 LDFLAGS  = -s
+FEATURES = -DSD_CARTRIDGE_SUPPORT -DSERIAL_SUPPORT
+
+# Always add feature flags, even when CFLAGS is overridden on the command line
+override CFLAGS += $(FEATURES)
 VPATH = ../
 
 # Link with pthreads on non-Windows platforms (used by Serial.c RX thread)
