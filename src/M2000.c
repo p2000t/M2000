@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include "P2000.h"
+#include "FDC.h"
 #ifdef SERIAL_SUPPORT
 #include "Serial.h"
 #endif
@@ -49,6 +50,7 @@ static char _ROMName[FILENAME_MAX];
 static char _FontName[FILENAME_MAX];
 static char _TapeName[FILENAME_MAX];
 static char _PrnName[FILENAME_MAX];
+static const char *FloppyName = NULL;
 #ifdef SD_CARTRIDGE_SUPPORT
 static char _SD_RomName[FILENAME_MAX];
 static char _SD_ImgName[FILENAME_MAX];
@@ -66,6 +68,14 @@ static void ProcessArgument (int argc,char *argv[])
 {
   int i;
   for (i = 1; i < argc; i++) {
+    if (!strcmp(argv[i], "--floppy")) {
+      if (i + 1 == argc) {
+        fprintf(stderr, "Usage: M2000 [cartridge.bin] --floppy <image.dsk>\n");
+        exit(EXIT_FAILURE);
+      }
+      FloppyName = argv[++i];
+      continue;
+    }
 #ifdef SERIAL_SUPPORT
     if (strcmp(argv[i], "--serial") == 0 && i + 1 < argc) {
       strncpy(_SerialDevice, argv[++i], FILENAME_MAX - 1);
@@ -157,6 +167,10 @@ int M2000_main(int argc,char *argv[])
   else if (CpuSpeed > 15) CpuSpeed = 20;
   else CpuSpeed = 10;
   Z80_IPeriod = (int)((2500000LL * CpuSpeed) / (100 * IFreq));
+
+  /* Configure the expansion before the frontend creates its hardware menu. */
+  if (FloppyName && !FDC_Init(FloppyName)) goto cleanup;
+  if (FDC_IsActive() && RAMSizeKb < 48) RAMSizeKb = 80;
 
   /* Start emulated P2000 */
   if (!InitMachine()) goto cleanup;

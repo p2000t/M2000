@@ -20,6 +20,7 @@
 // This file contains the P2000 hardware emulation code
 
 #include "P2000.h"
+#include "FDC.h"
 #ifdef SERIAL_SUPPORT
 #include "Serial.h"
 #endif
@@ -128,13 +129,16 @@ void Z80_Out (byte Port, byte Value)
   case 0x89:
   case 0x8A:
   case 0x8B:
-    break;
+    FDC_Out(Port, Value);
+    return;
   /* Floppy controller */
+  case 0x8C:
   case 0x8D:
   case 0x8E:
   case 0x8F:
   case 0x90:
-    break;
+    FDC_Out(Port, Value);
+    return;
   /* RAM Bank select */
   case 0x94:
     if (RAMBanks && Value < RAMBanks) {
@@ -203,13 +207,14 @@ byte Z80_In (byte Port)
   case 0x89:
   case 0x8A:
   case 0x8B:
-   break;
+   return FDC_In(Port);
   /* Floppy controller */
+  case 0x8C:
   case 0x8D:
   case 0x8E:
   case 0x8F:
   case 0x90:
-   break;
+   return FDC_In(Port);
   /* RAM Bank select */
   case 0x94:
    if (RAMBanks) {
@@ -347,6 +352,7 @@ int InitP2000 (byte* monitor_rom, byte *cartridge_rom)
     return 0;
 
   memset (KeyMap,0xFF,sizeof(KeyMap));
+  FDC_Reset();
   Z80_Reset ();
   
   return 1;
@@ -365,6 +371,7 @@ int StartP2000 (void)
 /****************************************************************************/
 void TrashP2000 (void)
 {
+ FDC_Cleanup();
  if (TapeStream) {
    fclose (TapeStream);
    TapeStream = NULL;
@@ -470,10 +477,15 @@ int Z80_Interrupt(void)
   NMI=0; //reset flag
   return Z80_NMI_INT;
  }
+ if (FDC_IsActive()) {
+  Z80_Regs regs;
+  Z80_GetRegs(&regs);
+  return FDC_Interrupt(regs.IFF1, OutputReg&0x40);
+ }
  return (OutputReg&0x40) ? 0x00FF : Z80_IGNORE_INT;
 }
 
-void Z80_Reti (void) { }
+void Z80_Reti (void) { FDC_Reti(); }
 void Z80_Retn (void) { }
 
 /****************************************************************************/
@@ -1003,6 +1015,7 @@ void RefreshScreen(void)
 void WarmReset() 
 {
   ColumnModeReg = 0;
+  FDC_Reset();
   Z80_Reset ();
 }
 
@@ -1010,5 +1023,6 @@ void ColdReset()
 {
   ColumnModeReg = 0;
   ColdBoot = 1;
+  FDC_Reset();
   Z80_Reset ();
 }

@@ -82,6 +82,9 @@ Ctrl-Q           -  Quit emulator
 M2000 [filename]            Optional cassette (.cas) or cartridge (.bin) to preload
                             When a cassette (.cas) is provided, BASIC will try to boot it
 
+M2000 --floppy <image.dsk>  Mount a raw 320 KiB JWS floppy as drive A: (drive 1).
+                            Enables the RAM expansion needed for disk boot.
+
 M2000 --serial <port>       Bridge the P2000T's bit-banged serial port (printer I/O,
                             ports 0x10/0x20) to a host COM port or serial device,
                             e.g. COM4 on Windows or /dev/ttyS0 on Linux. Defaults to 1200
@@ -92,6 +95,34 @@ M2000 --serial-baud <rate>  Overrides the host serial port baud rate used with -
                             for - 1200 by default, 2400 when $6016 is poked to 0, or a
                             custom rate for programs that bit-bang serial I/O directly.
 ```
+### Booting JWS from floppy
+
+A validated cartridge/disk pair is included in [test/JWS](test/JWS/README.md),
+with source references and instructions for testing with a disk copy.
+For images downloaded from [the software archive](https://github.com/p2000t/software), run:
+
+```sh
+./M2000 /path/to/JWSBasic.bin --floppy /path/to/jws-sytem.dsk
+```
+
+Alternatively, enable **Hardware → Floppy Controller**, insert `JWSBasic.bin`
+using **File → Insert Cartridge**, then choose **File → Insert Floppy Image**.
+Inserting a floppy restarts the machine. The controller setting is saved;
+disabling it retains the inserted image for the current session.
+
+The monitor reads the system tracks into banked upper RAM, and the cartridge
+starts JWS DISK SYSTEM 5.0NL. This disk then automatically loads Utilities II.
+The floppy option selects the existing 80 KiB RAM expansion when needed.
+Paths passed to `--floppy` are relative to the working directory.
+
+The emulated floppy drive controller  supports read/write sectors, read track,
+read ID, seek/recalibrate, status commands, terminal count, and the board's CTC
+interrupt routing. **Images are updated in place; use a working copy to preserve
+the original.** Read-only files are mounted write-protected. Only raw JWS images
+(40 cylinders, two sides, 16 sectors of 256 bytes) are supported. Formatting,
+deleted sectors, rotational timing, and saving/restoring controller state in
+emulator save states are not implemented.
+
 ### Configuration file
 
 After starting M2000 for the first time, a configuration file named `M2000.cfg` will be created in the root of the M2000 folder inside the user's Documents folder. This is a plain text file which can be edited by the user.

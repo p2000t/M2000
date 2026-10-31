@@ -33,6 +33,8 @@
 void ParseConfig() 
 {
   if (!config) return;
+  FDC_SetEnabled(al_get_config_value(config, "Hardware", "fdc") &&
+                 !strcmp(al_get_config_value(config, "Hardware", "fdc"), "on"));
   RAMSizeKb       = atoi(al_get_config_value(config, "Hardware",  "ram"));
   TapeBootEnabled = strcmp(al_get_config_value(config, "Hardware",  "boot"), "on") == 0;
   PrnType         = atoi(al_get_config_value(config, "Hardware",  "printertype"));
@@ -45,6 +47,7 @@ void ParseConfig()
   PrnName         =      al_get_config_value(config, "File",      "printer");
   userCassettesPath = al_create_path_for_directory(al_get_config_value(config, "File", "cassettes"));
   userCartridgesPath = al_create_path_for_directory(al_get_config_value(config, "File", "cartridges"));
+  userFloppiesPath = al_create_path_for_directory(al_get_config_value(config, "File", "floppies"));
   userScreenshotsPath = al_create_path_for_directory(al_get_config_value(config, "File", "screenshots"));
   cropScreenshot  = strcmp(al_get_config_value(config, "File",      "cropscreenshot"), "on") == 0;
   userVideoRamDumpsPath = al_create_path_for_directory(al_get_config_value(config, "File", "videoramdumps"));
@@ -88,6 +91,7 @@ void InitConfig()
   al_add_config_comment(config, "Hardware",   "                      1 - Matrix");
   al_add_config_comment(config, "Hardware",   "romfile=<file>        Set P2000 ROM file [P2000ROM.bin]");
   al_add_config_comment(config, "Hardware",   "font=<filename>       Set SAA5050 font to use [Default.fnt]");
+  al_set_config_value  (config, "Hardware",   "fdc", "off");
   al_set_config_value  (config, "Hardware",   "ram", "32");
   al_set_config_value  (config, "Hardware",   "80columnscard", "on");
   al_set_config_value  (config, "Hardware",   "boot", "on");
@@ -102,6 +106,7 @@ void InitConfig()
   al_add_config_comment(config, "File",       "printer=<filename>    Set file for printer output [Printer.out]");
   al_add_config_comment(config, "File",       "cassettes=<path>      Set folder containing cassette files (.cas)");
   al_add_config_comment(config, "File",       "cartridges=<path>     Set folder containing cartridge files (.bin)");
+  al_add_config_comment(config, "File",       "floppies=<path>       Last folder used for floppy images (.dsk)");
   al_add_config_comment(config, "File",       "screenshots=<path>    Set folder to store the screenshot files (.bmp|.png)");
   al_add_config_comment(config, "File",       "cropscreenshot=on|off Crop screenshots to the draw area, excluding the border [off]");
   al_add_config_comment(config, "File",       "videoramdumps=<path>  Set folder to store the video-RAM dump files (.vram)");
@@ -111,6 +116,7 @@ void InitConfig()
   al_set_config_value  (config, "File",       "printer", "Printer.out");
   ALLEGRO_PATH * _docPath = al_clone_path(docPath);
   al_set_path_filename(_docPath, NULL);
+  al_set_config_value  (config, "File",       "floppies", al_path_cstr(_docPath, PATH_SEPARATOR));
   al_append_path_component(_docPath, SUBDIR_CASSETTES);
   al_set_config_value  (config, "File",       "cassettes", al_path_cstr(_docPath, PATH_SEPARATOR));
   al_replace_path_component(_docPath, -1, SUBDIR_CARTRIDGES);
@@ -211,6 +217,7 @@ void SaveConfig()
 
   al_set_config_value(config, "File", "cassettes", al_path_cstr(userCassettesPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "cartridges", al_path_cstr(userCartridgesPath, PATH_SEPARATOR));
+  al_set_config_value(config, "File", "floppies", al_path_cstr(userFloppiesPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "screenshots", al_path_cstr(userScreenshotsPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "cropscreenshot", cropScreenshot ? "on" : "off");
   al_set_config_value(config, "File", "videoramdumps", al_path_cstr(userVideoRamDumpsPath, PATH_SEPARATOR));
@@ -228,6 +235,7 @@ void SaveConfig()
   if (sprintf(intstr, "%i", keyboardmap))   al_set_config_value(config, "Keyboard", "keymap", intstr);
 
   if (sprintf(intstr, "%i", RAMSizeKb))     al_set_config_value(config, "Hardware", "ram", intstr);
+  al_set_config_value(config, "Hardware", "fdc", FDC_IsActive() ? "on" : "off");
   al_set_config_value(config, "Hardware", "80columnscard", EightyColumnsCard ? "on" : "off");
 
   al_set_config_value(config, "Options", "sound", soundmode ? "on" : "off");

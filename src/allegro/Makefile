@@ -27,7 +27,7 @@ ifneq ($(OS),Windows_NT)
     LDFLAGS += -lpthread
 endif
 
-OBJECTS = SDCart.o M2000.o P2000.o Z80.o Serial.o Main.o
+OBJECTS = FDC.o SDCart.o M2000.o P2000.o Z80.o Serial.o Main.o
 TARGET = ../../M2000
 
 # MacPorts setup

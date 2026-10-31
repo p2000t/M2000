@@ -81,7 +81,7 @@ else
 endif
 
 VPATH = ../
-OBJECTS := P2000.o Z80.o m2000_libretro.o
+OBJECTS := FDC.o P2000.o Z80.o m2000_libretro.o
 CFLAGS += -I./libretro-common/include -Wall -std=gnu99 $(FPIC)
 
 all: clean $(TARGET)

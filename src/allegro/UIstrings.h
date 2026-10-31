@@ -25,6 +25,10 @@ typedef struct {
   const char* value;
 } LanguageEntry;
 
+#define FILE_INSERT_FLOPPY_ID             121
+#define HARDWARE_FDC_ID                   122
+#define FLOPPY_LOAD_ERROR                 123
+
 #define FILE_EXIT_ID                      1
 #define FILE_INSERT_CASSETTE_ID           2
 #define FILE_BOOT_CASSETTE_ID             3
@@ -110,6 +114,9 @@ typedef struct {
 #define OPTIONS_AUDIOFILTER_2_ID          119
 
 static LanguageEntry ENstrings[] = {
+  { FILE_INSERT_FLOPPY_ID, "Insert Floppy Image..." },
+  { HARDWARE_FDC_ID, "Floppy Controller" },
+  { FLOPPY_LOAD_ERROR, "Cannot open floppy image. Select a raw 320 KiB JWS .dsk file." },
   { FILE_MENU_ID, "File->" },
   { FILE_INSERT_CASSETTE_ID, "Insert Cassette... (Ctrl-I)" },
   { FILE_BOOT_CASSETTE_ID, "Open/Boot Cassette... (Ctrl-O)" },
@@ -175,6 +182,9 @@ static LanguageEntry ENstrings[] = {
 };
 
 static LanguageEntry NLstrings[] = {
+  { FILE_INSERT_FLOPPY_ID, "Invoeren floppy-image..." },
+  { HARDWARE_FDC_ID, "Floppycontroller" },
+  { FLOPPY_LOAD_ERROR, "Kan floppy-image niet openen. Selecteer een raw JWS .dsk-bestand van 320 KiB." },
   { FILE_MENU_ID, "Bestand->" },
   { FILE_INSERT_CASSETTE_ID, "Invoeren cassette... (Ctrl-I)"},
   { FILE_BOOT_CASSETTE_ID, "Opstarten cassette... (Ctrl-O)" },

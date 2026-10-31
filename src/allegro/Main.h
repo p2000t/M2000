@@ -41,6 +41,7 @@ ALLEGRO_PATH *userScreenshotsPath = NULL;
 ALLEGRO_PATH *userVideoRamDumpsPath = NULL;
 ALLEGRO_PATH *userCassettesPath = NULL;
 ALLEGRO_PATH *userCartridgesPath = NULL;
+ALLEGRO_PATH *userFloppiesPath = NULL;
 ALLEGRO_PATH *userSavestatesPath = NULL;
 ALLEGRO_PATH *currentTapePath = NULL;
 

@@ -30,7 +30,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
 {
   static char stateFilePath[FILENAME_MAX];
   static char stateFilePath2[FILENAME_MAX];
-  static char extension[7];
+  static char extension[32];
   FILE *f;
   int i;
 
@@ -42,7 +42,7 @@ const char * SaveState(const char *chosenFilePath, ALLEGRO_PATH *stateFolder)
       if (i==10)
         strcpy(extension, ".sav");
       else
-        sprintf(extension, "-%i.sav", i);
+        snprintf(extension, sizeof(extension), "-%i.sav", i);
 
       al_set_path_filename(stateFolder, "quicksave");
       al_set_path_extension(stateFolder, extension);
@@ -85,11 +85,29 @@ void LoadState(const char * chosenFilePath, ALLEGRO_PATH *stateFolder)
   }
 
   if ((f = fopen(stateFilePath , "rb"))) {
-    fread(&regs, sizeof(regs), 1, f); //read Z80 registers
-    fread(ROM, 1, 0x5000, f); //read ROM
-    fread(VRAM, 1, 0x1000, f); //read VRAM
-    fread(RAM, 1, RAMSizeKb * 1024, f); //read RAM
+    // Stage the whole snapshot before changing the running machine. A short
+    // read must not leave registers and memory from two different states.
+    Z80_Regs loadedRegs;
+    size_t ramSize = (size_t)RAMSizeKb * 1024;
+    size_t memorySize = 0x6000 + ramSize;
+    byte *memory = malloc(memorySize);
+    if (!memory) {
+      fclose(f);
+      ShowErrorMessage("Unable to allocate memory for loading a save state.");
+      return;
+    }
+    if (fread(&loadedRegs, sizeof(loadedRegs), 1, f) != 1 ||
+        fread(memory, 1, memorySize, f) != memorySize) {
+      fclose(f);
+      free(memory);
+      ShowErrorMessage("Unable to read complete save state '%s'.", stateFilePath);
+      return;
+    }
     fclose(f);
-    Z80_SetRegs(&regs);
+    memcpy(ROM, memory, 0x5000);
+    memcpy(VRAM, memory + 0x5000, 0x1000);
+    memcpy(RAM, memory + 0x6000, ramSize);
+    free(memory);
+    Z80_SetRegs(&loadedRegs);
   }     
 }

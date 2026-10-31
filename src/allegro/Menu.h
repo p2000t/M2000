@@ -22,6 +22,7 @@
 #include <string.h>
 #include <allegro5/allegro_native_dialog.h>
 #include "Main.h"
+#include "../FDC.h"
 #include "UIstrings.h"
 
 ALLEGRO_MENU *menu = NULL;
@@ -50,6 +51,11 @@ void UpdateMemoryMenu() {
   al_set_menu_item_flags(menu, HARDWARE_T102_ID, RAMSizeKb == 80 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
 }
 
+void UpdateFloppyMenu() {
+  al_set_menu_item_flags(menu, HARDWARE_FDC_ID, FDC_IsActive() ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
+  al_set_menu_item_flags(menu, FILE_INSERT_FLOPPY_ID, FDC_IsActive() ? 0 : ALLEGRO_MENU_ITEM_DISABLED);
+}
+
 void UpdateCpuSpeedMenu () {
   al_set_menu_item_flags(menu, SPEED_1000_ID, CpuSpeed == 1000 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
   al_set_menu_item_flags(menu, SPEED_500_ID, CpuSpeed == 500 ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX);
@@ -71,6 +77,8 @@ void CreateEmulatorMenu()
       ALLEGRO_MENU_SEPARATOR,
       { _(FILE_INSERT_CARTRIDGE_ID), FILE_INSERT_CARTRIDGE_ID, 0, NULL },
       { _(FILE_REMOVE_CARTRIDGE_ID), FILE_REMOVE_CARTRIDGE_ID, 0, NULL },
+      ALLEGRO_MENU_SEPARATOR,
+      { _(FILE_INSERT_FLOPPY_ID), FILE_INSERT_FLOPPY_ID, 0, NULL },
       ALLEGRO_MENU_SEPARATOR,
       { _(FILE_RESET_ID), FILE_RESET_ID, 0, NULL },
       { _(FILE_INTERRUPT_ID), FILE_INTERRUPT_ID, 0, NULL },
@@ -139,6 +147,7 @@ void CreateEmulatorMenu()
         { "P2000T/102 (80K RAM)", HARDWARE_T102_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
         ALLEGRO_END_OF_MENU,
       ALLEGRO_MENU_SEPARATOR,
+      { _(HARDWARE_FDC_ID), HARDWARE_FDC_ID, ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       { _(HARDWARE_80COLUMNSCARD), HARDWARE_80COLUMNSCARD, EightyColumnsCard ? ALLEGRO_MENU_ITEM_CHECKED : ALLEGRO_MENU_ITEM_CHECKBOX, NULL },
       ALLEGRO_END_OF_MENU,
 
@@ -181,6 +190,7 @@ void CreateEmulatorMenu()
   UpdateAudioFilterMenu();
   UpdateCpuSpeedMenu();
   UpdateMemoryMenu();
+  UpdateFloppyMenu();
   UpdateViewMenu();
   al_set_display_menu(display, menu);
   if (oldmenu) {

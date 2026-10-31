@@ -63,6 +63,8 @@ void TrashMachine(void)
     free (charBuffer);
     charBuffer = NULL;
   }
+  al_destroy_path(userFloppiesPath);
+  userFloppiesPath = NULL;
 }
 
 void ShowErrorMessage(const char *format, ...)
@@ -78,6 +80,9 @@ void ShowErrorMessage(const char *format, ...)
 void RedrawScreen()
 {
   al_set_target_bitmap(al_get_backbuffer(display));
+  // A resize or exposed window region can invalidate the cached pixels.
+  // Restore the full drawing area before clearing and repainting every tile.
+  al_reset_clipping_rectangle();
   al_clear_to_color(al_map_rgb(0, 0, 0));
   memset(charBuffer, -1, 80 * 24 * sizeof(int)); //clear old screen characters
 }
@@ -299,11 +304,11 @@ int InitMachine(void)
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
   al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE); //disable vsync
 #ifdef __linux__
-  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
+  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GTK_TOPLEVEL | ALLEGRO_GENERATE_EXPOSE_EVENTS); // ALLEGRO_GTK_TOPLEVEL required for menu in Linux
   // for Linux create smallest display, as it does not correctly scale back
   display = al_create_display(Displays[1][0], Displays[1][1]);
 #else
-  al_set_new_display_flags (ALLEGRO_WINDOWED);
+  al_set_new_display_flags (ALLEGRO_WINDOWED | ALLEGRO_GENERATE_EXPOSE_EVENTS);
   display = al_create_display(DisplayWidth + 2*DisplayHBorder, DisplayHeight + 2*DisplayVBorder);
 #endif
   if (!display) {
@@ -679,6 +684,7 @@ void Keyboard(void)
   bool isP2000ShiftDown;
   FILE *f;
 
+  ALLEGRO_FILECHOOSER *floppyChooser = NULL;
   ALLEGRO_FILECHOOSER *cartridgeChooser = NULL;
   ALLEGRO_FILECHOOSER *screenshotChooser = NULL;
   ALLEGRO_FILECHOOSER *vRamLoadChooser = NULL;
@@ -794,7 +800,15 @@ void Keyboard(void)
     if (!isNextEvent) 
       event.type = 0; //clear event type from last event
 
-    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND)
+    // Native menu/window changes can resize or expose the drawable after
+    // al_resize_display() returns. Cached characters must be repainted even
+    // when their VRAM contents have not changed.
+    if (event.type == ALLEGRO_EVENT_DISPLAY_RESIZE) {
+      al_acknowledge_resize(display);
+      RedrawScreen();
+    }
+    if (event.type == ALLEGRO_EVENT_DISPLAY_FOUND ||
+        event.type == ALLEGRO_EVENT_DISPLAY_EXPOSE)
       RedrawScreen();
 
     if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)  { //window close icon was clicked
@@ -828,6 +842,20 @@ void Keyboard(void)
           }
           al_destroy_native_file_dialog(cartridgeChooser);
           break;
+        case FILE_INSERT_FLOPPY_ID:
+          if (!FDC_IsActive()) break;
+          floppyChooser = al_create_native_file_dialog(al_path_cstr(userFloppiesPath, PATH_SEPARATOR), _(FILE_INSERT_FLOPPY_ID), "*.dsk", ALLEGRO_FILECHOOSER_FILE_MUST_EXIST);
+          if (!floppyChooser) break;
+          if (al_show_native_file_dialog(display, floppyChooser) && al_get_native_file_dialog_count(floppyChooser) > 0) {
+            if (FDC_Init(al_get_native_file_dialog_path(floppyChooser, 0))) {
+              refreshPath(&userFloppiesPath, al_get_native_file_dialog_path(floppyChooser, 0));
+              ColdReset();
+            } else {
+              ShowErrorMessage("%s", _(FLOPPY_LOAD_ERROR));
+            }
+          }
+          al_destroy_native_file_dialog(floppyChooser);
+          break;
         case FILE_REMOVE_CARTRIDGE_ID:
           RemoveCartridge();
           break;
@@ -858,12 +886,17 @@ void Keyboard(void)
             f = fopen(_filename, "rb");
 #endif
             if (f != NULL) {
-              // for each of the 24 lines, read 40 chars and skip 40 chars
-              for (i=0;i<24;i++)
-                fread(VRAM + ScrollReg + i*80, 1, 40, f); 
+              // Read all 24 packed rows before replacing the visible screen.
+              byte videoData[24 * 40];
+              if (fread(videoData, 1, sizeof(videoData), f) == sizeof(videoData)) {
+                for (i=0;i<24;i++)
+                  memcpy(VRAM + ScrollReg + i*80, videoData + i*40, 40);
+                RefreshScreen();
+                refreshPath(&userVideoRamDumpsPath, al_get_native_file_dialog_path(vRamLoadChooser, 0));
+              } else {
+                ShowErrorMessage("Unable to read complete video RAM file '%s'.", _filename);
+              }
               fclose(f);
-              RefreshScreen();
-              refreshPath(&userVideoRamDumpsPath, al_get_native_file_dialog_path(vRamLoadChooser, 0));
             } 
           }
           al_destroy_native_file_dialog(vRamLoadChooser);
@@ -952,8 +985,18 @@ void Keyboard(void)
         case HARDWARE_T54_ID: RAMSizeKb=32; goto updateMem;
         case HARDWARE_T102_ID: RAMSizeKb=80; goto updateMem;
           updateMem:
+          if (FDC_IsActive() && RAMSizeKb < 48) RAMSizeKb = 80;
           InitRAM();
           UpdateMemoryMenu();
+          ColdReset();
+          break;
+        case HARDWARE_FDC_ID:
+          FDC_SetEnabled(!FDC_IsActive());
+          UpdateFloppyMenu();
+          if (FDC_IsActive() && RAMSizeKb < 48) {
+            RAMSizeKb = 80;
+            goto updateMem;
+          }
           ColdReset();
           break;
         case HARDWARE_80COLUMNSCARD:
