@@ -19,7 +19,7 @@ jobs:
     - name: Build Allegro
       shell: bash
       run: make allegro \
-          CFLAGS="-Wall -O2 -I${{ github.workspace }}/allegro/include" \
+          CPPFLAGS="-I${{ github.workspace }}/allegro/include" \
           LDFLAGS="-s -mwindows -L${{ github.workspace }}/allegro/lib ../icons/icon64.res"
     - name: Build Libretro
       shell: bash
