@@ -207,7 +207,7 @@ void InitConfig()
 
 void SaveConfig() 
 {
-  static char intstr[4];
+  static char intstr[12];
 
   al_set_config_value(config, "File", "cassettes", al_path_cstr(userCassettesPath, PATH_SEPARATOR));
   al_set_config_value(config, "File", "cartridges", al_path_cstr(userCartridgesPath, PATH_SEPARATOR));
