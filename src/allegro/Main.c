@@ -89,12 +89,18 @@ void SaveScreenshotToFile(const char *path)
   ALLEGRO_BITMAP *target = al_get_target_bitmap();
   if (cropScreenshot) {
     ALLEGRO_BITMAP *drawArea = al_create_sub_bitmap(target, DisplayHBorder, DisplayVBorder, DisplayWidth, DisplayHeight);
-    al_save_bitmap(path, drawArea);
-    al_destroy_bitmap(drawArea);
+    if (drawArea) {
+      al_save_bitmap(path, drawArea);
+      al_destroy_bitmap(drawArea);
+      return;
+    }
+    // DisplayHBorder/DisplayWidth (etc) describe a rectangle that does not
+    // fit inside target - al_create_sub_bitmap() cannot satisfy that and
+    // returns NULL. Fall back to saving the whole frame rather than crashing
+    // or silently saving nothing.
+    if (Verbose) printf("Screenshot crop area exceeds the frame bounds - saving uncropped.\n");
   }
-  else {
-    al_save_bitmap(path, target);
-  }
+  al_save_bitmap(path, target);
 }
 
 void ResetAudioStream() 
@@ -276,6 +282,19 @@ int InitMachine(void)
 
   if (Verbose) printf("Creating the display window... ");
   InitVideoMode();
+#ifdef __linux__
+  // The Linux window is always created at the fixed Displays[1] size further
+  // down (Allegro does not correctly scale back on this platform), so force
+  // videomode to match it here. Otherwise DisplayWidth/DisplayHeight - and
+  // everything derived from them (tile width/height, borders, and the
+  // screenshot crop-to-draw-area rectangle) - are computed for whatever
+  // size InitVideoMode() picked instead, which can be larger than the
+  // actual window on high-resolution monitors. That mismatch causes
+  // rendered columns/rows past the real window edge to be silently
+  // clipped, and makes the screenshot crop request a sub-bitmap bigger
+  // than its parent, which al_create_sub_bitmap() cannot satisfy.
+  optimalVideomode = videomode = 1;
+#endif
   UpdateDisplaySettings();
   al_set_new_display_option(ALLEGRO_SINGLE_BUFFER, 1, ALLEGRO_REQUIRE); //require single buffer
   al_set_new_display_option(ALLEGRO_VSYNC, 2, ALLEGRO_REQUIRE); //disable vsync
